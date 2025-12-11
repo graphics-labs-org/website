@@ -2,20 +2,322 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Graphics Labs - Arte Generativo y Herramientas</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graphics Labs | Art & Code</title>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 50px; background: #111; color: #fff; }
-        h1 { color: #00ffcc; }
-        a { color: #ff00cc; text-decoration: none; font-size: 1.2rem; border: 1px solid #ff00cc; padding: 10px 20px; border-radius: 5px; }
-        a:hover { background: #ff00cc; color: white; }
+        :root {
+            --primary: #00f3ff; /* Cian Cyberpunk */
+            --secondary: #bd00ff; /* Violeta Neón */
+            --glass: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.1);
+            --text: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', monospace, sans-serif; }
+        
+        body {
+            background-color: #050505;
+            color: var(--text);
+            overflow-x: hidden;
+        }
+
+        /* --- CANVAS DE FONDO --- */
+        #bg-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: -1;
+        }
+
+        /* --- UI PRINCIPAL --- */
+        .container {
+            position: relative;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        /* Header & Idiomas */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 40px;
+        }
+        
+        .logo { font-size: 1.5rem; font-weight: bold; letter-spacing: 2px; color: var(--primary); }
+        
+        .lang-switch button {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 5px 15px;
+            cursor: pointer;
+            transition: 0.3s;
+            border-radius: 20px;
+        }
+        .lang-switch button:hover, .lang-switch button.active {
+            background: var(--primary);
+            color: #000;
+            border-color: var(--primary);
+        }
+
+        /* Títulos */
+        h1 { font-size: 3.5rem; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 5px; }
+        .subtitle { color: #888; margin-bottom: 50px; font-size: 1.2rem; }
+
+        /* --- GRID DE LABS --- */
+        .labs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+
+        .card {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            padding: 30px;
+            border-radius: 15px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 243, 255, 0.1);
+            border-color: var(--primary);
+        }
+
+        .card h3 { color: var(--primary); margin-bottom: 10px; font-size: 1.4rem; }
+        .card p { color: #ccc; font-size: 0.9rem; line-height: 1.5; margin-bottom: 20px; }
+        
+        .btn-lab {
+            display: inline-block;
+            text-decoration: none;
+            color: var(--text);
+            border: 1px solid var(--secondary);
+            padding: 8px 20px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            transition: 0.3s;
+        }
+        .btn-lab:hover { background: var(--secondary); box-shadow: 0 0 15px var(--secondary); }
+
     </style>
 </head>
 <body>
-    <h1>🚀 Graphics Labs</h1>
-    <p>Estamos construyendo un universo de herramientas gráficas.</p>
-    <br>
-    <p>Mientras tanto, visita nuestro laboratorio de:</p>
-    <br>
-    <a href="https://geometriasagrada.top">🎨 Geometría Sagrada</a>
+
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="container">
+        <nav>
+            <div class="logo">GRAPHICS LABS</div>
+            <div class="lang-switch">
+                <button onclick="setLang('es')" id="btn-es" class="active">ES</button>
+                <button onclick="setLang('en')" id="btn-en">EN</button>
+                <button onclick="setLang('fr')" id="btn-fr">FR</button>
+            </div>
+        </nav>
+
+        <h1 id="txt-title">EXPLORA EL CÓDIGO</h1>
+        <p class="subtitle" id="txt-subtitle">Laboratorio de experimentos visuales, geometría y arte generativo.</p>
+
+        <div class="labs-grid">
+            
+            <div class="card">
+                <h3 id="card1-title">Geometría Sagrada</h3>
+                <p id="card1-desc">Generador de mandalas de neón. Experimenta con la simetría y el caos matemático.</p>
+                <a href="https://geometriasagrada.top" class="btn-lab" id="btn-enter">ENTRAR AL LAB</a>
+            </div>
+
+            <div class="card">
+                <h3 id="card2-title">Cimática & Audio</h3>
+                <p id="card2-desc">Visualiza el sonido. Observa cómo las frecuencias crean formas en tiempo real.</p>
+                <a href="#" class="btn-lab">PRÓXIMAMENTE</a>
+            </div>
+
+            <div class="card">
+                <h3 id="card3-title">Física de Partículas</h3>
+                <p id="card3-desc">Simulaciones de gravedad, fluidos y sistemas de enjambre interactivos.</p>
+                <a href="#" class="btn-lab">PRÓXIMAMENTE</a>
+            </div>
+
+             <div class="card">
+                <h3 id="card4-title">Luz y Color</h3>
+                <p id="card4-desc">Herramientas para diseñadores. Generadores de paletas y fractales de color.</p>
+                <a href="#" class="btn-lab">PRÓXIMAMENTE</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* --- 1. SISTEMA DE IDIOMAS (Sin Base de Datos) --- */
+        const translations = {
+            'es': {
+                title: "EXPLORA EL CÓDIGO",
+                subtitle: "Laboratorio de experimentos visuales, geometría y arte generativo.",
+                card1_title: "Geometría Sagrada",
+                card1_desc: "Generador de mandalas de neón. Experimenta con la simetría y el caos matemático.",
+                card2_title: "Cimática & Audio",
+                card2_desc: "Visualiza el sonido. Observa cómo las frecuencias crean formas en tiempo real.",
+                card3_title: "Física de Partículas",
+                card3_desc: "Simulaciones de gravedad, fluidos y sistemas de enjambre interactivos.",
+                card4_title: "Luz y Color",
+                card4_desc: "Herramientas para diseñadores. Generadores de paletas y fractales de color.",
+                btn_enter: "ENTRAR AL LAB"
+            },
+            'en': {
+                title: "EXPLORE THE CODE",
+                subtitle: "Laboratory for visual experiments, geometry, and generative art.",
+                card1_title: "Sacred Geometry",
+                card1_desc: "Neon mandala generator. Experiment with symmetry and mathematical chaos.",
+                card2_title: "Cymatics & Audio",
+                card2_desc: "Visualize sound. Watch how frequencies create shapes in real-time.",
+                card3_title: "Particle Physics",
+                card3_desc: "Gravity simulations, fluids, and interactive swarm systems.",
+                card4_title: "Light & Color",
+                card4_desc: "Tools for designers. Palette generators and color fractals.",
+                btn_enter: "ENTER LAB"
+            },
+            'fr': {
+                title: "EXPLOREZ LE CODE",
+                subtitle: "Laboratoire d'expériences visuelles, géométrie et art génératif.",
+                card1_title: "Géométrie Sacrée",
+                card1_desc: "Générateur de mandalas néon. Expérimentez la symétrie et le chaos mathématique.",
+                card2_title: "Cymatique & Audio",
+                card2_desc: "Visualisez le son. Regardez comment les fréquences créent des formes.",
+                card3_title: "Physique des Particules",
+                card3_desc: "Simulations de gravité, fluides et systèmes d'essaim interactifs.",
+                card4_title: "Lumière et Couleur",
+                card4_desc: "Outils pour designers. Générateurs de palettes et fractales.",
+                btn_enter: "ENTRER"
+            }
+        };
+
+        function setLang(lang) {
+            // Actualizar textos
+            document.getElementById('txt-title').innerText = translations[lang].title;
+            document.getElementById('txt-subtitle').innerText = translations[lang].subtitle;
+            
+            document.getElementById('card1-title').innerText = translations[lang].card1_title;
+            document.getElementById('card1-desc').innerText = translations[lang].card1_desc;
+            document.getElementById('card2-title').innerText = translations[lang].card2_title;
+            document.getElementById('card2-desc').innerText = translations[lang].card2_desc;
+            document.getElementById('card3-title').innerText = translations[lang].card3_title;
+            document.getElementById('card3-desc').innerText = translations[lang].card3_desc;
+            document.getElementById('card4-title').innerText = translations[lang].card4_title;
+            document.getElementById('card4-desc').innerText = translations[lang].card4_desc;
+            
+            document.getElementById('btn-enter').innerText = translations[lang].btn_enter;
+
+            // Actualizar botones (estilo)
+            document.querySelectorAll('.lang-switch button').forEach(b => b.classList.remove('active'));
+            document.getElementById('btn-' + lang).classList.add('active');
+        }
+
+        /* --- 2. FONDO DE PARTÍCULAS --- */
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let particlesArray;
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let mouse = { x: null, y: null, radius: (canvas.height/80) * (canvas.width/80) };
+
+        window.addEventListener('mousemove', function(event) {
+            mouse.x = event.x;
+            mouse.y = event.y;
+        });
+
+        class Particle {
+            constructor(x, y, directionX, directionY, size, color) {
+                this.x = x; this.y = y;
+                this.directionX = directionX; this.directionY = directionY;
+                this.size = size; this.color = color;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+                ctx.fillStyle = '#00f3ff';
+                ctx.fill();
+            }
+            update() {
+                if (this.x > canvas.width || this.x < 0) this.directionX = -this.directionX;
+                if (this.y > canvas.height || this.y < 0) this.directionY = -this.directionY;
+                
+                // Mouse interaction
+                let dx = mouse.x - this.x;
+                let dy = mouse.y - this.y;
+                let distance = Math.sqrt(dx*dx + dy*dy);
+                if (distance < mouse.radius + this.size){
+                    if (mouse.x < this.x && this.x < canvas.width - this.size * 10) this.x += 10;
+                    if (mouse.x > this.x && this.x > this.size * 10) this.x -= 10;
+                    if (mouse.y < this.y && this.y < canvas.height - this.size * 10) this.y += 10;
+                    if (mouse.y > this.y && this.y > this.size * 10) this.y -= 10;
+                }
+                this.x += this.directionX;
+                this.y += this.directionY;
+                this.draw();
+            }
+        }
+
+        function init() {
+            particlesArray = [];
+            let numberOfParticles = (canvas.height * canvas.width) / 9000;
+            for (let i = 0; i < numberOfParticles; i++) {
+                let size = (Math.random() * 2) + 1;
+                let x = (Math.random() * ((innerWidth - size * 2) - (size * 2)) + size * 2);
+                let y = (Math.random() * ((innerHeight - size * 2) - (size * 2)) + size * 2);
+                let directionX = (Math.random() * 2) - 1;
+                let directionY = (Math.random() * 2) - 1;
+                let color = '#00f3ff';
+                particlesArray.push(new Particle(x, y, directionX, directionY, size, color));
+            }
+        }
+
+        function connect(){
+            let opacityValue = 1;
+            for (let a = 0; a < particlesArray.length; a++) {
+                for (let b = a; b < particlesArray.length; b++) {
+                    let distance = ((particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x))
+                    + ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y));
+                    if (distance < (canvas.width/7) * (canvas.height/7)) {
+                        opacityValue = 1 - (distance/20000);
+                        ctx.strokeStyle = 'rgba(0, 243, 255,' + opacityValue + ')';
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                        ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            ctx.clearRect(0, 0, innerWidth, innerHeight);
+            for (let i = 0; i < particlesArray.length; i++) {
+                particlesArray[i].update();
+            }
+            connect();
+        }
+
+        window.addEventListener('resize', function(){
+            canvas.width = innerWidth;
+            canvas.height = innerHeight;
+            mouse.radius = ((canvas.height/80) * (canvas.height/80));
+            init();
+        });
+
+        init();
+        animate();
+    </script>
 </body>
 </html>
