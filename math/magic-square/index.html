@@ -8,8 +8,8 @@
         :root {
             --primary: #00f3ff;
             --secondary: #bd00ff;
-            --highlight: #ffd700; /* Dorado para las sumas */
-            --glass: rgba(20, 20, 20, 0.6);
+            --highlight: #ffee00; /* Amarillo eléctrico para el rastro */
+            --glass: rgba(20, 20, 20, 0.7);
             --border: rgba(255, 255, 255, 0.1);
             --text: #ffffff;
             --muted: #888;
@@ -116,35 +116,23 @@
         }
         button.download-btn:hover { background: rgba(255,255,255,0.2); border-color: #fff; }
 
-        /* --- FÓRMULA INTERACTIVA --- */
         .formula-box {
             font-family: 'Courier New', monospace;
             color: var(--secondary);
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             margin: 10px 0;
             min-height: 1.5em;
             text-shadow: 0 0 5px rgba(189, 0, 255, 0.4);
-            position: relative;
-            z-index: 10;
-            padding: 10px;
-            border-radius: 8px;
-            transition: 0.3s;
+            font-weight: bold;
         }
-        
-        /* Clase para cuando es clickable (<= 10x10) */
-        .formula-box.interactive {
-            cursor: pointer;
-            border: 1px dashed rgba(189, 0, 255, 0.3);
-        }
-        .formula-box.interactive:hover {
-            background: rgba(189, 0, 255, 0.1);
-            border-color: var(--secondary);
-        }
-        .formula-box.interactive::after {
-            content: '👆';
-            font-size: 0.8em;
-            margin-left: 10px;
-            opacity: 0.5;
+
+        .hint-text {
+            color: var(--muted);
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+            font-style: italic;
+            opacity: 0;
+            animation: fadeIn 1s forwards 0.5s;
         }
 
         /* --- GRID MÁGICO --- */
@@ -162,44 +150,35 @@
 
         #magic-grid {
             display: grid;
-            gap: 2px;
+            gap: 3px;
             margin: 0 auto;
-            background: rgba(0,0,0,0.3);
+            background: rgba(0,0,0,0.5);
             padding: 10px;
             border-radius: 8px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,1);
         }
 
         .cell {
-            background: rgba(0, 243, 255, 0.08);
-            border: 1px solid rgba(0, 243, 255, 0.2);
+            background: rgba(0, 243, 255, 0.05);
+            border: 1px solid rgba(0, 243, 255, 0.1);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #fff;
-            border-radius: 2px;
+            color: #ccc;
+            border-radius: 4px;
             transition: 0.2s;
-            user-select: text;
+            cursor: pointer; /* Indicar interactividad */
+            position: relative;
         }
         
-        .cell.fancy:hover { 
-            background: var(--primary); 
-            color: #000; 
-            transform: scale(1.1); 
-            box-shadow: 0 0 10px var(--primary); 
-            z-index: 15; 
+        /* Hover suave */
+        .cell:hover { 
+            background: rgba(0, 243, 255, 0.2);
+            color: #fff;
         }
 
-        .cell.dense {
-            background: #111;
-            border: none;
-            font-family: monospace;
-            color: var(--primary);
-        }
-
-        .sagrada-highlight { border-color: var(--secondary) !important; color: var(--secondary) !important; font-weight: bold; }
-
-        /* Highlight de suma interactiva */
-        .sum-highlight {
+        /* HIGHLIGHT: El rastro mágico */
+        .cell.active-trace {
             background: var(--highlight) !important;
             color: #000 !important;
             box-shadow: 0 0 15px var(--highlight);
@@ -208,6 +187,25 @@
             font-weight: bold;
             border-color: #fff !important;
         }
+
+        /* Highlight de la celda CLICADA (Diferente a las otras) */
+        .cell.selected-origin {
+            background: #fff !important;
+            color: #000 !important;
+            box-shadow: 0 0 20px #fff;
+            transform: scale(1.15);
+            z-index: 30;
+        }
+
+        .cell.dense {
+            background: #111;
+            border: none;
+            font-family: monospace;
+            color: var(--primary);
+            cursor: default;
+        }
+
+        .sagrada-highlight { border-color: var(--secondary) !important; color: var(--secondary) !important; font-weight: bold; }
 
         /* Nav & Footer */
         nav { display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between; align-items: center; margin-bottom: 20px; }
@@ -306,7 +304,8 @@
             <button class="sagrada-btn" onclick="generateSagrada()" id="btn-sagrada">ver SAGRADA FAMILIA (4x4)</button>
         </div>
 
-        <div class="formula-box" id="formula-display" onclick="highlightSums()"></div>
+        <div class="formula-box" id="formula-display"></div>
+        <div class="hint-text" id="txt-hint">Haz clic en un número para ver sus conexiones.</div>
 
         <div id="magic-container">
             <div id="magic-grid"></div>
@@ -323,9 +322,7 @@
             <a href="../../privacy.html" id="link-privacy">Política de Privacidad</a>
             <a href="../../cookies.html" id="link-cookies">Política de Cookies</a>
         </div>
-        
         <span id="footer-rights">© 2025 Graphics Labs</span>
-        
         <a href="https://paypal.me/TU_USUARIO_PAYPAL" target="_blank" class="coffee-btn">
             ☕ <span id="btn-coffee">Invítame a un café</span>
         </a>
@@ -333,8 +330,9 @@
 
     <script>
         let currentMatrix = [];
-        let isSagradaMode = false; // Estado para corregir bug de idioma
+        let isSagradaMode = false; 
 
+        /* --- TRADUCCIONES --- */
         const translations = {
             'es': {
                 title: "CUADRADO MÁGICO",
@@ -344,6 +342,7 @@
                 btn_sagrada: "ver SAGRADA FAMILIA (4x4)",
                 formula: "Constante Mágica: ",
                 sagrada_note: "Nota: Cuadrado de Subirachs (Suma 33, Edad de Cristo).",
+                hint: "Haz clic en un número para ver sus conexiones.",
                 download: "Descargar TXT",
                 legal: "Aviso Legal", privacy: "Política de Privacidad", cookies: "Política de Cookies", coffee: "Invítame a un café"
             },
@@ -355,6 +354,7 @@
                 btn_sagrada: "view SAGRADA FAMILIA (4x4)",
                 formula: "Magic Constant: ",
                 sagrada_note: "Note: Subirachs Square (Sums 33, Age of Christ).",
+                hint: "Click on a number to see its connections.",
                 download: "Download TXT",
                 legal: "Legal Notice", privacy: "Privacy Policy", cookies: "Cookies Policy", coffee: "Buy me a coffee"
             },
@@ -366,6 +366,7 @@
                 btn_sagrada: "voir SAGRADA FAMILIA (4x4)",
                 formula: "Constante Magique: ",
                 sagrada_note: "Note: Carré de Subirachs (Somme 33, Âge du Christ).",
+                hint: "Cliquez sur un nombre pour voir ses connexions.",
                 download: "Télécharger TXT",
                 legal: "Mentions Légales", privacy: "Politique de Confidentialité", cookies: "Politique de Cookies", coffee: "Offrez-moi un café"
             },
@@ -377,6 +378,7 @@
                 btn_sagrada: "siehe SAGRADA FAMILIA (4x4)",
                 formula: "Magische Konstante: ",
                 sagrada_note: "Hinweis: Subirachs Quadrat (Summe 33, Alter Christi).",
+                hint: "Klicken Sie auf eine Zahl, um ihre Verbindungen zu sehen.",
                 download: "TXT Herunterladen",
                 legal: "Impressum", privacy: "Datenschutz", cookies: "Cookie-Richtlinie", coffee: "Kauf mir einen Kaffee"
             },
@@ -388,6 +390,7 @@
                 btn_sagrada: "ver SAGRADA FAMILIA (4x4)",
                 formula: "Constante Mágica: ",
                 sagrada_note: "Nota: Quadrado de Subirachs (Soma 33, Idade de Cristo).",
+                hint: "Clique em um número para ver suas conexões.",
                 download: "Baixar TXT",
                 legal: "Aviso Legal", privacy: "Política de Privacidade", cookies: "Política de Cookies", coffee: "Pague-me um café"
             },
@@ -399,6 +402,7 @@
                 btn_sagrada: "vedi SAGRADA FAMILIA (4x4)",
                 formula: "Costante Magica: ",
                 sagrada_note: "Nota: Quadrato di Subirachs (Somma 33, Età di Cristo).",
+                hint: "Clicca su un numero per vedere le sue connessioni.",
                 download: "Scarica TXT",
                 legal: "Avviso Legale", privacy: "Privacy Policy", cookies: "Cookie Policy", coffee: "Offrimi un caffè"
             },
@@ -410,6 +414,7 @@
                 btn_sagrada: "zie SAGRADA FAMILIA (4x4)",
                 formula: "Magische Constante: ",
                 sagrada_note: "Opmerking: Subirachs Vierkant (Som 33, Leeftijd van Christus).",
+                hint: "Klik op een getal om de verbindingen te zien.",
                 download: "Download TXT",
                 legal: "Juridische kennisgeving", privacy: "Privacybeleid", cookies: "Cookiebeleid", coffee: "Koop een koffie voor me"
             },
@@ -421,6 +426,7 @@
                 btn_sagrada: "サグラダ・ファミリア (4x4)",
                 formula: "魔法定数: ",
                 sagrada_note: "注：スビラクスの方陣（合計33、キリストの年齢）。",
+                hint: "番号をクリックして接続を確認します。",
                 download: "TXTをダウンロード",
                 legal: "法的通知", privacy: "プライバシーポリシー", cookies: "クッキーポリシー", coffee: "コーヒーを奢る"
             }
@@ -438,6 +444,7 @@
             document.getElementById('btn-gen').innerText = t.btn_gen;
             document.getElementById('btn-sagrada').innerText = t.btn_sagrada;
             document.getElementById('txt-download').innerText = t.download;
+            document.getElementById('txt-hint').innerText = t.hint;
             
             document.getElementById('link-legal').innerText = t.legal;
             document.getElementById('link-privacy').innerText = t.privacy;
@@ -447,16 +454,11 @@
             document.querySelectorAll('.lang-switch button').forEach(b => b.classList.remove('active'));
             document.getElementById('btn-' + lang).classList.add('active');
             
-            // CORRECCION BUG: Usamos el estado isSagradaMode
             const formulaBox = document.getElementById('formula-display');
-            
-            // Solo actualizamos si hay contenido
             if(currentMatrix.length > 0) {
                 if (isSagradaMode) {
-                    // Modo Sagrada: Texto especial
                     formulaBox.innerText = t.formula + "33 (" + t.sagrada_note + ")";
                 } else {
-                    // Modo Normal: Calculo
                     const n = currentMatrix.length;
                     const magicConstant = (n * (n*n + 1)) / 2;
                     formulaBox.innerText = t.formula + magicConstant;
@@ -465,9 +467,8 @@
         }
 
         /* --- GENERACIÓN --- */
-
         function generateUserSquare() {
-            isSagradaMode = false; // Reset flag
+            isSagradaMode = false; 
             let n = parseInt(document.getElementById('size-input').value);
             if(n < 3) n = 3; 
             if(n > 100) n = 100;
@@ -476,11 +477,6 @@
             const magicConstant = (n * (n*n + 1)) / 2;
             document.getElementById('formula-display').innerText = translations[currentLang].formula + magicConstant;
             
-            // Manejo de interactividad para visualizar sumas
-            const fBox = document.getElementById('formula-display');
-            if(n <= 10) fBox.classList.add('interactive');
-            else fBox.classList.remove('interactive');
-
             if (n % 2 !== 0) currentMatrix = generateOdd(n);
             else if (n % 4 === 0) currentMatrix = generateDoublyEven(n);
             else currentMatrix = generateSinglyEven(n);
@@ -490,7 +486,7 @@
         }
 
         function generateSagrada() {
-            isSagradaMode = true; // Activar flag
+            isSagradaMode = true; 
             currentMatrix = [
                 [1, 14, 14, 4],
                 [11, 7, 6, 9],
@@ -498,45 +494,54 @@
                 [13, 2, 3, 15]
             ];
             document.getElementById('formula-display').innerText = translations[currentLang].formula + "33 (" + translations[currentLang].sagrada_note + ")";
-            
-            const fBox = document.getElementById('formula-display');
-            fBox.classList.add('interactive'); // Sagrada es pequeño, siempre interactivo
-
             drawGrid(currentMatrix, 4, true);
             document.getElementById('btn-download').style.display = 'flex';
         }
 
-        /* --- VISUALIZAR SUMAS (HIGHLIGHT) --- */
-        function highlightSums() {
-            // Solo funciona si el grid es manejable
+        /* --- LOGICA DEL RASTRO (TRACE) --- */
+        function traceLines(r, c) {
             const n = currentMatrix.length;
-            if(n > 10) return;
+            if(n > 30) return; // Desactivar para grids gigantes
 
             const cells = document.querySelectorAll('.cell');
             
-            // Limpiar destacados previos
-            cells.forEach(c => c.classList.remove('sum-highlight'));
+            // Limpiar anteriores
+            cells.forEach(cell => {
+                cell.classList.remove('active-trace');
+                cell.classList.remove('selected-origin');
+            });
 
-            // Aplicar efecto (Highlight de filas, columnas y diagonales)
-            // Añadimos timeout pequeño para que se note el clic
-            setTimeout(() => {
-                // Filas
+            // Marcar origen
+            const originIndex = r * n + c;
+            if(cells[originIndex]) cells[originIndex].classList.add('selected-origin');
+
+            // Marcar Fila
+            for(let j=0; j<n; j++) {
+                if(j !== c) cells[r*n + j].classList.add('active-trace');
+            }
+
+            // Marcar Columna
+            for(let i=0; i<n; i++) {
+                if(i !== r) cells[i*n + c].classList.add('active-trace');
+            }
+
+            // Marcar Diagonal Principal (si aplica)
+            if(r === c) {
                 for(let i=0; i<n; i++) {
-                    for(let j=0; j<n; j++) cells[i*n + j].classList.add('sum-highlight');
+                    if(i !== r) cells[i*n + i].classList.add('active-trace');
                 }
-                
-                // Columnas (Se marcan, pero como ya marcamos todo en filas, esto solo refuerza)
-                // En realidad, en un cuadrado magico TODO suma la constante.
-                // Así que iluminamos TODO el grid para indicar "Todo está conectado".
-                
-                // Para que sea educativo, quitamos el highlight después de 3 segundos
-                setTimeout(() => {
-                    cells.forEach(c => c.classList.remove('sum-highlight'));
-                }, 3000);
-            }, 50);
+            }
+
+            // Marcar Anti-Diagonal (si aplica)
+            if(r + c === n - 1) {
+                for(let i=0; i<n; i++) {
+                    let j = (n - 1) - i;
+                    if(i !== r) cells[i*n + j].classList.add('active-trace');
+                }
+            }
         }
 
-        /* --- ALGORITMOS (Sin cambios) --- */
+        /* --- ALGORITMOS MATEMÁTICOS --- */
         function generateOdd(n) {
             let square = Array.from({ length: n }, () => Array(n).fill(0));
             let i = 0, j = Math.floor(n / 2);
@@ -597,39 +602,56 @@
         }
         function swap(grid, r1, c1, r2, c2) { let temp = grid[r1][c1]; grid[r1][c1] = grid[r2][c2]; grid[r2][c2] = temp; }
 
+        /* --- PINTADO DEL GRID --- */
         function drawGrid(matrix, size, isSpecial = false) {
             const container = document.getElementById('magic-grid');
             container.innerHTML = '';
             
             let cellSize, fontSize;
             let isDense = false;
+            // Ajuste responsive
             if (size <= 10) { cellSize = '50px'; fontSize = '1.2rem'; }
-            else if (size <= 20) { cellSize = '30px'; fontSize = '0.9rem'; }
-            else if (size <= 50) { cellSize = '20px'; fontSize = '0.7rem'; isDense = true; }
-            else { cellSize = '12px'; fontSize = '0.5rem'; isDense = true; }
+            else if (size <= 20) { cellSize = '35px'; fontSize = '1rem'; }
+            else if (size <= 50) { cellSize = '25px'; fontSize = '0.7rem'; isDense = true; }
+            else { cellSize = '15px'; fontSize = '0.5rem'; isDense = true; }
             
             container.style.gridTemplateColumns = `repeat(${size}, ${cellSize})`;
             let useDelay = size < 15;
+
+            // Mostrar/Ocultar hint
+            const hint = document.getElementById('txt-hint');
+            if(size > 30) hint.style.display = 'none';
+            else hint.style.display = 'block';
 
             for (let i = 0; i < size; i++) {
                 for (let j = 0; j < size; j++) {
                     let val = matrix[i][j];
                     let div = document.createElement('div');
                     div.className = isDense ? 'cell dense' : 'cell fancy';
+                    
                     if (isSpecial && (val === 10 || val === 14)) div.classList.add('sagrada-highlight');
+                    
                     div.style.width = cellSize;
                     div.style.height = cellSize;
                     div.style.fontSize = fontSize;
                     div.innerText = val;
+                    
+                    // EVENTO DE CLIC PARA RASTRO
+                    if(!isDense) {
+                        div.onclick = function() { traceLines(i, j); };
+                    }
+
                     if (useDelay) {
                         div.style.opacity = '0';
                         div.style.animation = `fadeIn 0.3s forwards ${ (i*size + j) * 0.01 }s`;
                     } else div.style.opacity = '1';
+                    
                     container.appendChild(div);
                 }
             }
         }
 
+        /* --- DESCARGA ASCII --- */
         function downloadASCII() {
             if(!currentMatrix || currentMatrix.length === 0) return;
             const n = currentMatrix.length;
@@ -652,6 +674,7 @@
             window.URL.revokeObjectURL(url);
         }
 
+        /* --- FONDO ANIMADO --- */
         const canvas = document.getElementById('bg-canvas');
         const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth;
