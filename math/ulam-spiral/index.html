@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ulam Spirals | Graphics Labs</title>
     <style>
-        /* --- ESTILOS BASE (Mismos que Magic Square) --- */
+        /* --- ESTILOS BASE --- */
         :root {
             --primary: #00ff41; /* Verde Matrix */
             --secondary: #bd00ff;
@@ -115,7 +115,6 @@
             margin-bottom: 20px;
             position: relative;
             z-index: 10;
-            /* Scrollbar personalizada */
             scrollbar-width: thin;
             scrollbar-color: var(--primary) #111;
         }
@@ -131,7 +130,7 @@
             box-shadow: 0 0 20px rgba(0,0,0,0.8);
             cursor: crosshair;
             margin-bottom: 10px;
-            max-width: 100%; /* Responsive por defecto */
+            max-width: 100%;
         }
 
         /* --- INFO & ADS --- */
@@ -146,7 +145,8 @@
             line-height: 1.8;
             color: #ddd;
         }
-        .info-section h2 { color: var(--primary); margin-bottom: 20px; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+        .info-section h2 { color: var(--primary); margin-bottom: 20px; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-top: 30px; }
+        .info-section h2:first-child { margin-top: 0; }
         .info-section p { margin-bottom: 20px; font-size: 1rem; text-align: justify; }
         .math-highlight { color: var(--highlight); font-family: monospace; background: rgba(255, 238, 0, 0.1); padding: 2px 5px; border-radius: 3px; }
 
@@ -234,7 +234,7 @@
 
         <div id="canvas-container">
             <canvas id="ulam-canvas" width="800" height="800"></canvas>
-            <p style="color:var(--muted); font-size: 0.8rem; margin-top:5px;" id="txt-canvas-note">Haz clic derecho para guardar (si está habilitado) o usa el botón de guardar.</p>
+            <p style="color:var(--muted); font-size: 0.8rem; margin-top:5px;" id="txt-canvas-note">Usa el botón GUARDAR JPG para descargar tu imagen.</p>
         </div>
 
         <div class="info-section">
@@ -242,13 +242,15 @@
             <p id="info-p1">
                 En 1963, el matemático polaco <strong>Stanislaw Ulam</strong> se encontraba en una reunión científica. Presa del aburrimiento, comenzó a garabatear números enteros consecutivos en una cuadrícula, empezando por el 1 en el centro y moviéndose en espiral hacia afuera. Instintivamente, marcó los <span class="math-highlight">números primos</span>.
             </p>
-            <p id="info-p2">
-                Lo que emergió no fue una distribución aleatoria, sino un patrón ordenado. Los números primos mostraban una extraña tendencia a alinearse a lo largo de líneas diagonales. Esto fue sorprendente porque contradice la intuición de que los números primos aparecen de forma pseudo-aleatoria e impredecible.
+            
+            <h2 id="info-h-why">¿Por qué se llama "Espiral"?</h2>
+            <p id="info-p-why">
+                Esta es la pregunta más común. La "espiral" se refiere al <strong>método de construcción</strong> invisible, no al resultado final. Imagina una línea que conecta todos los números naturales (1, 2, 3...) en orden saliendo del centro como un caracol cuadrado. Si viéramos todos los números, veríamos esa espiral perfecta. Sin embargo, en este gráfico borramos la estructura y dejamos encendidos <strong>solo los números primos</strong>. Lo sorprendente es que, al eliminar el orden visible, emerge un nuevo orden oculto en forma de diagonales.
             </p>
 
             <h2 id="info-h-math">La Matemática del Patrón</h2>
             <p id="info-p3">
-                Las líneas diagonales, horizontales y verticales visibles en la espiral corresponden a polinomios cuadráticos. Por ejemplo, la diagonal más prominente a menudo se relaciona con el famoso polinomio de Euler: <span class="math-highlight">f(n) = n² + n + 41</span>, que genera una densidad inusualmente alta de números primos.
+                Las líneas diagonales, horizontales y verticales visibles corresponden a polinomios cuadráticos. Por ejemplo, la diagonal más prominente a menudo se relaciona con el famoso polinomio de Euler: <span class="math-highlight">f(n) = n² + n + 41</span>, que genera una densidad inusualmente alta de números primos.
             </p>
             <p id="info-p4">
                 En esta herramienta de <strong>Graphics Labs</strong>, cada punto verde brillante representa un número primo. Al aumentar el número "Máximo (N)" y reducir el "Zoom", puedes observar estructuras a gran escala que se asemejan a galaxias o circuitos integrados, revelando la belleza oculta en la teoría de números.
@@ -285,10 +287,11 @@
                 title: "ESPIRAL DE ULAM", desc: "Visualización de la distribución de números primos en un patrón en espiral.",
                 lbl_max: "Máximo (N):", lbl_zoom: "Grosor (px):", lbl_start: "Número Inicio:",
                 btn_gen: "GENERAR", btn_save: "GUARDAR JPG",
-                note: "Los puntos verdes son números primos.",
+                canvas_note: "Usa el botón GUARDAR JPG para descargar tu imagen.",
                 history_title: "El Hallazgo Accidental",
                 p1: "En 1963, el matemático Stanislaw Ulam descubrió este patrón por aburrimiento en una reunión. Al escribir números en espiral y marcar los primos, notó alineaciones diagonales.",
-                p2: "Esto sugiere que los números primos no son tan aleatorios como parecen, sino que siguen ciertas funciones cuadráticas.",
+                why_title: "¿Por qué se llama 'Espiral'?",
+                p_why: "La espiral es el método de construcción (el camino invisible de los números 1, 2, 3...). Al borrar los números no primos, la espiral desaparece y quedan solo las diagonales de primos.",
                 math_title: "La Matemática del Patrón",
                 p3: "Las diagonales corresponden a polinomios como el de Euler: n² + n + 41. Esta herramienta permite visualizar estas 'galaxias matemáticas'.",
                 p4: "Aumenta el número máximo para ver la estructura a gran escala.",
@@ -298,10 +301,11 @@
                 title: "ULAM SPIRAL", desc: "Visualization of prime number distribution in a spiral pattern.",
                 lbl_max: "Maximum (N):", lbl_zoom: "Dot Size:", lbl_start: "Start Num:",
                 btn_gen: "GENERATE", btn_save: "SAVE JPG",
-                note: "Green dots represent prime numbers.",
+                canvas_note: "Use the SAVE JPG button to download your image.",
                 history_title: "The Accidental Discovery",
                 p1: "In 1963, mathematician Stanislaw Ulam discovered this pattern while doodling during a boring meeting. Marking primes in a number spiral revealed diagonal alignments.",
-                p2: "This suggests primes aren't purely random but align with quadratic functions.",
+                why_title: "Why is it called a 'Spiral'?",
+                p_why: "The spiral is the construction method (the invisible path of numbers 1, 2, 3...). When non-primes are removed, the spiral shape disappears, leaving only the diagonal patterns of primes.",
                 math_title: "The Mathematics",
                 p3: "Diagonals correspond to polynomials like Euler's n² + n + 41. This tool lets you visualize these 'math galaxies'.",
                 p4: "Increase the maximum number to see large-scale structures.",
@@ -311,22 +315,23 @@
                 title: "ESPIRAL D'ULAM", desc: "Visualització de la distribució de nombres primers en un patró en espiral.",
                 lbl_max: "Màxim (N):", lbl_zoom: "Gruix (px):", lbl_start: "Nombre Inici:",
                 btn_gen: "GENERAR", btn_save: "DESAR JPG",
-                note: "Els punts verds són nombres primers.",
+                canvas_note: "Usa el botó DESAR JPG per descarregar la teva imatge.",
                 history_title: "La Troballa Accidental",
                 p1: "El 1963, el matemàtic Stanislaw Ulam va descobrir aquest patró per avorriment. En escriure nombres en espiral i marcar els primers, va notar alineacions diagonals.",
-                p2: "Això suggereix que els nombres primers no són tan aleatoris com semblen.",
+                why_title: "Per què es diu 'Espiral'?",
+                p_why: "L'espiral és el mètode de construcció. En esborrar els nombres no primers, l'espiral desapareix i queden només les diagonals de primers.",
                 math_title: "La Matemàtica del Patró",
                 p3: "Les diagonals corresponen a polinomis com el d'Euler: n² + n + 41.",
                 p4: "Augmenta el nombre màxim per veure l'estructura a gran escala.",
                 legal: "Avís Legal", privacy: "Política de Privacitat", cookies: "Cookies", contact: "Contacte", coffee: "Convida'm a un cafè"
             },
-            // Idiomas restantes (simplificados para brevedad, en producción llenar todos)
-            'fr': { title: "SPIRALE D'ULAM", btn_gen: "GÉNÉRER", btn_save: "ENREGISTRER", lbl_max: "Maximum", lbl_zoom: "Zoom", lbl_start: "Début", history_title: "Découverte", p1: "Découvert par Ulam en 1963.", math_title: "Mathématiques", p3: "Polynôme d'Euler.", legal: "Mentions", privacy: "Confidentialité", cookies: "Cookies", contact: "Contact", coffee: "Café" },
-            'de': { title: "ULAM-SPIRALE", btn_gen: "GENERIEREN", btn_save: "SPEICHERN", lbl_max: "Maximum", lbl_zoom: "Zoom", lbl_start: "Start", history_title: "Entdeckung", p1: "1963 von Ulam entdeckt.", math_title: "Mathematik", p3: "Euler-Polynom.", legal: "Impressum", privacy: "Datenschutz", cookies: "Cookies", contact: "Kontakt", coffee: "Kaffee" },
-            'pt': { title: "ESPIRAL DE ULAM", btn_gen: "GERAR", btn_save: "SALVAR", lbl_max: "Máximo", lbl_zoom: "Zoom", lbl_start: "Início", history_title: "Descoberta", p1: "Descoberto por Ulam em 1963.", math_title: "Matemática", p3: "Polinômio de Euler.", legal: "Aviso", privacy: "Privacidade", cookies: "Cookies", contact: "Contato", coffee: "Café" },
-            'it': { title: "SPIRALE DI ULAM", btn_gen: "GENERARE", btn_save: "SALVARE", lbl_max: "Massimo", lbl_zoom: "Zoom", lbl_start: "Inizio", history_title: "Scoperta", p1: "Scoperto da Ulam nel 1963.", math_title: "Matematica", p3: "Polinomio di Eulero.", legal: "Legale", privacy: "Privacy", cookies: "Cookies", contact: "Contatto", coffee: "Caffè" },
-            'nl': { title: "ULAM SPIRAAL", btn_gen: "GENEREREN", btn_save: "OPSLAAN", lbl_max: "Maximum", lbl_zoom: "Zoom", lbl_start: "Start", history_title: "Ontdekking", p1: "Ontdekt door Ulam in 1963.", math_title: "Wiskunde", p3: "Euler's Polynoom.", legal: "Juridisch", privacy: "Privacy", cookies: "Cookies", contact: "Contact", coffee: "Koffie" },
-            'ja': { title: "ウラムの螺旋", btn_gen: "生成", btn_save: "保存", lbl_max: "最大値", lbl_zoom: "ズーム", lbl_start: "開始", history_title: "発見", p1: "1963年にウラムが発見。", math_title: "数学", p3: "オイラーの多項式。", legal: "法的", privacy: "プライバシー", cookies: "クッキー", contact: "接触", coffee: "コーヒー" }
+            // Fallbacks
+            'fr': { title: "SPIRALE D'ULAM", btn_gen: "GÉNÉRER", btn_save: "ENREGISTRER", canvas_note: "Utilisez le bouton pour enregistrer.", why_title: "Pourquoi une spirale ?", p_why: "La spirale est la méthode de construction invisible.", history_title: "Découverte", p1: "Découvert par Ulam en 1963.", math_title: "Mathématiques", p3: "Polynôme d'Euler.", legal: "Mentions", privacy: "Confidentialité", cookies: "Cookies", contact: "Contact", coffee: "Café" },
+            'de': { title: "ULAM-SPIRALE", btn_gen: "GENERIEREN", btn_save: "SPEICHERN", canvas_note: "Benutzen Sie den Button zum Speichern.", why_title: "Warum Spirale?", p_why: "Die Spirale ist die unsichtbare Konstruktionsmethode.", history_title: "Entdeckung", p1: "1963 von Ulam entdeckt.", math_title: "Mathematik", p3: "Euler-Polynom.", legal: "Impressum", privacy: "Datenschutz", cookies: "Cookies", contact: "Kontakt", coffee: "Kaffee" },
+            'pt': { title: "ESPIRAL DE ULAM", btn_gen: "GERAR", btn_save: "SALVAR", canvas_note: "Use o botão para salvar.", why_title: "Por que Espiral?", p_why: "A espiral é o método de construção invisível.", history_title: "Descoberta", p1: "Descoberto por Ulam em 1963.", math_title: "Matemática", p3: "Polinômio de Euler.", legal: "Aviso", privacy: "Privacidade", cookies: "Cookies", contact: "Contato", coffee: "Café" },
+            'it': { title: "SPIRALE DI ULAM", btn_gen: "GENERARE", btn_save: "SALVARE", canvas_note: "Usa il pulsante per salvare.", why_title: "Perché Spirale?", p_why: "La spirale è il metodo di costruzione invisibile.", history_title: "Scoperta", p1: "Scoperto da Ulam nel 1963.", math_title: "Matematica", p3: "Polinomio di Eulero.", legal: "Legale", privacy: "Privacy", cookies: "Cookies", contact: "Contatto", coffee: "Caffè" },
+            'nl': { title: "ULAM SPIRAAL", btn_gen: "GENEREREN", btn_save: "OPSLAAN", canvas_note: "Gebruik de knop om op te slaan.", why_title: "Waarom Spiraal?", p_why: "De spiraal is de onzichtbare bouwmethode.", history_title: "Ontdekking", p1: "Ontdekt door Ulam in 1963.", math_title: "Wiskunde", p3: "Euler's Polynoom.", legal: "Juridisch", privacy: "Privacy", cookies: "Cookies", contact: "Contact", coffee: "Koffie" },
+            'ja': { title: "ウラムの螺旋", btn_gen: "生成", btn_save: "保存", canvas_note: "保存ボタンを使用してください。", why_title: "なぜ螺旋？", p_why: "螺旋は目に見えない構築方法です。", history_title: "発見", p1: "1963年にウラムが発見。", math_title: "数学", p3: "オイラーの多項式。", legal: "法的", privacy: "プライバシー", cookies: "クッキー", contact: "接触", coffee: "コーヒー" }
         };
 
         let currentLang = 'es';
@@ -334,20 +339,25 @@
         function setLang(lang) {
             localStorage.setItem('gl_lang', lang);
             currentLang = lang;
-            const t = translations[lang] || translations['es']; // Fallback
+            const t = translations[lang] || translations['es'];
             
             document.getElementById('txt-title').innerText = t.title;
             if(t.desc) document.getElementById('txt-desc').innerText = t.desc;
             
-            document.getElementById('lbl-max').innerText = t.lbl_max;
-            document.getElementById('lbl-zoom').innerText = t.lbl_zoom;
-            document.getElementById('lbl-start').innerText = t.lbl_start;
+            document.getElementById('lbl-max').innerText = t.lbl_max || "Máximo:";
+            document.getElementById('lbl-zoom').innerText = t.lbl_zoom || "Zoom:";
+            document.getElementById('lbl-start').innerText = t.lbl_start || "Inicio:";
             document.getElementById('btn-gen').innerText = t.btn_gen;
             document.getElementById('btn-save').innerText = t.btn_save;
+            document.getElementById('txt-canvas-note').innerText = t.canvas_note || "";
 
             if(t.history_title) document.getElementById('info-h-history').innerText = t.history_title;
             if(t.p1) document.getElementById('info-p1').innerText = t.p1;
-            if(t.p2) document.getElementById('info-p2').innerText = t.p2;
+            
+            // Nueva sección explicativa
+            if(t.why_title) document.getElementById('info-h-why').innerText = t.why_title;
+            if(t.p_why) document.getElementById('info-p-why').innerText = t.p_why;
+            
             if(t.math_title) document.getElementById('info-h-math').innerText = t.math_title;
             if(t.p3) document.getElementById('info-p3').innerText = t.p3;
             if(t.p4) document.getElementById('info-p4').innerText = t.p4;
@@ -362,7 +372,7 @@
             document.getElementById('btn-' + lang).classList.add('active');
         }
 
-        /* --- 3. FONDO DE PARTÍCULAS (MATH THEME) --- */
+        /* --- 3. FONDO DE PARTÍCULAS (MOVIMIENTO CONTINUO) --- */
         const bgCanvas = document.getElementById('bg-canvas');
         const bgCtx = bgCanvas.getContext('2d');
         let particlesArray = [];
@@ -382,49 +392,52 @@
                 this.x = Math.random() * bgCanvas.width;
                 this.y = Math.random() * bgCanvas.height;
                 this.size = Math.random() * 12 + 8;
-                this.baseX = this.x;
-                this.baseY = this.y;
+                // Velocidad constante para movimiento perpetuo
+                this.speedX = (Math.random() * 1) - 0.5;
+                this.speedY = (Math.random() * 1) - 0.5;
+                
                 this.density = (Math.random() * 30) + 1;
-                // Símbolos matemáticos
-                const symbols = ['π', '∞', '∑', '∫', '√', '≈', '≠', '0', '1', 'e'];
+                const symbols = ['π', '∞', '∑', '∫', '√', '≈', '≠', '0', '1', 'e', 'x', 'y'];
                 this.text = symbols[Math.floor(Math.random() * symbols.length)];
             }
             draw() {
                 bgCtx.font = this.size + 'px monospace';
-                bgCtx.fillStyle = 'rgba(0, 255, 65, 0.2)';
+                bgCtx.fillStyle = 'rgba(0, 255, 65, 0.15)'; // Opacidad sutil
                 bgCtx.fillText(this.text, this.x, this.y);
             }
             update() {
-                let dx = mouse.x - this.x;
-                let dy = mouse.y - this.y;
-                let distance = Math.sqrt(dx*dx + dy*dy);
-                let forceDirectionX = dx / distance;
-                let forceDirectionY = dy / distance;
-                let maxDistance = mouse.radius;
-                let force = (maxDistance - distance) / maxDistance;
-                let directionX = forceDirectionX * force * this.density;
-                let directionY = forceDirectionY * force * this.density;
+                // 1. Movimiento base
+                this.x += this.speedX;
+                this.y += this.speedY;
 
-                if (distance < mouse.radius) {
-                    this.x -= directionX * 5; // Huyen del ratón
-                    this.y -= directionY * 5;
-                } else {
-                    if (this.x !== this.baseX) {
-                        let dx = this.x - this.baseX;
-                        this.x -= dx/10;
-                    }
-                    if (this.y !== this.baseY) {
-                        let dy = this.y - this.baseY;
-                        this.y -= dy/10;
+                // 2. Interactividad Mouse (repulsión)
+                if (mouse.x != null) {
+                    let dx = mouse.x - this.x;
+                    let dy = mouse.y - this.y;
+                    let distance = Math.sqrt(dx*dx + dy*dy);
+                    if (distance < mouse.radius) {
+                        const forceDirectionX = dx / distance;
+                        const forceDirectionY = dy / distance;
+                        const force = (mouse.radius - distance) / mouse.radius;
+                        const directionX = forceDirectionX * force * this.density;
+                        const directionY = forceDirectionY * force * this.density;
+                        this.x -= directionX;
+                        this.y -= directionY;
                     }
                 }
+
+                // 3. Resetear posición (Efecto infinito)
+                if (this.x > bgCanvas.width) this.x = 0;
+                if (this.x < 0) this.x = bgCanvas.width;
+                if (this.y > bgCanvas.height) this.y = 0;
+                if (this.y < 0) this.y = bgCanvas.height;
+
                 this.draw();
             }
         }
 
         function initParticles() {
             particlesArray = [];
-            // Densidad de partículas
             let numberOfParticles = (bgCanvas.height * bgCanvas.width) / 9000;
             for (let i = 0; i < numberOfParticles; i++) {
                 particlesArray.push(new Particle());
@@ -460,16 +473,12 @@
             let start = parseInt(document.getElementById('inp-start').value);
             let zoom = parseInt(document.getElementById('inp-zoom').value);
             
-            // Validaciones
             if (max < 100) max = 100;
             if (zoom < 1) zoom = 1;
             
-            // Calcular tamaño del canvas basado en la cantidad de números (área)
-            // Lado del cuadrado ≈ raíz cuadrada de max
             const spiralSide = Math.ceil(Math.sqrt(max));
-            const canvasSize = (spiralSide * zoom) + (zoom * 20); // padding
+            const canvasSize = (spiralSide * zoom) + (zoom * 20); 
 
-            // Limitar tamaño máximo para evitar crash del navegador
             const MAX_DIM = 4000;
             let finalW = canvasSize;
             if (finalW > MAX_DIM) finalW = MAX_DIM;
@@ -477,16 +486,12 @@
             ulamCanvas.width = finalW;
             ulamCanvas.height = finalW;
 
-            // Fondo negro
             ctx.fillStyle = '#000000';
             ctx.fillRect(0, 0, ulamCanvas.width, ulamCanvas.height);
 
             let x = Math.floor(ulamCanvas.width / 2);
             let y = Math.floor(ulamCanvas.height / 2);
             
-            // Direcciones: Derecha(0), Arriba(1), Izquierda(2), Abajo(3)
-            // Coordenadas pantalla: x aumenta derecha, y aumenta abajo.
-            // Derecha: x+1, y0. Arriba: x0, y-1. Izq: x-1, y0. Abajo: x0, y+1.
             const dx = [1, 0, -1, 0];
             const dy = [0, -1, 0, 1];
             let dir = 0;
@@ -497,18 +502,14 @@
 
             let currentNum = start;
 
-            // Optimización de dibujo: dibujar solo primos
-            ctx.fillStyle = '#00ff41'; // Verde Matrix
+            ctx.fillStyle = '#00ff41';
 
             for (let i = 0; i < max; i++) {
-                // Verificar límites de dibujo
                 if (x >= 0 && x < ulamCanvas.width && y >= 0 && y < ulamCanvas.height) {
                     if (isPrime(currentNum)) {
-                        // Dibujar punto
                         if (zoom === 1) {
                             ctx.fillRect(x, y, 1, 1);
                         } else {
-                            // Círculo pequeño para zoom > 1 queda más bonito
                             ctx.beginPath();
                             ctx.arc(x + zoom/2, y + zoom/2, zoom/2.5, 0, Math.PI*2);
                             ctx.fill();
@@ -516,14 +517,12 @@
                     }
                 }
 
-                // Mover
                 x += dx[dir] * zoom;
                 y += dy[dir] * zoom;
                 
                 currentNum++;
                 stepsTaken++;
 
-                // Lógica de giro espiral
                 if (stepsTaken === stepsInSegment) {
                     stepsTaken = 0;
                     dir = (dir + 1) % 4;
@@ -545,7 +544,7 @@
         // Inicializar
         const saved = localStorage.getItem('gl_lang') || 'es';
         setLang(saved);
-        setTimeout(generateSpiral, 100); // Pequeño delay para asegurar carga
+        setTimeout(generateSpiral, 100); 
 
     </script>
 </body>
