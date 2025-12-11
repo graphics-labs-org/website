@@ -242,7 +242,7 @@
                     <h3 id="card3-title">El Número Pi (π)</h3>
                     <p id="card3-desc">Buscador de secuencias dentro de los decimales de Pi y visualización artística de su aleatoriedad.</p>
                 </div>
-                <a href="#" class="btn-lab disabled prx">PRÓXIMAMENTE</a>
+                <a href="pi-search/index.html" class="btn-lab" id="btn-enter-pi">ENTRAR AL LAB</a>
             </div>
 
         </div>
@@ -269,7 +269,7 @@
     </footer>
 
     <script>
-        /* --- 1. IDIOMAS (9 Lenguas incluyendo Catalán) --- */
+        /* --- 1. IDIOMAS (9 Lenguas) --- */
         const translations = {
             'es': {
                 title: "DEPARTAMENTO DE MATEMÁTICAS",
@@ -281,7 +281,6 @@
                 card3_title: "El Número Pi (π)",
                 card3_desc: "Buscador de secuencias dentro de los decimales de Pi y visualización artística.",
                 btn_enter: "ENTRAR AL LAB",
-                prx: "PRÓXIMAMENTE",
                 legal: "Aviso Legal", privacy: "Política de Privacidad", cookies: "Política de Cookies", contact: "Contacto", coffee: "Invítame a un café"
             },
             'ca': {
@@ -294,7 +293,6 @@
                 card3_title: "El Nombre Pi (π)",
                 card3_desc: "Cercador de seqüències dins dels decimals de Pi i visualització artística.",
                 btn_enter: "ENTRAR AL LAB",
-                prx: "PRÒXIMAMENT",
                 legal: "Avís Legal", privacy: "Política de Privacitat", cookies: "Política de Cookies", contact: "Contacte", coffee: "Convidam a un cafè"
             },
             'en': {
@@ -307,7 +305,6 @@
                 card3_title: "The Number Pi (π)",
                 card3_desc: "Search sequences within Pi decimals and artistic visualization of randomness.",
                 btn_enter: "ENTER LAB",
-                prx: "COMING SOON",
                 legal: "Legal Notice", privacy: "Privacy Policy", cookies: "Cookies Policy", contact: "Contact", coffee: "Buy me a coffee"
             },
             'fr': {
@@ -320,7 +317,6 @@
                 card3_title: "Le Nombre Pi (π)",
                 card3_desc: "Recherche de séquences dans les décimales de Pi et visualisation artistique.",
                 btn_enter: "ENTRER",
-                prx: "BIENTÔT",
                 legal: "Mentions Légales", privacy: "Politique de Confidentialité", cookies: "Politique de Cookies", contact: "Contact", coffee: "Offrez-moi un café"
             },
             'de': {
@@ -333,7 +329,6 @@
                 card3_title: "Die Zahl Pi (π)",
                 card3_desc: "Suche nach Sequenzen innerhalb von Pi-Dezimalstellen und künstlerische Visualisierung.",
                 btn_enter: "EINTRETEN",
-                prx: "DEMNÄCHST",
                 legal: "Impressum", privacy: "Datenschutz", cookies: "Cookie-Richtlinie", contact: "Kontakt", coffee: "Kauf mir einen Kaffee"
             },
             'pt': {
@@ -346,7 +341,6 @@
                 card3_title: "O Número Pi (π)",
                 card3_desc: "Busca de sequências nos decimais de Pi e visualização artística.",
                 btn_enter: "ENTRAR",
-                prx: "EM BREVE",
                 legal: "Aviso Legal", privacy: "Política de Privacidade", cookies: "Política de Cookies", contact: "Contato", coffee: "Pague-me um café"
             },
             'it': {
@@ -359,7 +353,6 @@
                 card3_title: "Il Numero Pi (π)",
                 card3_desc: "Ricerca di sequenze nei decimali di Pi e visualizzazione artistica.",
                 btn_enter: "ENTRARE",
-                prx: "PROSSIMAMENTE",
                 legal: "Avviso Legale", privacy: "Privacy Policy", cookies: "Cookie Policy", contact: "Contatto", coffee: "Offrimi un caffè"
             },
             'nl': {
@@ -372,7 +365,6 @@
                 card3_title: "Het Getal Pi (π)",
                 card3_desc: "Zoek sequenties binnen Pi-decimalen en artistieke visualisatie.",
                 btn_enter: "GA NAAR LAB",
-                prx: "BINNENKORT",
                 legal: "Juridische kennisgeving", privacy: "Privacybeleid", cookies: "Cookiebeleid", contact: "Contact", coffee: "Koop een koffie voor me"
             },
             'ja': {
@@ -385,7 +377,6 @@
                 card3_title: "円周率 (π)",
                 card3_desc: "円周率の小数部内のシーケンス検索と芸術的視覚化。",
                 btn_enter: "ラボに入る",
-                prx: "近日公開",
                 legal: "法的通知", privacy: "プライバシーポリシー", cookies: "クッキーポリシー", contact: "接触", coffee: "コーヒーを奢る"
             }
         };
@@ -405,12 +396,10 @@
             document.getElementById('card3-title').innerText = t.card3_title;
             document.getElementById('card3-desc').innerText = t.card3_desc;
             
-            // Buttons
-            document.getElementById('btn-enter').innerText = t.btn_enter; // Magic Square
-            document.getElementById('btn-enter-ulam').innerText = t.btn_enter; // Ulam Spiral (NUEVO)
-            
-            const prxElements = document.querySelectorAll('.prx');
-            prxElements.forEach(el => el.innerText = t.prx);
+            // Buttons - Actualizar los 3 botones activos
+            document.getElementById('btn-enter').innerText = t.btn_enter; 
+            document.getElementById('btn-enter-ulam').innerText = t.btn_enter; 
+            document.getElementById('btn-enter-pi').innerText = t.btn_enter; 
             
             // Footer
             document.getElementById('link-legal').innerText = t.legal;
