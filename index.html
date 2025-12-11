@@ -6,8 +6,8 @@
     <title>Graphics Labs | Art & Code</title>
     <style>
         :root {
-            --primary: #00f3ff; /* Cian Cyberpunk */
-            --secondary: #bd00ff; /* Violeta Neón */
+            --primary: #00f3ff;
+            --secondary: #bd00ff;
             --glass: rgba(255, 255, 255, 0.05);
             --border: rgba(255, 255, 255, 0.1);
             --text: #ffffff;
@@ -16,6 +16,7 @@
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', monospace, sans-serif; }
         
+        /* Bloqueo de selección de texto para proteger contenido */
         body {
             background-color: #050505;
             color: var(--text);
@@ -23,9 +24,10 @@
             display: flex;
             flex-direction: column;
             min-height: 100vh;
+            user-select: none; /* No permite seleccionar texto */
+            -webkit-user-select: none;
         }
 
-        /* --- CANVAS DE FONDO --- */
         #bg-canvas {
             position: fixed;
             top: 0; left: 0;
@@ -33,14 +35,13 @@
             z-index: -1;
         }
 
-        /* --- UI PRINCIPAL --- */
         .container {
             position: relative;
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px 20px;
             text-align: center;
-            flex: 1; /* Para empujar el footer abajo */
+            flex: 1;
         }
 
         /* Nav & Idiomas */
@@ -85,11 +86,9 @@
             font-weight: bold;
         }
 
-        /* Títulos */
         h1 { font-size: 3rem; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 5px; }
         .subtitle { color: var(--muted); margin-bottom: 50px; font-size: 1.1rem; max-width: 800px; margin-left: auto; margin-right: auto; }
 
-        /* --- GRID DE LABS --- */
         .labs-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -132,48 +131,49 @@
         }
         .btn-lab:hover { background: var(--secondary); box-shadow: 0 0 15px var(--secondary); }
 
-        /* --- ESPACIO ADSENSE --- */
         .ad-container {
             width: 100%;
-            max-width: 728px; /* Tamaño estándar leaderboard */
+            max-width: 728px;
             margin: 20px auto;
             min-height: 90px;
             display: flex;
             justify-content: center;
             align-items: center;
-            /* Borde sutil solo para que veas donde está, luego lo puedes quitar */
             border: 1px dashed rgba(255,255,255,0.1); 
             border-radius: 8px;
         }
-        .ad-placeholder-text {
-            color: var(--border);
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
+        .ad-placeholder-text { color: var(--border); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; }
 
-        /* --- FOOTER --- */
+        /* --- FOOTER LEGAL --- */
         footer {
             background: rgba(0,0,0,0.8);
             backdrop-filter: blur(5px);
             border-top: 1px solid var(--border);
-            padding: 20px;
+            padding: 30px 20px;
             text-align: center;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             color: var(--muted);
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 15px;
             align-items: center;
         }
         
-        .footer-links a {
-            color: var(--text);
-            text-decoration: none;
-            margin: 0 10px;
-            transition: 0.3s;
+        .legal-links {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 10px;
         }
-        .footer-links a:hover { color: var(--primary); }
+
+        .legal-links a {
+            color: var(--muted);
+            text-decoration: none;
+            transition: 0.3s;
+            border-bottom: 1px solid transparent;
+        }
+        .legal-links a:hover { color: var(--primary); border-bottom-color: var(--primary); }
 
         .coffee-btn {
             background: linear-gradient(45deg, #FFDD00, #FBB03B);
@@ -187,13 +187,12 @@
             align-items: center;
             gap: 5px;
             transition: transform 0.2s;
-            margin-top: 5px;
         }
         .coffee-btn:hover { transform: scale(1.05); }
 
     </style>
 </head>
-<body>
+<body oncontextmenu="return false;">
 
     <canvas id="bg-canvas"></canvas>
 
@@ -208,6 +207,7 @@
                 <button onclick="setLang('pt')" id="btn-pt">PT</button>
                 <button onclick="setLang('it')" id="btn-it">IT</button>
                 <button onclick="setLang('nl')" id="btn-nl">NL</button>
+                <button onclick="setLang('ja')" id="btn-ja">JP</button>
             </div>
         </nav>
 
@@ -248,17 +248,31 @@
     </div>
 
     <footer>
-        <div class="footer-links">
-            <span id="footer-rights">© 2025 Graphics Labs</span> | 
-            <a href="https://github.com/graphics-labs-org" target="_blank">GitHub</a>
+        <div class="legal-links">
+            <a href="#" id="link-legal">Aviso Legal</a>
+            <a href="#" id="link-privacy">Política de Privacidad</a>
+            <a href="#" id="link-cookies">Política de Cookies</a>
         </div>
+        
+        <span id="footer-rights">© 2025 Graphics Labs</span>
+        
         <a href="https://paypal.me/TU_USUARIO_PAYPAL" target="_blank" class="coffee-btn">
             ☕ <span id="btn-coffee">Invítame a un café</span>
         </a>
     </footer>
 
     <script>
-        /* --- 1. DICCIONARIO DE 7 IDIOMAS --- */
+        /* --- BLOQUEO DE TECLAS (F12, Ctrl+U) --- 
+           Opcional: Añade un nivel extra de seguridad */
+        document.onkeydown = function(e) {
+            if(event.keyCode == 123) { return false; } // Bloquea F12
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) { return false; } // Bloquea Insp. Elemento
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) { return false; }
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) { return false; }
+            if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) { return false; } // Bloquea Ver Código Fuente
+        }
+
+        /* --- TRADUCCIONES CON LEGALES --- */
         const translations = {
             'es': {
                 title: "EXPLORA EL CÓDIGO",
@@ -273,7 +287,8 @@
                 card4_desc: "Herramientas para diseñadores. Generadores de paletas y fractales de color.",
                 btn_enter: "ENTRAR AL LAB",
                 prx: "PRÓXIMAMENTE",
-                coffee: "Invítame a un café"
+                coffee: "Invítame a un café",
+                legal: "Aviso Legal", privacy: "Política de Privacidad", cookies: "Política de Cookies"
             },
             'en': {
                 title: "EXPLORE THE CODE",
@@ -288,7 +303,8 @@
                 card4_desc: "Tools for designers. Palette generators and color fractals.",
                 btn_enter: "ENTER LAB",
                 prx: "COMING SOON",
-                coffee: "Buy me a coffee"
+                coffee: "Buy me a coffee",
+                legal: "Legal Notice", privacy: "Privacy Policy", cookies: "Cookies Policy"
             },
             'fr': {
                 title: "EXPLOREZ LE CODE",
@@ -303,7 +319,8 @@
                 card4_desc: "Outils pour designers. Générateurs de palettes et fractales.",
                 btn_enter: "ENTRER",
                 prx: "BIENTÔT",
-                coffee: "Offrez-moi un café"
+                coffee: "Offrez-moi un café",
+                legal: "Mentions Légales", privacy: "Politique de Confidentialité", cookies: "Politique de Cookies"
             },
             'de': {
                 title: "ENTDECKE DEN CODE",
@@ -318,7 +335,8 @@
                 card4_desc: "Werkzeuge für Designer. Palettengeneratoren und Farbfraktale.",
                 btn_enter: "LABOR BETRETEN",
                 prx: "DEMNÄCHST",
-                coffee: "Kauf mir einen Kaffee"
+                coffee: "Kauf mir einen Kaffee",
+                legal: "Impressum", privacy: "Datenschutz", cookies: "Cookie-Richtlinie"
             },
             'pt': {
                 title: "EXPLORE O CÓDIGO",
@@ -333,7 +351,8 @@
                 card4_desc: "Ferramentas para designers. Geradores de paletas e fractais de cores.",
                 btn_enter: "ENTRAR NO LAB",
                 prx: "EM BREVE",
-                coffee: "Pague-me um café"
+                coffee: "Pague-me um café",
+                legal: "Aviso Legal", privacy: "Política de Privacidade", cookies: "Política de Cookies"
             },
             'it': {
                 title: "ESPLORA IL CODICE",
@@ -348,7 +367,8 @@
                 card4_desc: "Strumenti per designer. Generatori di palette e frattali di colore.",
                 btn_enter: "ENTRA NEL LAB",
                 prx: "PROSSIMAMENTE",
-                coffee: "Offrimi un caffè"
+                coffee: "Offrimi un caffè",
+                legal: "Avviso Legale", privacy: "Privacy Policy", cookies: "Cookie Policy"
             },
             'nl': {
                 title: "VERKEN DE CODE",
@@ -363,7 +383,24 @@
                 card4_desc: "Tools voor ontwerpers. Paletgeneratoren en kleurfraktalen.",
                 btn_enter: "GA NAAR LAB",
                 prx: "BINNENKORT",
-                coffee: "Koop een koffie voor me"
+                coffee: "Koop een koffie voor me",
+                legal: "Juridische kennisgeving", privacy: "Privacybeleid", cookies: "Cookiebeleid"
+            },
+            'ja': {
+                title: "コードを探索する",
+                subtitle: "視覚実験、幾何学、ジェネレーティブアートの研究所。",
+                card1_title: "神聖幾何学",
+                card1_desc: "ネオンマンダラジェネレーター。対称性と数学的カオスを実験。",
+                card2_title: "サイマティクス＆オーディオ",
+                card2_desc: "音を視覚化する。周波数がリアルタイムで形を作る様子を観察。",
+                card3_title: "素粒子物理学",
+                card3_desc: "重力シミュレーション、流体、インタラクティブな群衆システム。",
+                card4_title: "光と色",
+                card4_desc: "デザイナー向けツール。パレットジェネレーターとカラーフラクタル。",
+                btn_enter: "ラボに入る",
+                prx: "近日公開",
+                coffee: "コーヒーを奢る",
+                legal: "法的通知", privacy: "プライバシーポリシー", cookies: "クッキーポリシー"
             }
         };
 
@@ -384,20 +421,25 @@
             
             // Botones
             document.getElementById('btn-enter').innerText = translations[lang].btn_enter;
-            document.getElementById('btn-enter-2').innerText = translations[lang].btn_enter; // Botón Lab 2
+            document.getElementById('btn-enter-2').innerText = translations[lang].btn_enter;
             
             // Textos Comunes
             const prxElements = document.querySelectorAll('.prx');
             prxElements.forEach(el => el.innerText = translations[lang].prx);
             
             document.getElementById('btn-coffee').innerText = translations[lang].coffee;
+            
+            // Footer Legal
+            document.getElementById('link-legal').innerText = translations[lang].legal;
+            document.getElementById('link-privacy').innerText = translations[lang].privacy;
+            document.getElementById('link-cookies').innerText = translations[lang].cookies;
 
             // Estilo botones idioma
             document.querySelectorAll('.lang-switch button').forEach(b => b.classList.remove('active'));
             document.getElementById('btn-' + lang).classList.add('active');
         }
 
-        /* --- 2. FONDO DE PARTÍCULAS (Configuración Sutil) --- */
+        /* --- PARTICULAS (IGUAL QUE ANTES) --- */
         const canvas = document.getElementById('bg-canvas');
         const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth;
@@ -444,7 +486,6 @@
 
         function init() {
             particlesArray = [];
-            // Densidad alta para efecto "tejido"
             let numberOfParticles = (canvas.height * canvas.width) / 5000;
             for (let i = 0; i < numberOfParticles; i++) {
                 let size = (Math.random() * 1.5) + 0.5;
