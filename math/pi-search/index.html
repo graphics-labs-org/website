@@ -300,7 +300,7 @@
         </a>
     </footer>
 
-    <script>
+ <script>
         /* --- 1. SEGURIDAD --- */
         document.addEventListener('keydown', function(e) {
             if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
@@ -320,7 +320,6 @@
         let animationId;
         
         function initCanvas() {
-            // Background
             ctx.fillStyle = "#000";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
@@ -328,7 +327,6 @@
             const cy = canvas.height / 2;
             const radius = canvas.width / 2 - 40;
 
-            // Digits
             ctx.font = "bold 24px monospace";
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
@@ -359,7 +357,6 @@
             
             initCanvas(); 
 
-            // Background Chords
             ctx.lineWidth = 0.5;
             
             for(let i = 0; i < limit - 1; i++) {
@@ -385,10 +382,8 @@
                 ctx.stroke();
             }
 
-            // Highlight Sequence Path
             if (highlightSequence && foundIndices.length > 0) {
                 const seq = highlightSequence;
-                
                 ctx.lineWidth = 3;
                 ctx.shadowBlur = 10;
                 ctx.shadowColor = "#ffee00";
@@ -419,7 +414,6 @@
 
             const piDigitsOnly = PI_STRING.replace('.', '');
             const idx = piDigitsOnly.indexOf(searchVal);
-            
             const t = translations[currentLang] || translations['es'];
 
             if(idx !== -1) {
@@ -435,11 +429,8 @@
 
         function resetArt() {
             document.getElementById('inp-search').value = "";
-            
-            // Restore default text
             const t = translations[currentLang] || translations['es'];
             resultsBox.innerText = t.txt_ready;
-            
             drawArt(null);
         }
 
@@ -454,22 +445,21 @@
             link.click();
         }
 
-        /* --- 4. MULTI-IDIOMA (COMPLETO) --- */
+        /* --- 4. MULTI-IDIOMA (TEXTOS EXTENDIDOS) --- */
         const translations = {
             'es': {
                 nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH",
                 title: "PROYECTO PI (π)", desc: "Buscador de patrones y visualización artística.",
                 lbl_search: "Buscar secuencia (ej: tu cumpleaños):", lbl_points: "Puntos a dibujar:",
-                btn_search: "BUSCAR & VISUALIZAR", btn_reset: "↺ ART", btn_save: "💾 PNG",
+                btn_search: "BUSCAR & VISUALIZAR", btn_reset: "LIMPIAR", btn_save: "💾 PNG",
                 txt_ready: "Introduce números para buscar en los primeros 10.000 dígitos.",
                 msg_found: "¡Encontrado! Posición {pos}", msg_not_found: "No encontrado en los primeros 10.000 dígitos.",
-                ph_search: "1415...",
-                canvas_note: "Cada línea conecta un dígito con el siguiente.",
+                ph_search: "1415...", canvas_note: "Cada línea conecta un dígito con el siguiente.",
                 h_how: "Cómo funciona este Experimento",
                 p_how: "Este laboratorio ha cargado en memoria los primeros 10.000 decimales del número Pi. Cuando utilizas el buscador, el sistema rastrea esa inmensa cadena numérica intentando encontrar tu secuencia exacta. Si la encuentra, apaga el 'ruido' de fondo e ilumina exclusivamente el camino que forman tus números al conectarse entre sí.",
-                h_what: "¿Qué es Pi?", p1: "Pi es la relación entre circunferencia y diámetro. Es irracional e infinito.",
-                h_normal: "La Normalidad de Pi", p2: "Se cree que Pi contiene todas las secuencias numéricas finitas posibles.",
-                h_art: "La Visualización", p3: "Conectamos los dígitos en un círculo creando una telaraña matemática.",
+                h_what: "¿Qué es Pi?", p1: "Pi es la relación entre la longitud de una circunferencia y su diámetro. Es un número irracional, lo que significa que tiene infinitos decimales sin ningún patrón repetitivo periódico conocido.",
+                h_normal: "La Normalidad de Pi", p2: "Se sospecha que Pi es un número normal. Esto significa que cualquier secuencia finita de números (como tu fecha de nacimiento, tu número de teléfono o el código binario de una imagen completa) aparece matemáticamente en algún lugar de sus decimales si buscas lo suficientemente lejos.",
+                h_art: "La Visualización (Cuerdas)", p3: "En este gráfico, hemos colocado los dígitos del 0 al 9 alrededor de un círculo. Trazamos una línea desde la posición del decimal n hasta el decimal n+1. El resultado es una compleja 'telaraña' matemática que muestra la belleza del caos.",
                 legal: "Aviso Legal", privacy: "Política Privacidad", cookies: "Cookies", contact: "Contacto", coffee: "Invítame a un café",
                 rights: "© 2025 Graphics Labs", ad_text: "Ad Space"
             },
@@ -477,16 +467,15 @@
                 nav_main: "← MAIN HUB", nav_math: "← MATH HUB",
                 title: "PROJECT PI (π)", desc: "Pattern searcher and artistic visualization.",
                 lbl_search: "Search sequence (e.g. birthday):", lbl_points: "Points to draw:",
-                btn_search: "SEARCH & VISUALIZE", btn_reset: "↺ ART", btn_save: "💾 PNG",
+                btn_search: "SEARCH & VISUALIZE", btn_reset: "RESET", btn_save: "💾 PNG",
                 txt_ready: "Enter numbers to search in the first 10,000 digits.",
                 msg_found: "Found! Position {pos}", msg_not_found: "Not found in the first 10,000 digits.",
-                ph_search: "1415...",
-                canvas_note: "Each line connects a digit to the next one.",
-                h_how: "How it works",
-                p_how: "This lab has loaded the first 10,000 decimals of Pi into memory. When you use the search, the system scans this immense numerical chain to find your exact sequence. If found, it dims the background noise and illuminates only the path formed by your numbers connecting to each other.",
-                h_what: "What is Pi?", p1: "Pi is the ratio of a circle's circumference to its diameter.",
-                h_normal: "Normality of Pi", p2: "It is believed Pi contains every possible finite number sequence.",
-                h_art: "The Visualization", p3: "We connect digits on a circle creating a math web.",
+                ph_search: "1415...", canvas_note: "Each line connects a digit to the next one.",
+                h_how: "How this Experiment works",
+                p_how: "This lab has loaded the first 10,000 decimals of Pi into memory. When you use the search, the system scans this immense numerical chain to find your exact sequence. If found, it dims the background noise and illuminates only the path formed by your numbers connecting to each other within the circle.",
+                h_what: "What is Pi?", p1: "Pi is the ratio of a circle's circumference to its diameter. It is an irrational number, meaning it has infinite decimal places without any known repeating periodic pattern.",
+                h_normal: "Normality of Pi", p2: "Pi is suspected to be a normal number. This means that any finite sequence of numbers (like your birthday, phone number, or the binary code of an image) mathematically appears somewhere in its decimals if you search far enough.",
+                h_art: "The Visualization (Chords)", p3: "In this graph, we have placed the digits 0 to 9 around a circle. We draw a line from the position of decimal n to decimal n+1. The result is a complex mathematical 'web' that displays the beauty of chaos.",
                 legal: "Legal Notice", privacy: "Privacy Policy", cookies: "Cookies", contact: "Contact", coffee: "Buy me a coffee",
                 rights: "© 2025 Graphics Labs", ad_text: "Ad Space"
             },
@@ -494,120 +483,113 @@
                 nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH",
                 title: "PROJECTE PI (π)", desc: "Cercador de patrons i visualització artística.",
                 lbl_search: "Cerca seqüència (ex: aniversari):", lbl_points: "Punts a dibuixar:",
-                btn_search: "CERCAR & VISUALITZAR", btn_reset: "↺ ART", btn_save: "💾 PNG",
+                btn_search: "CERCAR & VISUALITZAR", btn_reset: "NETEJAR", btn_save: "💾 PNG",
                 txt_ready: "Introdueix nombres per cercar als primers 10.000 dígits.",
                 msg_found: "Trobat! Posició {pos}", msg_not_found: "No trobat als primers 10.000 dígits.",
-                ph_search: "1415...",
-                canvas_note: "Cada línia connecta un dígit amb el següent.",
-                h_how: "Com funciona",
-                p_how: "Aquest laboratori ha carregat els primers 10.000 decimals de Pi. Quan utilitzes el cercador, el sistema rastreja aquesta cadena per trobar la teva seqüència. Si la troba, il·lumina exclusivament el camí que formen els teus números en connectar-se entre si.",
-                h_what: "Què és Pi?", p1: "Pi és la relació entre circumferència i diàmetre.",
-                h_normal: "La Normalitat de Pi", p2: "Es creu que Pi conté totes les seqüències possibles.",
-                h_art: "La Visualització", p3: "Connectem els dígits en un cercle creant una teranyina.",
+                ph_search: "1415...", canvas_note: "Cada línia connecta un dígit amb el següent.",
+                h_how: "Com funciona aquest experiment",
+                p_how: "Aquest laboratori ha carregat a la memòria els primers 10.000 decimals del nombre Pi. Quan utilitzes el cercador, el sistema rastreja aquesta immensa cadena numèrica intentant trobar la teva seqüència exacta. Si la troba, apaga el soroll de fons i il·lumina exclusivament el camí que formen els teus números en connectar-se entre si.",
+                h_what: "Què és Pi?", p1: "Pi és la relació entre la longitud d'una circumferència i el seu diàmetre. És un nombre irracional, la qual cosa significa que té infinits decimals sense cap patró repetitiu periòdic conegut.",
+                h_normal: "La Normalitat de Pi", p2: "Se sospita que Pi és un nombre normal. Això significa que qualsevol seqüència finita de nombres (com la teva data de naixement, el teu número de telèfon o el codi binari d'una imatge) apareix matemàticament en algun lloc dels seus decimals si cerques prou lluny.",
+                h_art: "La Visualització (Cordes)", p3: "En aquest gràfic, hem col·locat els dígits del 0 al 9 al voltant d'un cercle. Tracem una línia des de la posició del decimal n fins al decimal n+1. El resultat és una complexa 'teranyina' matemàtica que mostra la bellesa del caos.",
                 legal: "Avís Legal", privacy: "Política Privacitat", cookies: "Cookies", contact: "Contacte", coffee: "Convida'm a un cafè",
-                rights: "© 2025 Graphics Labs", ad_text: "Ad Space"
+                rights: "© 2025 Graphics Labs", ad_text: "Espai Publicitari"
             },
             'fr': {
                 nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH",
                 title: "PROJET PI (π)", desc: "Chercheur de motifs et visualisation artistique.",
-                lbl_search: "Chercher séquence:", lbl_points: "Points à dessiner:",
-                btn_search: "CHERCHER", btn_reset: "↺ ART", btn_save: "💾 PNG",
+                lbl_search: "Chercher séquence (ex: anniversaire):", lbl_points: "Points à dessiner:",
+                btn_search: "CHERCHER & VISUALISER", btn_reset: "RÉINITIALISER", btn_save: "💾 PNG",
                 txt_ready: "Entrez des nombres à chercher dans les 10 000 premiers chiffres.",
                 msg_found: "Trouvé ! Position {pos}", msg_not_found: "Non trouvé dans les 10 000 premiers chiffres.",
-                ph_search: "1415...",
-                canvas_note: "Chaque ligne connecte un chiffre au suivant.",
+                ph_search: "1415...", canvas_note: "Chaque ligne connecte un chiffre au suivant sur le cercle.",
                 h_how: "Comment ça marche",
-                p_how: "Ce labo a chargé les 10 000 premières décimales de Pi. Lors de la recherche, il illumine uniquement le chemin formé par vos nombres lorsqu'ils se connectent entre eux dans le cercle.",
-                h_what: "Qu'est-ce que Pi?", p1: "Le rapport circonférence/diamètre.",
-                h_normal: "Normalité", p2: "Contient toutes les séquences finies.",
-                h_art: "Visualisation", p3: "Connexions circulaires créant une toile.",
-                legal: "Mentions", privacy: "Confidentialité", cookies: "Cookies", contact: "Contact", coffee: "Café",
-                rights: "© 2025 Graphics Labs", ad_text: "Espace Pub"
+                p_how: "Ce laboratoire a chargé les 10 000 premières décimales de Pi en mémoire. Lorsque vous utilisez la recherche, le système scanne cette immense chaîne numérique pour trouver votre séquence exacte. S'il la trouve, il atténue le bruit de fond et illumine uniquement le chemin formé par vos nombres lorsqu'ils se connectent entre eux.",
+                h_what: "Qu'est-ce que Pi ?", p1: "Pi est le rapport entre la circonférence d'un cercle et son diamètre. C'est un nombre irrationnel, ce qui signifie qu'il a une infinité de décimales sans aucun motif périodique répétitif connu.",
+                h_normal: "La Normalité de Pi", p2: "On soupçonne que Pi est un nombre normal. Cela signifie que toute séquence finie de nombres (comme votre date de naissance, votre numéro de téléphone ou le code binaire d'une image) apparaît mathématiquement quelque part dans ses décimales si l'on cherche assez loin.",
+                h_art: "La Visualisation (Cordes)", p3: "Dans ce graphique, nous avons placé les chiffres de 0 à 9 autour d'un cercle. Nous traçons une ligne depuis la position de la décimale n jusqu'à la décimale n+1. Le résultat est une toile mathématique complexe qui montre la beauté du chaos.",
+                legal: "Mentions Légales", privacy: "Confidentialité", cookies: "Cookies", contact: "Contact", coffee: "Offrez-moi un café",
+                rights: "© 2025 Graphics Labs", ad_text: "Espace Publicitaire"
             },
             'de': {
                 nav_main: "← HAUPT-HUB", nav_math: "← MATH HUB",
                 title: "PROJEKT PI (π)", desc: "Mustersuche und künstlerische Visualisierung.",
-                lbl_search: "Sequenz suchen:", lbl_points: "Punkte:",
-                btn_search: "SUCHEN", btn_reset: "↺ ART", btn_save: "💾 PNG",
-                txt_ready: "Zahlen eingeben (Suche in 10.000 Ziffern).",
-                msg_found: "Gefunden! Position {pos}", msg_not_found: "Nicht gefunden.",
-                ph_search: "1415...",
-                canvas_note: "Linien verbinden Ziffern im Kreis.",
+                lbl_search: "Sequenz suchen (z.B. Geburtstag):", lbl_points: "Punkte zeichnen:",
+                btn_search: "SUCHEN & ANZEIGEN", btn_reset: "ZURÜCKSETZEN", btn_save: "💾 PNG",
+                txt_ready: "Geben Sie Zahlen ein, um in den ersten 10.000 Ziffern zu suchen.",
+                msg_found: "Gefunden! Position {pos}", msg_not_found: "In den ersten 10.000 Ziffern nicht gefunden.",
+                ph_search: "1415...", canvas_note: "Jede Linie verbindet eine Ziffer mit der nächsten.",
                 h_how: "Wie es funktioniert",
-                p_how: "Dieses Labor hat die ersten 10.000 Dezimalstellen von Pi geladen. Bei der Suche beleuchtet das System ausschließlich den Pfad, den Ihre Zahlen bilden, wenn sie sich im Kreis verbinden.",
-                h_what: "Was ist Pi?", p1: "Verhältnis Umfang/Durchmesser.",
-                h_normal: "Normalität", p2: "Enthält alle Sequenzen.",
-                h_art: "Visualisierung", p3: "Kreisverbindungen als Netz.",
-                legal: "Impressum", privacy: "Datenschutz", cookies: "Cookies", contact: "Kontakt", coffee: "Kaffee",
+                p_how: "Dieses Labor hat die ersten 10.000 Dezimalstellen von Pi in den Speicher geladen. Wenn Sie die Suche verwenden, scannt das System diese riesige Zahlenkette, um Ihre genaue Sequenz zu finden. Wenn sie gefunden wird, dimmt es das Hintergrundrauschen und beleuchtet ausschließlich den Pfad, den Ihre Zahlen bilden, wenn sie sich im Kreis verbinden.",
+                h_what: "Was ist Pi?", p1: "Pi ist das Verhältnis des Umfangs eines Kreises zu seinem Durchmesser. Es ist eine irrationale Zahl, was bedeutet, dass sie unendlich viele Nachkommastellen ohne bekanntes sich wiederholendes periodisches Muster hat.",
+                h_normal: "Die Normalität von Pi", p2: "Es wird vermutet, dass Pi eine normale Zahl ist. Das bedeutet, dass jede endliche Zahlenfolge (wie Ihr Geburtsdatum, Ihre Telefonnummer oder der Binärcode eines Bildes) mathematisch irgendwo in ihren Dezimalstellen erscheint, wenn man weit genug sucht.",
+                h_art: "Die Visualisierung (Sehnen)", p3: "In dieser Grafik haben wir die Ziffern 0 bis 9 um einen Kreis angeordnet. Wir ziehen eine Linie von der Position der Dezimalstelle n zur Dezimalstelle n+1. Das Ergebnis ist ein komplexes mathematisches Netz, das die Schönheit des Chaos zeigt.",
+                legal: "Impressum", privacy: "Datenschutz", cookies: "Cookies", contact: "Kontakt", coffee: "Kauf mir einen Kaffee",
                 rights: "© 2025 Graphics Labs", ad_text: "Werbung"
             },
             'pt': {
                 nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH",
-                title: "PROJETO PI (π)", desc: "Buscador de padrões.",
-                lbl_search: "Buscar sequência:", lbl_points: "Pontos:",
-                btn_search: "BUSCAR", btn_reset: "↺ ART", btn_save: "💾 PNG",
-                txt_ready: "Digite números (busca em 10.000 dígitos).",
-                msg_found: "Encontrado! Posição {pos}", msg_not_found: "Não encontrado.",
-                ph_search: "1415...",
-                canvas_note: "Linhas conectam dígitos no círculo.",
-                h_how: "Como funciona",
-                p_how: "Este laboratório carregou os primeiros 10.000 decimais de Pi. Ao buscar, o sistema ilumina apenas o caminho formado pelos seus números conectando-se no círculo.",
-                h_what: "O que é Pi?", p1: "Razão circunferência/diâmetro.",
-                h_normal: "Normalidade", p2: "Contém todas as sequências.",
-                h_art: "Visualização", p3: "Conexões circulares.",
-                legal: "Aviso", privacy: "Privacidade", cookies: "Cookies", contact: "Contato", coffee: "Café",
+                title: "PROJETO PI (π)", desc: "Buscador de padrões e visualização artística.",
+                lbl_search: "Buscar sequência (ex: aniversário):", lbl_points: "Pontos a desenhar:",
+                btn_search: "BUSCAR & VISUALIZAR", btn_reset: "LIMPAR", btn_save: "💾 PNG",
+                txt_ready: "Digite números para buscar nos primeiros 10.000 dígitos.",
+                msg_found: "Encontrado! Posição {pos}", msg_not_found: "Não encontrado nos primeiros 10.000 dígitos.",
+                ph_search: "1415...", canvas_note: "Cada linha conecta um dígito ao próximo no círculo.",
+                h_how: "Como funciona este Experimento",
+                p_how: "Este laboratório carregou na memória os primeiros 10.000 decimais de Pi. Quando você usa a busca, o sistema varre essa imensa cadeia numérica tentando encontrar sua sequência exata. Se a encontrar, apaga o 'ruído' de fundo e ilumina exclusivamente o caminho formado pelos seus números ao se conectarem entre si.",
+                h_what: "O que é Pi?", p1: "Pi é a razão entre a circunferência de um círculo e seu diâmetro. É um número irracional, o que significa que tem infinitas casas decimais sem nenhum padrão repetitivo periódico conhecido.",
+                h_normal: "A Normalidade de Pi", p2: "Suspeita-se que Pi seja um número normal. Isso significa que qualquer sequência finita de números (como sua data de nascimento, seu número de telefone ou o código binário de uma imagem) aparece matematicamente em algum lugar de seus decimais se você procurar o suficiente.",
+                h_art: "A Visualização (Cordas)", p3: "Neste gráfico, colocamos os dígitos de 0 a 9 ao redor de um círculo. Traçamos uma linha da posição do decimal n até o decimal n+1. O resultado é uma complexa 'teia' matemática que mostra a beleza do caos.",
+                legal: "Aviso Legal", privacy: "Privacidade", cookies: "Cookies", contact: "Contato", coffee: "Pagar um café",
                 rights: "© 2025 Graphics Labs", ad_text: "Publicidade"
             },
             'it': {
                 nav_main: "← HUB PRINCIPALE", nav_math: "← HUB MATH",
-                title: "PROGETTO PI (π)", desc: "Ricerca schemi.",
-                lbl_search: "Cerca sequenza:", lbl_points: "Punti:",
-                btn_search: "CERCA", btn_reset: "↺ ART", btn_save: "💾 PNG",
-                txt_ready: "Inserisci numeri (cerca in 10.000 cifre).",
-                msg_found: "Trovato! Posizione {pos}", msg_not_found: "Non trovato.",
-                ph_search: "1415...",
-                canvas_note: "Linee collegano le cifre.",
-                h_how: "Come funziona",
-                p_how: "Questo laboratorio ha caricato i primi 10.000 decimali di Pi. Cercando, il sistema illumina solo il percorso formato dai tuoi numeri che si collegano nel cerchio.",
-                h_what: "Cos'è Pi?", p1: "Rapporto circonferenza/diametro.",
-                h_normal: "Normalità", p2: "Contiene tutte le sequenze.",
-                h_art: "Visualizzazione", p3: "Connessioni circolari.",
-                legal: "Legale", privacy: "Privacy", cookies: "Cookies", contact: "Contatto", coffee: "Caffè",
+                title: "PROGETTO PI (π)", desc: "Ricerca di schemi e visualizzazione artistica.",
+                lbl_search: "Cerca sequenza (es: compleanno):", lbl_points: "Punti da disegnare:",
+                btn_search: "CERCA & VISUALIZZA", btn_reset: "RESET", btn_save: "💾 PNG",
+                txt_ready: "Inserisci numeri da cercare nelle prime 10.000 cifre.",
+                msg_found: "Trovato! Posizione {pos}", msg_not_found: "Non trovato nelle prime 10.000 cifre.",
+                ph_search: "1415...", canvas_note: "Ogni linea collega una cifra alla successiva.",
+                h_how: "Come funziona questo Esperimento",
+                p_how: "Questo laboratorio ha caricato in memoria i primi 10.000 decimali di Pi. Quando usi la ricerca, il sistema scansiona questa immensa catena numerica cercando di trovare la tua sequenza esatta. Se la trova, attenua il rumore di fondo e illumina esclusivamente il percorso formato dai tuoi numeri che si collegano tra loro.",
+                h_what: "Cos'è Pi?", p1: "Pi è il rapporto tra la circonferenza di un cerchio e il suo diametro. È un numero irrazionale, il che significa che ha infinite cifre decimali senza alcun modello periodico ripetitivo noto.",
+                h_normal: "La Normalità di Pi", p2: "Si sospetta che Pi sia un numero normale. Ciò significa che qualsiasi sequenza finita di numeri (come la tua data di nascita, il tuo numero di telefono o il codice binario di un'immagine) appare matematicamente da qualche parte nei suoi decimali se cerchi abbastanza lontano.",
+                h_art: "La Visualizzazione (Corde)", p3: "In questo grafico, abbiamo posizionato le cifre da 0 a 9 attorno a un cerchio. Tracciamo una linea dalla posizione del decimale n al decimale n+1. Il risultato è una complessa 'ragnatela' matematica che mostra la bellezza del caos.",
+                legal: "Note Legali", privacy: "Privacy", cookies: "Cookies", contact: "Contatto", coffee: "Offrimi un caffè",
                 rights: "© 2025 Graphics Labs", ad_text: "Pubblicità"
             },
             'nl': {
                 nav_main: "← HOOFDHUB", nav_math: "← MATH HUB",
-                title: "PROJECT PI (π)", desc: "Patroon zoeker.",
-                lbl_search: "Zoek reeks:", lbl_points: "Punten:",
-                btn_search: "ZOEKEN", btn_reset: "↺ ART", btn_save: "💾 PNG",
-                txt_ready: "Voer getallen in.",
-                msg_found: "Gevonden! Positie {pos}", msg_not_found: "Niet gevonden.",
-                ph_search: "1415...",
-                canvas_note: "Lijnen verbinden cijfers.",
-                h_how: "Hoe het werkt",
-                p_how: "Dit lab heeft de eerste 10.000 decimalen van Pi geladen. Bij het zoeken verlicht het systeem alleen het pad dat door uw getallen wordt gevormd.",
-                h_what: "Wat is Pi?", p1: "Verhouding omtrek/diameter.",
-                h_normal: "Normaliteit", p2: "Bevat alle reeksen.",
-                h_art: "Visualisatie", p3: "Cirkel verbindingen.",
-                legal: "Juridisch", privacy: "Privacy", cookies: "Cookies", contact: "Contact", coffee: "Koffie",
+                title: "PROJECT PI (π)", desc: "Patroon zoeker en artistieke visualisatie.",
+                lbl_search: "Zoek reeks (bijv. verjaardag):", lbl_points: "Punten te tekenen:",
+                btn_search: "ZOEKEN & VISUALISEREN", btn_reset: "RESET", btn_save: "💾 PNG",
+                txt_ready: "Voer getallen in om te zoeken in de eerste 10.000 cijfers.",
+                msg_found: "Gevonden! Positie {pos}", msg_not_found: "Niet gevonden in de eerste 10.000 cijfers.",
+                ph_search: "1415...", canvas_note: "Elke lijn verbindt een cijfer met het volgende.",
+                h_how: "Hoe dit experiment werkt",
+                p_how: "Dit lab heeft de eerste 10.000 decimalen van Pi in het geheugen geladen. Wanneer u de zoekfunctie gebruikt, scant het systeem deze enorme numerieke keten om uw exacte reeks te vinden. Als deze wordt gevonden, wordt de achtergrondruis gedimd en wordt uitsluitend het pad verlicht dat door uw getallen wordt gevormd wanneer ze met elkaar verbinden.",
+                h_what: "Wat is Pi?", p1: "Pi is de verhouding tussen de omtrek van een cirkel en zijn diameter. Het is een irrationaal getal, wat betekent dat het oneindig veel decimalen heeft zonder bekend herhalend periodiek patroon.",
+                h_normal: "De Normaliteit van Pi", p2: "Men vermoedt dat Pi een normaal getal is. Dit betekent dat elke eindige reeks getallen (zoals uw geboortedatum, telefoonnummer of de binaire code van een afbeelding) wiskundig ergens in de decimalen voorkomt als u ver genoeg zoekt.",
+                h_art: "De Visualisatie (Snaren)", p3: "In deze grafiek hebben we de cijfers 0 tot 9 rond een cirkel geplaatst. We trekken een lijn van de positie van decimaal n naar decimaal n+1. Het resultaat is een complex wiskundig 'web' dat de schoonheid van chaos toont.",
+                legal: "Juridisch", privacy: "Privacy", cookies: "Cookies", contact: "Contact", coffee: "Koop koffie",
                 rights: "© 2025 Graphics Labs", ad_text: "Advertentie"
             },
             'ja': {
                 nav_main: "← メインハブ", nav_math: "← 数学ハブ",
-                title: "プロジェクト π", desc: "パターン検索。",
-                lbl_search: "検索:", lbl_points: "点:",
-                btn_search: "検索", btn_reset: "↺ ART", btn_save: "保存",
-                txt_ready: "数字を入力してください。",
-                msg_found: "発見！ 位置 {pos}", msg_not_found: "見つかりませんでした。",
-                ph_search: "1415...",
-                canvas_note: "数字をつなぐ線。",
-                h_how: "仕組み",
-                p_how: "このラボは円周率の最初の10,000桁を読み込みました。検索すると、システムはあなたの数字が円の中でつながって形成するパスのみを照らします。",
-                h_what: "πとは?", p1: "円周率。",
-                h_normal: "正規性", p2: "すべての配列を含む。",
-                h_art: "視覚化", p3: "円形の接続。",
-                legal: "法的", privacy: "プライバシー", cookies: "クッキー", contact: "連絡先", coffee: "コーヒー",
-                rights: "© 2025 Graphics Labs", ad_text: "広告"
+                title: "プロジェクト π (パイ)", desc: "パターン検索と芸術的な視覚化。",
+                lbl_search: "シーケンス検索 (例: 誕生日):", lbl_points: "描画する点:",
+                btn_search: "検索して視覚化", btn_reset: "リセット", btn_save: "💾 PNG保存",
+                txt_ready: "最初の10,000桁の中から数字を検索します。",
+                msg_found: "発見！ 位置 {pos}", msg_not_found: "最初の10,000桁には見つかりませんでした。",
+                ph_search: "1415...", canvas_note: "各線は、ある数字とその次の数字をつなぎます。",
+                h_how: "この実験の仕組み",
+                p_how: "このラボでは、円周率の最初の10,000桁をメモリに読み込みました。検索機能を使用すると、システムはこの膨大な数字の連鎖をスキャンして、正確なシーケンスを見つけようとします。見つかった場合、背景のノイズを消し、円の中で数字同士がつながって形成されるパスのみを明るく照らし出します。",
+                h_what: "π（パイ）とは？", p1: "πは、円の周長と直径の比率です。これは無理数であり、既知の繰り返し周期パターンを持たない無限の小数展開を持つことを意味します。",
+                h_normal: "πの正規性", p2: "πは正規数であると疑われています。これは、あらゆる有限の数列（誕生日、電話番号、画像のバイナリコードなど）が、十分に探せばその小数のどこかに数学的に現れることを意味します。",
+                h_art: "視覚化（弦）", p3: "このグラフでは、0から9までの数字を円の周りに配置しました。小数第n位から小数第n+1位の位置まで線を引きます。その結果、カオスの美しさを示す複雑な数学的「クモの巣」が生まれます。",
+                legal: "法的通知", privacy: "プライバシー", cookies: "クッキー", contact: "連絡先", coffee: "コーヒーを奢る",
+                rights: "© 2025 Graphics Labs", ad_text: "広告スペース"
             }
         };
 
@@ -618,6 +600,7 @@
             currentLang = lang;
             const t = translations[lang] || translations['es'];
             
+            // Textos Generales
             document.getElementById('nav-main').innerText = t.nav_main;
             document.getElementById('nav-math').innerText = t.nav_math;
             document.getElementById('txt-title').innerText = t.title;
@@ -632,13 +615,14 @@
             document.getElementById('inp-search').placeholder = t.ph_search;
             
             // Solo actualizar txt_ready si no hay un resultado mostrado
-            if(!document.getElementById('result-display').innerHTML.includes('highlight-text') && 
-               !document.getElementById('result-display').innerHTML.includes('color:#ff4444')) {
-                document.getElementById('result-display').innerText = t.txt_ready;
+            const resBox = document.getElementById('result-display');
+            if(!resBox.innerHTML.includes('highlight-text') && !resBox.innerHTML.includes('color:#ff4444')) {
+                resBox.innerText = t.txt_ready;
             }
 
             document.getElementById('txt-canvas-note').innerText = t.canvas_note;
 
+            // Información
             document.getElementById('info-h-how').innerText = t.h_how;
             document.getElementById('info-p-how').innerText = t.p_how;
             document.getElementById('info-h-what').innerText = t.h_what;
@@ -648,6 +632,7 @@
             document.getElementById('info-h-art').innerText = t.h_art;
             document.getElementById('info-p3').innerText = t.p3;
 
+            // Footer
             document.getElementById('link-legal').innerText = t.legal;
             document.getElementById('link-privacy').innerText = t.privacy;
             document.getElementById('link-cookies').innerText = t.cookies;
@@ -658,8 +643,11 @@
             document.getElementById('footer-rights').innerText = t.rights;
             document.querySelector('.ad-placeholder-text').innerText = t.ad_text;
 
-            document.querySelectorAll('.lang-switch button').forEach(b => b.classList.remove('active'));
-            document.getElementById('btn-' + lang).classList.add('active');
+            // Gestión de Botones Activos (Corrección visual)
+            document.querySelectorAll('.lang-switch button').forEach(b => {
+                b.classList.remove('active');
+                if(b.id === 'btn-' + lang) b.classList.add('active');
+            });
         }
 
         /* --- 5. FONDO ANIMADO --- */
