@@ -16,7 +16,6 @@
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', monospace, sans-serif; }
         
-        /* Bloqueo de selección de texto para proteger contenido */
         body {
             background-color: #050505;
             color: var(--text);
@@ -24,8 +23,7 @@
             display: flex;
             flex-direction: column;
             min-height: 100vh;
-            user-select: none; /* No permite seleccionar texto */
-            -webkit-user-select: none;
+            user-select: none;
         }
 
         #bg-canvas {
@@ -54,20 +52,12 @@
         }
         
         @media(min-width: 768px) {
-            nav {
-                flex-direction: row;
-                justify-content: space-between;
-            }
+            nav { flex-direction: row; justify-content: space-between; }
         }
         
         .logo { font-size: 1.5rem; font-weight: bold; letter-spacing: 2px; color: var(--primary); text-shadow: 0 0 10px rgba(0, 243, 255, 0.3); }
         
-        .lang-switch {
-            display: flex;
-            gap: 5px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
+        .lang-switch { display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; }
 
         .lang-switch button {
             background: rgba(0,0,0,0.3);
@@ -106,6 +96,9 @@
             transition: transform 0.3s, box-shadow 0.3s;
             text-align: left;
             position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
         .card:hover {
@@ -115,7 +108,7 @@
         }
 
         .card h3 { color: var(--primary); margin-bottom: 10px; font-size: 1.3rem; }
-        .card p { color: #ccc; font-size: 0.9rem; line-height: 1.5; margin-bottom: 20px; min-height: 60px; }
+        .card p { color: #ccc; font-size: 0.9rem; line-height: 1.5; margin-bottom: 20px; }
         
         .btn-lab {
             display: inline-block;
@@ -128,8 +121,16 @@
             transition: 0.3s;
             text-transform: uppercase;
             letter-spacing: 1px;
+            text-align: center;
         }
         .btn-lab:hover { background: var(--secondary); box-shadow: 0 0 15px var(--secondary); }
+
+        .btn-lab.disabled {
+            border-color: var(--muted);
+            color: var(--muted);
+            cursor: default;
+        }
+        .btn-lab.disabled:hover { background: transparent; box-shadow: none; }
 
         .ad-container {
             width: 100%;
@@ -141,10 +142,11 @@
             align-items: center;
             border: 1px dashed rgba(255,255,255,0.1); 
             border-radius: 8px;
+            background: rgba(0,0,0,0.2);
         }
         .ad-placeholder-text { color: var(--border); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; }
 
-        /* --- FOOTER LEGAL --- */
+        /* --- FOOTER --- */
         footer {
             background: rgba(0,0,0,0.8);
             backdrop-filter: blur(5px);
@@ -159,20 +161,8 @@
             align-items: center;
         }
         
-        .legal-links {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin-bottom: 10px;
-        }
-
-        .legal-links a {
-            color: var(--muted);
-            text-decoration: none;
-            transition: 0.3s;
-            border-bottom: 1px solid transparent;
-        }
+        .legal-links { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin-bottom: 10px; }
+        .legal-links a { color: var(--muted); text-decoration: none; transition: 0.3s; border-bottom: 1px solid transparent; }
         .legal-links a:hover { color: var(--primary); border-bottom-color: var(--primary); }
 
         .coffee-btn {
@@ -201,6 +191,7 @@
             <div class="logo">GRAPHICS LABS</div>
             <div class="lang-switch">
                 <button onclick="setLang('es')" id="btn-es" class="active">ES</button>
+                <button onclick="setLang('ca')" id="btn-ca">CA</button>
                 <button onclick="setLang('en')" id="btn-en">EN</button>
                 <button onclick="setLang('fr')" id="btn-fr">FR</button>
                 <button onclick="setLang('de')" id="btn-de">DE</button>
@@ -217,27 +208,35 @@
         <div class="labs-grid">
             
             <div class="card">
-                <h3 id="card1-title">Geometría Sagrada</h3>
-                <p id="card1-desc">Generador de mandalas de neón. Experimenta con la simetría y el caos matemático.</p>
+                <div>
+                    <h3 id="card1-title">Geometría Sagrada</h3>
+                    <p id="card1-desc">Generador de mandalas de neón. Experimenta con la simetría y el caos matemático.</p>
+                </div>
                 <a href="https://geometriasagrada.top" class="btn-lab" id="btn-enter">ENTRAR AL LAB</a>
             </div>
 
             <div class="card">
-                <h3 id="card2-title">Cimática & Audio</h3>
-                <p id="card2-desc">Visualiza el sonido. Observa cómo las frecuencias crean formas en tiempo real.</p>
+                <div>
+                    <h3 id="card2-title">Cimática & Audio</h3>
+                    <p id="card2-desc">Visualiza el sonido. Observa cómo las frecuencias crean formas en tiempo real.</p>
+                </div>
                 <a href="https://geometriasagrada.top/cymatics-lab/index.html" class="btn-lab" id="btn-enter-2">ENTRAR AL LAB</a>
             </div>
 
             <div class="card">
-                <h3 id="card3-title">Física de Partículas</h3>
-                <p id="card3-desc">Simulaciones de gravedad, fluidos y sistemas de enjambre interactivos.</p>
-                <a href="#" class="btn-lab prx">PRÓXIMAMENTE</a>
+                <div>
+                    <h3 id="card3-title">Departamento Matemáticas</h3>
+                    <p id="card3-desc">Cuadrados mágicos, secuencias numéricas y la belleza lógica de los números.</p>
+                </div>
+                <a href="math/index.html" class="btn-lab" id="btn-enter-3">ENTRAR AL HUB</a>
             </div>
 
              <div class="card">
-                <h3 id="card4-title">Luz y Color</h3>
-                <p id="card4-desc">Herramientas para diseñadores. Generadores de paletas y fractales de color.</p>
-                <a href="#" class="btn-lab prx">PRÓXIMAMENTE</a>
+                <div>
+                    <h3 id="card4-title">Luz y Color</h3>
+                    <p id="card4-desc">Herramientas para diseñadores. Generadores de paletas y fractales de color.</p>
+                </div>
+                <a href="#" class="btn-lab disabled prx">PRÓXIMAMENTE</a>
             </div>
         </div>
 
@@ -249,30 +248,21 @@
 
     <footer>
         <div class="legal-links">
-            <a href="#" id="link-legal">Aviso Legal</a>
-            <a href="#" id="link-privacy">Política de Privacidad</a>
-            <a href="#" id="link-cookies">Política de Cookies</a>
+            <a href="legal.html" id="link-legal">Aviso Legal</a>
+            <a href="privacy.html" id="link-privacy">Política de Privacidad</a>
+            <a href="cookies.html" id="link-cookies">Política de Cookies</a>
+            <a href="mailto:pbazan@gmail.com" id="link-contact">Contacto</a>
         </div>
         
         <span id="footer-rights">© 2025 Graphics Labs</span>
         
-        <a href="https://paypal.me/TU_USUARIO_PAYPAL" target="_blank" class="coffee-btn">
+        <a href="https://paypal.me/pbazan" target="_blank" class="coffee-btn">
             ☕ <span id="btn-coffee">Invítame a un café</span>
         </a>
     </footer>
 
     <script>
-        /* --- BLOQUEO DE TECLAS (F12, Ctrl+U) --- 
-           Opcional: Añade un nivel extra de seguridad */
-        document.onkeydown = function(e) {
-            if(event.keyCode == 123) { return false; } // Bloquea F12
-            if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) { return false; } // Bloquea Insp. Elemento
-            if(e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) { return false; }
-            if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) { return false; }
-            if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) { return false; } // Bloquea Ver Código Fuente
-        }
-
-        /* --- TRADUCCIONES CON LEGALES --- */
+        /* --- DICCIONARIO DE IDIOMAS (9 Lenguas) --- */
         const translations = {
             'es': {
                 title: "EXPLORA EL CÓDIGO",
@@ -281,14 +271,30 @@
                 card1_desc: "Generador de mandalas de neón. Experimenta con la simetría y el caos matemático.",
                 card2_title: "Cimática & Audio",
                 card2_desc: "Visualiza el sonido. Observa cómo las frecuencias crean formas en tiempo real.",
-                card3_title: "Física de Partículas",
-                card3_desc: "Simulaciones de gravedad, fluidos y sistemas de enjambre interactivos.",
+                card3_title: "Departamento Matemáticas",
+                card3_desc: "Cuadrados mágicos, secuencias numéricas y la belleza lógica de los números.",
                 card4_title: "Luz y Color",
                 card4_desc: "Herramientas para diseñadores. Generadores de paletas y fractales de color.",
                 btn_enter: "ENTRAR AL LAB",
+                btn_hub: "ENTRAR AL HUB",
                 prx: "PRÓXIMAMENTE",
-                coffee: "Invítame a un café",
-                legal: "Aviso Legal", privacy: "Política de Privacidad", cookies: "Política de Cookies"
+                legal: "Aviso Legal", privacy: "Política de Privacidad", cookies: "Política de Cookies", contact: "Contacto", coffee: "Invítame a un café"
+            },
+            'ca': {
+                title: "EXPLORA EL CODI",
+                subtitle: "Laboratori d'experiments visuals, geometria i art generatiu.",
+                card1_title: "Geometria Sagrada",
+                card1_desc: "Generador de mandales de neó. Experimenta amb la simetria i el caos matemàtic.",
+                card2_title: "Cimàtica & Àudio",
+                card2_desc: "Visualitza el so. Observa com les freqüències creen formes en temps real.",
+                card3_title: "Departament Matemàtiques",
+                card3_desc: "Quadrats màgics, seqüències numèriques i la bellesa lògica dels nombres.",
+                card4_title: "Llum i Color",
+                card4_desc: "Eines per a dissenyadors. Generadors de paletes i fractals de color.",
+                btn_enter: "ENTRAR AL LAB",
+                btn_hub: "ENTRAR AL HUB",
+                prx: "PRÒXIMAMENT",
+                legal: "Avís Legal", privacy: "Política de Privacitat", cookies: "Política de Cookies", contact: "Contacte", coffee: "Convidam a un cafè"
             },
             'en': {
                 title: "EXPLORE THE CODE",
@@ -297,14 +303,14 @@
                 card1_desc: "Neon mandala generator. Experiment with symmetry and mathematical chaos.",
                 card2_title: "Cymatics & Audio",
                 card2_desc: "Visualize sound. Watch how frequencies create shapes in real-time.",
-                card3_title: "Particle Physics",
-                card3_desc: "Gravity simulations, fluids, and interactive swarm systems.",
+                card3_title: "Math Department",
+                card3_desc: "Magic squares, numerical sequences, and the logical beauty of numbers.",
                 card4_title: "Light & Color",
                 card4_desc: "Tools for designers. Palette generators and color fractals.",
                 btn_enter: "ENTER LAB",
+                btn_hub: "ENTER HUB",
                 prx: "COMING SOON",
-                coffee: "Buy me a coffee",
-                legal: "Legal Notice", privacy: "Privacy Policy", cookies: "Cookies Policy"
+                legal: "Legal Notice", privacy: "Privacy Policy", cookies: "Cookies Policy", contact: "Contact", coffee: "Buy me a coffee"
             },
             'fr': {
                 title: "EXPLOREZ LE CODE",
@@ -313,14 +319,14 @@
                 card1_desc: "Générateur de mandalas néon. Expérimentez la symétrie et le chaos mathématique.",
                 card2_title: "Cymatique & Audio",
                 card2_desc: "Visualisez le son. Regardez comment les fréquences créent des formes.",
-                card3_title: "Physique des Particules",
-                card3_desc: "Simulations de gravité, fluides et systèmes d'essaim interactifs.",
+                card3_title: "Département Mathématiques",
+                card3_desc: "Carrés magiques, séquences numériques et la beauté logique des nombres.",
                 card4_title: "Lumière et Couleur",
                 card4_desc: "Outils pour designers. Générateurs de palettes et fractales.",
                 btn_enter: "ENTRER",
+                btn_hub: "ENTRER AU HUB",
                 prx: "BIENTÔT",
-                coffee: "Offrez-moi un café",
-                legal: "Mentions Légales", privacy: "Politique de Confidentialité", cookies: "Politique de Cookies"
+                legal: "Mentions Légales", privacy: "Politique de Confidentialité", cookies: "Politique de Cookies", contact: "Contact", coffee: "Offrez-moi un café"
             },
             'de': {
                 title: "ENTDECKE DEN CODE",
@@ -329,14 +335,14 @@
                 card1_desc: "Neon-Mandala-Generator. Experimentiere mit Symmetrie und mathematischem Chaos.",
                 card2_title: "Kymatik & Audio",
                 card2_desc: "Visualisiere den Klang. Beobachte, wie Frequenzen in Echtzeit Formen erzeugen.",
-                card3_title: "Teilchenphysik",
-                card3_desc: "Schwerkraftsimulationen, Flüssigkeiten und interaktive Schwarmsysteme.",
+                card3_title: "Mathematik-Abteilung",
+                card3_desc: "Magische Quadrate, Zahlenfolgen und die logische Schönheit der Zahlen.",
                 card4_title: "Licht & Farbe",
                 card4_desc: "Werkzeuge für Designer. Palettengeneratoren und Farbfraktale.",
                 btn_enter: "LABOR BETRETEN",
+                btn_hub: "HUB BETRETEN",
                 prx: "DEMNÄCHST",
-                coffee: "Kauf mir einen Kaffee",
-                legal: "Impressum", privacy: "Datenschutz", cookies: "Cookie-Richtlinie"
+                legal: "Impressum", privacy: "Datenschutz", cookies: "Cookie-Richtlinie", contact: "Kontakt", coffee: "Kauf mir einen Kaffee"
             },
             'pt': {
                 title: "EXPLORE O CÓDIGO",
@@ -345,14 +351,14 @@
                 card1_desc: "Gerador de mandalas neon. Experimente a simetria e o caos matemático.",
                 card2_title: "Cimática & Áudio",
                 card2_desc: "Visualize o som. Veja como as frequências criam formas em tempo real.",
-                card3_title: "Física de Partículas",
-                card3_desc: "Simulações de gravidade, fluidos e sistemas de enxame interativos.",
+                card3_title: "Departamento de Matemática",
+                card3_desc: "Quadrados mágicos, sequências numéricas e a beleza lógica dos números.",
                 card4_title: "Luz e Cor",
                 card4_desc: "Ferramentas para designers. Geradores de paletas e fractais de cores.",
                 btn_enter: "ENTRAR NO LAB",
+                btn_hub: "ENTRAR NO HUB",
                 prx: "EM BREVE",
-                coffee: "Pague-me um café",
-                legal: "Aviso Legal", privacy: "Política de Privacidade", cookies: "Política de Cookies"
+                legal: "Aviso Legal", privacy: "Política de Privacidade", cookies: "Política de Cookies", contact: "Contato", coffee: "Pague-me um café"
             },
             'it': {
                 title: "ESPLORA IL CODICE",
@@ -361,14 +367,14 @@
                 card1_desc: "Generatore di mandala al neon. Sperimenta con la simmetria e il caos matematico.",
                 card2_title: "Cimatica & Audio",
                 card2_desc: "Visualizza il suono. Osserva come le frequenze creano forme in tempo reale.",
-                card3_title: "Fisica delle Particelle",
-                card3_desc: "Simulazioni di gravità, fluidi e sistemi di sciame interattivi.",
+                card3_title: "Dipartimento di Matematica",
+                card3_desc: "Quadrati magici, sequenze numeriche e la bellezza logica dei numeri.",
                 card4_title: "Luce e Colore",
                 card4_desc: "Strumenti per designer. Generatori di palette e frattali di colore.",
                 btn_enter: "ENTRA NEL LAB",
+                btn_hub: "ENTRA NEL HUB",
                 prx: "PROSSIMAMENTE",
-                coffee: "Offrimi un caffè",
-                legal: "Avviso Legale", privacy: "Privacy Policy", cookies: "Cookie Policy"
+                legal: "Avviso Legale", privacy: "Privacy Policy", cookies: "Cookie Policy", contact: "Contatto", coffee: "Offrimi un caffè"
             },
             'nl': {
                 title: "VERKEN DE CODE",
@@ -377,14 +383,14 @@
                 card1_desc: "Neon mandala generator. Experimenteer met symmetrie en wiskundige chaos.",
                 card2_title: "Cymatics & Audio",
                 card2_desc: "Visualiseer geluid. Bekijk hoe frequenties vormen creëren in real-time.",
-                card3_title: "Deeltjesfysica",
-                card3_desc: "Zwaartekrachtsimulaties, vloeistoffen en interactieve zwermsystemen.",
+                card3_title: "Departement Wiskunde",
+                card3_desc: "Magische vierkanten, numerieke reeksen en de logische schoonheid van getallen.",
                 card4_title: "Licht & Kleur",
                 card4_desc: "Tools voor ontwerpers. Paletgeneratoren en kleurfraktalen.",
                 btn_enter: "GA NAAR LAB",
+                btn_hub: "GA NAAR HUB",
                 prx: "BINNENKORT",
-                coffee: "Koop een koffie voor me",
-                legal: "Juridische kennisgeving", privacy: "Privacybeleid", cookies: "Cookiebeleid"
+                legal: "Juridische kennisgeving", privacy: "Privacybeleid", cookies: "Cookiebeleid", contact: "Contact", coffee: "Koop een koffie voor me"
             },
             'ja': {
                 title: "コードを探索する",
@@ -393,53 +399,57 @@
                 card1_desc: "ネオンマンダラジェネレーター。対称性と数学的カオスを実験。",
                 card2_title: "サイマティクス＆オーディオ",
                 card2_desc: "音を視覚化する。周波数がリアルタイムで形を作る様子を観察。",
-                card3_title: "素粒子物理学",
-                card3_desc: "重力シミュレーション、流体、インタラクティブな群衆システム。",
+                card3_title: "数学部門",
+                card3_desc: "魔方陣、数列、そして数の論理的な美しさ。",
                 card4_title: "光と色",
                 card4_desc: "デザイナー向けツール。パレットジェネレーターとカラーフラクタル。",
                 btn_enter: "ラボに入る",
+                btn_hub: "ハブに入る",
                 prx: "近日公開",
-                coffee: "コーヒーを奢る",
-                legal: "法的通知", privacy: "プライバシーポリシー", cookies: "クッキーポリシー"
+                legal: "法的通知", privacy: "プライバシーポリシー", cookies: "クッキーポリシー", contact: "接触", coffee: "コーヒーを奢る"
             }
         };
 
         function setLang(lang) {
+            localStorage.setItem('gl_lang', lang); // Guardar preferencia
+            
+            const t = translations[lang];
+            
             // Textos Generales
-            document.getElementById('txt-title').innerText = translations[lang].title;
-            document.getElementById('txt-subtitle').innerText = translations[lang].subtitle;
+            document.getElementById('txt-title').innerText = t.title;
+            document.getElementById('txt-subtitle').innerText = t.subtitle;
             
             // Cards
-            document.getElementById('card1-title').innerText = translations[lang].card1_title;
-            document.getElementById('card1-desc').innerText = translations[lang].card1_desc;
-            document.getElementById('card2-title').innerText = translations[lang].card2_title;
-            document.getElementById('card2-desc').innerText = translations[lang].card2_desc;
-            document.getElementById('card3-title').innerText = translations[lang].card3_title;
-            document.getElementById('card3-desc').innerText = translations[lang].card3_desc;
-            document.getElementById('card4-title').innerText = translations[lang].card4_title;
-            document.getElementById('card4-desc').innerText = translations[lang].card4_desc;
+            document.getElementById('card1-title').innerText = t.card1_title;
+            document.getElementById('card1-desc').innerText = t.card1_desc;
+            document.getElementById('card2-title').innerText = t.card2_title;
+            document.getElementById('card2-desc').innerText = t.card2_desc;
+            document.getElementById('card3-title').innerText = t.card3_title;
+            document.getElementById('card3-desc').innerText = t.card3_desc;
+            document.getElementById('card4-title').innerText = t.card4_title;
+            document.getElementById('card4-desc').innerText = t.card4_desc;
             
             // Botones
-            document.getElementById('btn-enter').innerText = translations[lang].btn_enter;
-            document.getElementById('btn-enter-2').innerText = translations[lang].btn_enter;
+            document.getElementById('btn-enter').innerText = t.btn_enter;
+            document.getElementById('btn-enter-2').innerText = t.btn_enter;
+            document.getElementById('btn-enter-3').innerText = t.btn_hub;
             
-            // Textos Comunes
             const prxElements = document.querySelectorAll('.prx');
-            prxElements.forEach(el => el.innerText = translations[lang].prx);
+            prxElements.forEach(el => el.innerText = t.prx);
             
-            document.getElementById('btn-coffee').innerText = translations[lang].coffee;
-            
-            // Footer Legal
-            document.getElementById('link-legal').innerText = translations[lang].legal;
-            document.getElementById('link-privacy').innerText = translations[lang].privacy;
-            document.getElementById('link-cookies').innerText = translations[lang].cookies;
+            // Footer
+            document.getElementById('link-legal').innerText = t.legal;
+            document.getElementById('link-privacy').innerText = t.privacy;
+            document.getElementById('link-cookies').innerText = t.cookies;
+            document.getElementById('link-contact').innerText = t.contact;
+            document.getElementById('btn-coffee').innerText = t.coffee;
 
             // Estilo botones idioma
             document.querySelectorAll('.lang-switch button').forEach(b => b.classList.remove('active'));
             document.getElementById('btn-' + lang).classList.add('active');
         }
 
-        /* --- PARTICULAS (IGUAL QUE ANTES) --- */
+        /* --- 2. FONDO DE PARTÍCULAS (Red Neuronal) --- */
         const canvas = document.getElementById('bg-canvas');
         const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth;
@@ -486,6 +496,7 @@
 
         function init() {
             particlesArray = [];
+            // Densidad alta
             let numberOfParticles = (canvas.height * canvas.width) / 5000;
             for (let i = 0; i < numberOfParticles; i++) {
                 let size = (Math.random() * 1.5) + 0.5;
@@ -533,8 +544,23 @@
             init();
         });
 
+        /* --- ARRANQUE CON MEMORIA --- */
         init();
         animate();
+
+        // Bloqueo de teclas para seguridad (F12, etc)
+        document.onkeydown = function(e) {
+            if(event.keyCode == 123) { return false; }
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) { return false; }
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) { return false; }
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) { return false; }
+            if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) { return false; }
+        }
+
+        // Cargar idioma guardado o defecto
+        const savedLang = localStorage.getItem('gl_lang') || 'es';
+        setLang(savedLang);
+
     </script>
 </body>
 </html>
