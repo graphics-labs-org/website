@@ -629,6 +629,7 @@
         let currentLang = 'es';
 
         function setLang(lang) {
+            localStorage.setItem('gl_lang', lang); // <--- AÑADE ESTO
             currentLang = lang;
             const t = translations[lang];
             
@@ -969,7 +970,14 @@
         styleSheet.innerText = `@keyframes fadeIn { to { opacity: 1; } }`;
         document.head.appendChild(styleSheet);
         
+        
+       
+        // 1. Generamos el cuadrado primero (por defecto)
         generateUserSquare();
+
+        // 2. Aplicamos el idioma guardado (esto traducirá todo lo generado)
+        const savedLang = localStorage.getItem('gl_lang') || 'es';
+        setLang(savedLang);
     </script>
 </body>
 </html>
