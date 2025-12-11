@@ -30,25 +30,29 @@
 
         .container {
             position: relative;
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
             text-align: center;
             flex: 1;
+            display: flex;
+            flex-direction: column;
         }
 
-        /* --- UI ESPECÍFICA DEL LAB --- */
+        /* --- CONTROLES --- */
         .controls {
             background: var(--glass);
             padding: 20px;
             border-radius: 12px;
             border: 1px solid var(--border);
-            margin: 30px auto;
-            max-width: 600px;
+            margin: 20px auto;
+            width: 100%;
+            max-width: 700px;
             display: flex;
             flex-direction: column;
             gap: 15px;
             align-items: center;
+            backdrop-filter: blur(5px);
         }
 
         .input-group { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; }
@@ -73,35 +77,45 @@
             cursor: pointer;
             font-weight: bold;
             transition: 0.3s;
+            text-transform: uppercase;
         }
-        button.action-btn:hover { box-shadow: 0 0 15px var(--primary); }
+        button.action-btn:hover { box-shadow: 0 0 15px var(--primary); transform: scale(1.05); }
 
         button.sagrada-btn {
             background: transparent;
             border: 1px solid var(--secondary);
             color: var(--secondary);
-            padding: 10px 20px;
+            padding: 8px 15px;
             border-radius: 5px;
             cursor: pointer;
             transition: 0.3s;
+            font-size: 0.9rem;
         }
         button.sagrada-btn:hover { background: var(--secondary); color: #fff; box-shadow: 0 0 15px var(--secondary); }
 
         .formula-box {
             font-family: 'Courier New', monospace;
             color: var(--secondary);
-            font-size: 1.1rem;
-            margin: 20px 0;
+            font-size: 1.2rem;
+            margin: 10px 0;
             min-height: 1.5em;
+            text-shadow: 0 0 5px rgba(189, 0, 255, 0.4);
         }
 
-        /* --- EL CUADRADO MÁGICO --- */
+        /* --- GRID MÁGICO --- */
+        #magic-container {
+            width: 100%;
+            overflow: auto; /* Scroll si es gigante */
+            display: flex;
+            justify-content: center;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+
         #magic-grid {
             display: grid;
-            gap: 5px;
-            margin: 20px auto;
-            max-width: 100%;
-            justify-content: center;
+            gap: 2px;
+            margin: 0 auto;
         }
 
         .cell {
@@ -110,28 +124,53 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
             color: #fff;
-            aspect-ratio: 1;
-            border-radius: 4px;
+            border-radius: 2px;
+            transition: 0.2s;
+            user-select: text; /* Permitir copiar números */
+        }
+        
+        /* Estilos para grids pequeños (bonitos) */
+        .cell.fancy:hover { 
+            background: var(--primary); 
+            color: #000; 
+            transform: scale(1.1); 
+            box-shadow: 0 0 10px var(--primary); 
+            z-index: 2; 
+        }
+
+        /* Estilos para grids GIGANTES (>20x20) */
+        .cell.dense {
+            background: transparent;
+            border: none;
+            font-family: monospace;
+            color: var(--primary);
+        }
+
+        .sagrada-highlight { border-color: var(--secondary) !important; color: var(--secondary) !important; font-weight: bold; }
+
+        /* Nav & Footer */
+        nav { display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        
+        .nav-links { display: flex; gap: 15px; }
+        .nav-btn { 
+            text-decoration: none; 
+            color: var(--muted); 
+            font-size: 0.9rem; 
+            border: 1px solid var(--border); 
+            padding: 5px 10px; 
+            border-radius: 4px; 
             transition: 0.3s;
         }
-        .cell:hover { background: var(--primary); color: #000; transform: scale(1.1); box-shadow: 0 0 10px var(--primary); z-index: 2; }
-        
-        /* Highlight Sagrada Familia special number */
-        .sagrada-highlight { border-color: var(--secondary); color: var(--secondary); }
+        .nav-btn:hover { color: var(--primary); border-color: var(--primary); }
 
-        /* Nav & Footer (Igual que el index) */
-        nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .logo { font-size: 1.2rem; font-weight: bold; color: var(--primary); text-decoration: none; }
-        .lang-switch button { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 5px 10px; cursor: pointer; border-radius: 4px; }
+        .logo { font-size: 1.2rem; font-weight: bold; color: var(--primary); text-decoration: none; letter-spacing: 2px; }
+        
+        .lang-switch button { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 5px 10px; cursor: pointer; border-radius: 4px; margin-left: 2px;}
         .lang-switch button.active { background: var(--primary); color: #000; }
         
-        footer { margin-top: auto; padding: 20px; text-align: center; border-top: 1px solid var(--border); background: rgba(0,0,0,0.8); }
-        .back-link { color: var(--muted); text-decoration: none; font-size: 0.9rem; margin-top: 10px; display: inline-block; }
-        .back-link:hover { color: var(--primary); }
+        footer { margin-top: auto; padding: 20px; text-align: center; border-top: 1px solid var(--border); background: rgba(0,0,0,0.8); color: var(--muted); font-size: 0.8rem; }
 
-        /* Error msg */
         .error { color: #ff3366; font-size: 0.9rem; margin-top: 10px; display: none; }
 
     </style>
@@ -142,24 +181,32 @@
 
     <div class="container">
         <nav>
-            <a href="/" class="logo">GRAPHICS LABS / MATH</a>
+            <div class="nav-links">
+                <a href="../../index.html" class="nav-btn">← HUB PRINCIPAL</a>
+                <a href="../index.html" class="nav-btn">← HUB MATH</a>
+            </div>
+            <div class="logo">GRAPHICS LABS</div>
             <div class="lang-switch">
                 <button onclick="setLang('es')" id="btn-es" class="active">ES</button>
                 <button onclick="setLang('en')" id="btn-en">EN</button>
+                <button onclick="setLang('fr')" id="btn-fr">FR</button>
+                <button onclick="setLang('de')" id="btn-de">DE</button>
+                <button onclick="setLang('pt')" id="btn-pt">PT</button>
+                <button onclick="setLang('it')" id="btn-it">IT</button>
+                <button onclick="setLang('nl')" id="btn-nl">NL</button>
                 <button onclick="setLang('ja')" id="btn-ja">JP</button>
             </div>
         </nav>
 
         <h1 id="txt-title">CUADRADO MÁGICO</h1>
-        <p style="color:var(--muted); margin-bottom: 20px;" id="txt-desc">Generador de patrones numéricos donde todas las filas, columnas y diagonales suman lo mismo.</p>
+        <p style="color:var(--muted); margin-bottom: 20px;" id="txt-desc">Generador universal (pares e impares). El caos se convierte en orden.</p>
 
         <div class="controls">
             <div class="input-group">
-                <label id="lbl-size">Tamaño (Impar):</label>
-                <input type="number" id="size-input" value="3" min="3" max="99" step="2">
+                <label id="lbl-size">Tamaño:</label>
+                <input type="number" id="size-input" value="3" min="3" max="100" step="1">
                 <button class="action-btn" onclick="generateUserSquare()" id="btn-gen">GENERAR</button>
             </div>
-            <p class="error" id="error-msg">Por ahora solo soporta números impares (3, 5, 7...) para visualizar el algoritmo Siamés.</p>
             
             <div style="width: 100%; height: 1px; background: var(--border); margin: 10px 0;"></div>
             
@@ -169,46 +216,90 @@
         <div class="formula-box" id="formula-display">
             </div>
 
-        <div id="magic-grid"></div>
+        <div id="magic-container">
+            <div id="magic-grid"></div>
+        </div>
 
     </div>
 
     <footer>
-        <a href="../../index.html" class="back-link">← Volver al Laboratorio Central</a>
+        <span id="footer-rights">© 2025 Graphics Labs</span>
     </footer>
 
     <script>
-        /* --- TRADUCCIONES --- */
+        /* --- 1. IDIOMAS (8 Lenguas) --- */
         const translations = {
             'es': {
                 title: "CUADRADO MÁGICO",
-                desc: "Generador de patrones numéricos donde filas, columnas y diagonales suman lo mismo.",
-                lbl_size: "Tamaño (Impar):",
+                desc: "Generador universal (pares e impares). El caos se convierte en orden.",
+                lbl_size: "Tamaño (N):",
                 btn_gen: "GENERAR",
                 btn_sagrada: "ver SAGRADA FAMILIA (4x4)",
-                formula: "Constante Mágica (Suma): ",
-                error: "Por ahora solo soporta números impares (3, 5, 7...) para este algoritmo.",
-                sagrada_note: "Nota: El cuadro de Subirachs (Sagrada Familia) suma 33 (Edad de Cristo)."
+                formula: "Constante Mágica: ",
+                sagrada_note: "Nota: Cuadrado de Subirachs (Suma 33, Edad de Cristo)."
             },
             'en': {
                 title: "MAGIC SQUARE",
-                desc: "Numerical pattern generator where rows, columns, and diagonals sum to the same value.",
-                lbl_size: "Size (Odd):",
+                desc: "Universal generator (odd & even). Chaos becomes order.",
+                lbl_size: "Size (N):",
                 btn_gen: "GENERATE",
                 btn_sagrada: "view SAGRADA FAMILIA (4x4)",
-                formula: "Magic Constant (Sum): ",
-                error: "Currently supports only odd numbers (3, 5, 7...) for this algorithm.",
-                sagrada_note: "Note: Subirachs' square (Sagrada Familia) sums to 33 (Age of Christ)."
+                formula: "Magic Constant: ",
+                sagrada_note: "Note: Subirachs Square (Sums 33, Age of Christ)."
+            },
+            'fr': {
+                title: "CARRÉ MAGIQUE",
+                desc: "Générateur universel (pair et impair). Le chaos devient ordre.",
+                lbl_size: "Taille (N):",
+                btn_gen: "GÉNÉRER",
+                btn_sagrada: "voir SAGRADA FAMILIA (4x4)",
+                formula: "Constante Magique: ",
+                sagrada_note: "Note: Carré de Subirachs (Somme 33, Âge du Christ)."
+            },
+            'de': {
+                title: "MAGISCHES QUADRAT",
+                desc: "Universalgenerator (gerade & ungerade). Chaos wird Ordnung.",
+                lbl_size: "Größe (N):",
+                btn_gen: "ERZEUGEN",
+                btn_sagrada: "siehe SAGRADA FAMILIA (4x4)",
+                formula: "Magische Konstante: ",
+                sagrada_note: "Hinweis: Subirachs Quadrat (Summe 33, Alter Christi)."
+            },
+            'pt': {
+                title: "QUADRADO MÁGICO",
+                desc: "Gerador universal (pares e ímpares). O caos torna-se ordem.",
+                lbl_size: "Tamanho (N):",
+                btn_gen: "GERAR",
+                btn_sagrada: "ver SAGRADA FAMILIA (4x4)",
+                formula: "Constante Mágica: ",
+                sagrada_note: "Nota: Quadrado de Subirachs (Soma 33, Idade de Cristo)."
+            },
+            'it': {
+                title: "QUADRATO MAGICO",
+                desc: "Generatore universale (pari e dispari). Il caos diventa ordine.",
+                lbl_size: "Dimensione (N):",
+                btn_gen: "GENERARE",
+                btn_sagrada: "vedi SAGRADA FAMILIA (4x4)",
+                formula: "Costante Magica: ",
+                sagrada_note: "Nota: Quadrato di Subirachs (Somma 33, Età di Cristo)."
+            },
+            'nl': {
+                title: "MAGISCH VIERKANT",
+                desc: "Universele generator (even & oneven). Chaos wordt orde.",
+                lbl_size: "Grootte (N):",
+                btn_gen: "GENEREREN",
+                btn_sagrada: "zie SAGRADA FAMILIA (4x4)",
+                formula: "Magische Constante: ",
+                sagrada_note: "Opmerking: Subirachs Vierkant (Som 33, Leeftijd van Christus)."
             },
             'ja': {
                 title: "魔方陣",
-                desc: "行、列、対角線の和が同じになる数値パターンジェネレーター。",
-                lbl_size: "サイズ (奇数):",
+                desc: "ユニバーサルジェネレーター（偶数と奇数）。カオスが秩序になる。",
+                lbl_size: "サイズ (N):",
                 btn_gen: "生成する",
-                btn_sagrada: "サグラダ・ファミリアを見る (4x4)",
-                formula: "魔法定数 (合計): ",
-                error: "現在、このアルゴリズムでは奇数 (3, 5, 7...) のみをサポートしています。",
-                sagrada_note: "注: スビラクスの方陣 (サグラダ・ファミリア) の合計は33 (キリストの年齢) です。"
+                btn_sagrada: "サグラダ・ファミリア (4x4)",
+                formula: "魔法定数: ",
+                sagrada_note: "注：スビラクスの方陣（合計33、キリストの年齢）。"
             }
         };
 
@@ -222,13 +313,11 @@
             document.getElementById('lbl-size').innerText = t.lbl_size;
             document.getElementById('btn-gen').innerText = t.btn_gen;
             document.getElementById('btn-sagrada').innerText = t.btn_sagrada;
-            document.getElementById('error-msg').innerText = t.error;
             
-            // Actualizar botones estilo
             document.querySelectorAll('.lang-switch button').forEach(b => b.classList.remove('active'));
             document.getElementById('btn-' + lang).classList.add('active');
             
-            // Si hay un cuadrado generado, actualizar texto formula
+            // Refrescar formula si existe
             const formulaBox = document.getElementById('formula-display');
             if(formulaBox.innerText.includes(':')) {
                 const val = formulaBox.innerText.split(': ')[1];
@@ -236,28 +325,39 @@
             }
         }
 
-        /* --- LOGICA MATEMATICA --- */
+        /* --- 2. LÓGICA MATEMÁTICA COMPLEJA --- */
 
         function generateUserSquare() {
-            const n = parseInt(document.getElementById('size-input').value);
-            const errorMsg = document.getElementById('error-msg');
-            
-            // Validacion simple para demo (Algoritmo Siamés solo funciona bien con impares)
-            if (n % 2 === 0) {
-                errorMsg.style.display = 'block';
-                return;
-            }
-            errorMsg.style.display = 'none';
+            let n = parseInt(document.getElementById('size-input').value);
+            if(n < 3) n = 3; 
+            if(n > 100) n = 100; // Límite de seguridad
+            document.getElementById('size-input').value = n;
 
-            // 1. Calcular Constante Mágica: M = n(n^2 + 1) / 2
+            // Formula: M = n(n^2 + 1) / 2
             const magicConstant = (n * (n*n + 1)) / 2;
             document.getElementById('formula-display').innerText = translations[currentLang].formula + magicConstant;
-            
-            // 2. Generar Matriz (Algoritmo Siamés)
+
+            let matrix;
+
+            if (n % 2 !== 0) {
+                // Caso 1: IMPAR (Método Siamés)
+                matrix = generateOdd(n);
+            } else if (n % 4 === 0) {
+                // Caso 2: DOBLEMENTE PAR (n = 4, 8, 12...)
+                matrix = generateDoublyEven(n);
+            } else {
+                // Caso 3: PAR SIMPLE (n = 6, 10, 14...) - Método Strachey (El más difícil)
+                matrix = generateSinglyEven(n);
+            }
+
+            drawGrid(matrix, n);
+        }
+
+        // Algoritmo para Impares (Siamese Method)
+        function generateOdd(n) {
             let square = Array.from({ length: n }, () => Array(n).fill(0));
             let i = 0;
             let j = Math.floor(n / 2);
-
             for (let num = 1; num <= n * n; num++) {
                 square[i][j] = num;
                 let nextI = (i - 1 + n) % n;
@@ -269,109 +369,217 @@
                     j = nextJ;
                 }
             }
+            return square;
+        }
 
-            drawGrid(square, n);
+        // Algoritmo para Doblemente Pares (4, 8, 12...)
+        function generateDoublyEven(n) {
+            let square = Array.from({ length: n }, () => Array(n).fill(0));
+            let i, j;
+            
+            // Llenar en orden secuencial 1 a n^2
+            for (i = 0; i < n; i++) {
+                for (j = 0; j < n; j++) {
+                    square[i][j] = (n * i) + j + 1;
+                }
+            }
+            
+            // Cambiar valores en esquinas y centro según reglas de simetría
+            // Regla: Cambiar si (i % 4 == j % 4) o (i % 4 + j % 4 == 3)
+            for (i = 0; i < n; i++) {
+                for (j = 0; j < n; j++) {
+                    let inCorner = (i % 4 === 0 || i % 4 === 3) && (j % 4 === 0 || j % 4 === 3);
+                    let inCenter = (i % 4 === 1 || i % 4 === 2) && (j % 4 === 1 || j % 4 === 2);
+                    
+                    if (inCorner || inCenter) {
+                        square[i][j] = (n * n + 1) - square[i][j];
+                    }
+                }
+            }
+            return square;
+        }
+
+        // Algoritmo para Pares Simples (6, 10, 14...) - Método Strachey
+        function generateSinglyEven(n) {
+            let halfN = n / 2;
+            let subGrid = generateOdd(halfN); // Usamos el método impar para los subcuadrantes
+            let grid = Array.from({ length: n }, () => Array(n).fill(0));
+
+            // Cuadrantes: A (Arriba-Izq), B (Abajo-Der), C (Arriba-Der), D (Abajo-Izq)
+            // Strachey asigna: A=Base, B=Base+n^2/4, C=Base+2*n^2/4, D=Base+3*n^2/4
+            // Orden standard: A C D B (Top-L, Top-R, Bot-L, Bot-R) ? No, Strachey usa:
+            // A=TopLeft, B=BottomRight, C=TopRight, D=BottomLeft
+            // Valores: A(1..k), D(k+1..2k), B(2k+1..3k), C(3k+1..4k) donde k = (n/2)^2
+            
+            let k = halfN * halfN;
+            
+            for (let i = 0; i < halfN; i++) {
+                for (let j = 0; j < halfN; j++) {
+                    grid[i][j] = subGrid[i][j];             // A (Top-Left)
+                    grid[i + halfN][j + halfN] = subGrid[i][j] + k; // B (Bottom-Right)
+                    grid[i][j + halfN] = subGrid[i][j] + 2 * k; // C (Top-Right)
+                    grid[i + halfN][j] = subGrid[i][j] + 3 * k; // D (Bottom-Left)
+                }
+            }
+
+            // Intercambio de columnas (Swap rules)
+            let swapCols = Math.floor(n / 4);
+            
+            for (let i = 0; i < halfN; i++) {
+                for (let j = 0; j < swapCols; j++) {
+                    // Swap Left side A and D
+                    if (i === Math.floor(halfN / 2)) {
+                        // Fila central del subcuadrante: swap desde columna 1
+                        swap(grid, i, j + 1, i + halfN, j + 1);
+                    } else {
+                        // Otras filas: swap normal
+                        swap(grid, i, j, i + halfN, j);
+                    }
+                }
+            }
+            
+            // Swap Right side C and B (last m-1 columns)
+            let m = swapCols - 1;
+            if (m > 0) {
+                for (let i = 0; i < halfN; i++) {
+                    for (let j = 0; j < m; j++) {
+                        let col = n - 1 - j;
+                        swap(grid, i, col, i + halfN, col);
+                    }
+                }
+            }
+
+            return grid;
+        }
+
+        function swap(grid, r1, c1, r2, c2) {
+            let temp = grid[r1][c1];
+            grid[r1][c1] = grid[r2][c2];
+            grid[r2][c2] = temp;
         }
 
         function generateSagrada() {
-            // El cuadrado de la fachada de la Pasión no es un cuadrado mágico perfecto matemático estándar
-            // (repite números 10 y 14), pero suma 33. Lo "hardcodeamos" por historia.
             const sagrada = [
                 [1, 14, 14, 4],
                 [11, 7, 6, 9],
                 [8, 10, 10, 5],
                 [13, 2, 3, 15]
             ];
-            
-            document.getElementById('formula-display').innerText = translations[currentLang].formula + "33 (" + (currentLang === 'es' ? "Edad de Cristo" : "Age of Christ") + ")";
-            document.getElementById('error-msg').style.display = 'none';
-            drawGrid(sagrada, 4);
+            document.getElementById('formula-display').innerText = translations[currentLang].formula + "33 (" + translations[currentLang].sagrada_note + ")";
+            drawGrid(sagrada, 4, true);
         }
 
-        function drawGrid(matrix, size) {
+        function drawGrid(matrix, size, isSpecial = false) {
             const container = document.getElementById('magic-grid');
             container.innerHTML = '';
             
-            // Ajustar tamaño celdas según cantidad
-            let cellSize = size > 10 ? '30px' : '50px';
-            if(size > 20) cellSize = '20px';
+            // AJUSTE DE TAMAÑO PARA GRIDS GIGANTES
+            let cellSize, fontSize;
+            let isDense = false;
+
+            if (size <= 10) {
+                cellSize = '50px'; fontSize = '1.2rem';
+            } else if (size <= 20) {
+                cellSize = '30px'; fontSize = '0.9rem';
+            } else if (size <= 50) {
+                cellSize = '20px'; fontSize = '0.7rem'; isDense = true;
+            } else {
+                cellSize = '12px'; fontSize = '0.5rem'; isDense = true;
+            }
             
             container.style.gridTemplateColumns = `repeat(${size}, ${cellSize})`;
             
-            for (let row of matrix) {
-                for (let val of row) {
+            // Retardo de animación basado en tamaño (si es enorme, sin delay)
+            let useDelay = size < 15;
+
+            for (let i = 0; i < size; i++) {
+                for (let j = 0; j < size; j++) {
+                    let val = matrix[i][j];
                     let div = document.createElement('div');
-                    div.className = 'cell';
+                    
+                    div.className = isDense ? 'cell dense' : 'cell fancy';
+                    if (isSpecial && (val === 10 || val === 14)) div.classList.add('sagrada-highlight');
+                    
                     div.style.width = cellSize;
+                    div.style.height = cellSize; // Forzar cuadrado
+                    div.style.fontSize = fontSize;
                     div.innerText = val;
-                    // Animación de entrada
-                    div.style.opacity = '0';
-                    div.style.animation = 'fadeIn 0.5s forwards';
+                    
+                    if (useDelay) {
+                        div.style.opacity = '0';
+                        div.style.animation = `fadeIn 0.3s forwards ${ (i*size + j) * 0.01 }s`;
+                    } else {
+                        div.style.opacity = '1'; // Mostrar de golpe si son muchos
+                    }
+                    
                     container.appendChild(div);
                 }
             }
         }
 
-        /* --- PARTICULAS DE FONDO (Copiado del Prompt Maestro) --- */
+        /* --- PARTICULAS DE FONDO (Números) --- */
         const canvas = document.getElementById('bg-canvas');
         const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
         let particlesArray;
-        let mouse = { x: null, y: null, radius: (canvas.height/130) * (canvas.width/130) };
+        let mouse = { x: null, y: null, radius: (canvas.height/100) * (canvas.width/100) };
         window.addEventListener('mousemove', function(e) { mouse.x = e.x; mouse.y = e.y; });
 
         class Particle {
-            constructor(x, y, dx, dy, size, color) {
-                this.x = x; this.y = y; this.dx = dx; this.dy = dy; this.size = size; this.color = color;
+            constructor(x, y, dx, dy, size) {
+                this.x = x; this.y = y; this.dx = dx; this.dy = dy; this.size = size;
+                this.number = Math.floor(Math.random() * 10); // Numero 0-9
             }
-            draw() { ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fillStyle = '#00f3ff'; ctx.fill(); }
+            draw() { 
+                ctx.font = this.size + 'px monospace';
+                ctx.fillStyle = '#00f3ff';
+                ctx.fillText(this.number, this.x, this.y);
+            }
             update() {
                 if(this.x>canvas.width||this.x<0) this.dx=-this.dx;
                 if(this.y>canvas.height||this.y<0) this.dy=-this.dy;
-                let dist = Math.sqrt((mouse.x-this.x)**2 + (mouse.y-this.y)**2);
-                if(dist < mouse.radius+this.size){
-                    if(mouse.x<this.x && this.x<canvas.width-this.size*10) this.x+=2;
-                    if(mouse.x>this.x && this.x>this.size*10) this.x-=2;
-                    if(mouse.y<this.y && this.y<canvas.height-this.size*10) this.y+=2;
-                    if(mouse.y>this.y && this.y>this.size*10) this.y-=2;
+                
+                let dx = mouse.x - this.x;
+                let dy = mouse.y - this.y;
+                let distance = Math.sqrt(dx*dx + dy*dy);
+                if(distance < mouse.radius + 50){
+                    if(mouse.x<this.x && this.x<canvas.width-50) this.x+=2;
+                    if(mouse.x>this.x && this.x>50) this.x-=2;
+                    if(mouse.y<this.y && this.y<canvas.height-50) this.y+=2;
+                    if(mouse.y>this.y && this.y>50) this.y-=2;
                 }
-                this.x+=this.dx*0.4; this.y+=this.dy*0.4;
+                
+                this.x+=this.dx*0.5; this.y+=this.dy*0.5;
                 this.draw();
             }
         }
+
         function init(){
             particlesArray=[];
-            let n=(canvas.height*canvas.width)/5000;
+            let n=(canvas.height*canvas.width)/6000;
             for(let i=0; i<n; i++){
-                let size=(Math.random()*1.5)+0.5;
-                particlesArray.push(new Particle(Math.random()*innerWidth, Math.random()*innerHeight, (Math.random()*1)-0.5, (Math.random()*1)-0.5, size, '#00f3ff'));
+                let size=(Math.random()*15)+10; // Tamaño fuente
+                particlesArray.push(new Particle(Math.random()*innerWidth, Math.random()*innerHeight, (Math.random()*1)-0.5, (Math.random()*1)-0.5, size));
             }
         }
         function animate(){
-            requestAnimationFrame(animate); ctx.clearRect(0,0,innerWidth,innerHeight);
+            requestAnimationFrame(animate); 
+            ctx.clearRect(0,0,innerWidth,innerHeight);
             for(let i=0; i<particlesArray.length; i++){
                 particlesArray[i].update();
-                for(let j=i; j<particlesArray.length; j++){
-                    let dx=particlesArray[i].x-particlesArray[j].x;
-                    let dy=particlesArray[i].y-particlesArray[j].y;
-                    let dist=dx*dx+dy*dy;
-                    if(dist<(canvas.width/9)*(canvas.height/9)){
-                        ctx.strokeStyle='rgba(0,243,255,'+(1-(dist/15000))+')'; ctx.lineWidth=0.5;
-                        ctx.beginPath(); ctx.moveTo(particlesArray[i].x,particlesArray[i].y); ctx.lineTo(particlesArray[j].x,particlesArray[j].y); ctx.stroke();
-                    }
-                }
+                // Conexiones (opcional, lo quito para que se lean mejor los números)
+                /* for(let j=i; j<particlesArray.length; j++){ ... } */
             }
         }
         window.addEventListener('resize', ()=>{canvas.width=innerWidth;canvas.height=innerHeight;init();});
         init(); animate();
-        
-        // Animacion CSS inyectada
+
         const styleSheet = document.createElement("style");
         styleSheet.innerText = `@keyframes fadeIn { to { opacity: 1; } }`;
         document.head.appendChild(styleSheet);
         
-        // Generar uno por defecto al cargar
+        // Iniciar
         generateUserSquare();
     </script>
 </body>
