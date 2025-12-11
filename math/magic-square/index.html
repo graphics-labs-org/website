@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magic Square Lab | Graphics Labs</title>
+    <style>
+        :root {
+            --primary: #00f3ff;
+            --secondary: #bd00ff;
+            --glass: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.1);
+            --text: #ffffff;
+            --muted: #888;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', monospace, sans-serif; }
+        
+        body {
+            background-color: #050505;
+            color: var(--text);
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            user-select: none;
+        }
+
+        #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+
+        .container {
+            position: relative;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+            flex: 1;
+        }
+
+        /* --- UI ESPECÍFICA DEL LAB --- */
+        .controls {
+            background: var(--glass);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin: 30px auto;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .input-group { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; }
+        
+        input[type="number"] {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 10px;
+            border-radius: 5px;
+            width: 80px;
+            font-size: 1.2rem;
+            text-align: center;
+        }
+
+        button.action-btn {
+            background: var(--primary);
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        button.action-btn:hover { box-shadow: 0 0 15px var(--primary); }
+
+        button.sagrada-btn {
+            background: transparent;
+            border: 1px solid var(--secondary);
+            color: var(--secondary);
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button.sagrada-btn:hover { background: var(--secondary); color: #fff; box-shadow: 0 0 15px var(--secondary); }
+
+        .formula-box {
+            font-family: 'Courier New', monospace;
+            color: var(--secondary);
+            font-size: 1.1rem;
+            margin: 20px 0;
+            min-height: 1.5em;
+        }
+
+        /* --- EL CUADRADO MÁGICO --- */
+        #magic-grid {
+            display: grid;
+            gap: 5px;
+            margin: 20px auto;
+            max-width: 100%;
+            justify-content: center;
+        }
+
+        .cell {
+            background: rgba(0, 243, 255, 0.05);
+            border: 1px solid rgba(0, 243, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: #fff;
+            aspect-ratio: 1;
+            border-radius: 4px;
+            transition: 0.3s;
+        }
+        .cell:hover { background: var(--primary); color: #000; transform: scale(1.1); box-shadow: 0 0 10px var(--primary); z-index: 2; }
+        
+        /* Highlight Sagrada Familia special number */
+        .sagrada-highlight { border-color: var(--secondary); color: var(--secondary); }
+
+        /* Nav & Footer (Igual que el index) */
+        nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .logo { font-size: 1.2rem; font-weight: bold; color: var(--primary); text-decoration: none; }
+        .lang-switch button { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 5px 10px; cursor: pointer; border-radius: 4px; }
+        .lang-switch button.active { background: var(--primary); color: #000; }
+        
+        footer { margin-top: auto; padding: 20px; text-align: center; border-top: 1px solid var(--border); background: rgba(0,0,0,0.8); }
+        .back-link { color: var(--muted); text-decoration: none; font-size: 0.9rem; margin-top: 10px; display: inline-block; }
+        .back-link:hover { color: var(--primary); }
+
+        /* Error msg */
+        .error { color: #ff3366; font-size: 0.9rem; margin-top: 10px; display: none; }
+
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="container">
+        <nav>
+            <a href="/" class="logo">GRAPHICS LABS / MATH</a>
+            <div class="lang-switch">
+                <button onclick="setLang('es')" id="btn-es" class="active">ES</button>
+                <button onclick="setLang('en')" id="btn-en">EN</button>
+                <button onclick="setLang('ja')" id="btn-ja">JP</button>
+            </div>
+        </nav>
+
+        <h1 id="txt-title">CUADRADO MÁGICO</h1>
+        <p style="color:var(--muted); margin-bottom: 20px;" id="txt-desc">Generador de patrones numéricos donde todas las filas, columnas y diagonales suman lo mismo.</p>
+
+        <div class="controls">
+            <div class="input-group">
+                <label id="lbl-size">Tamaño (Impar):</label>
+                <input type="number" id="size-input" value="3" min="3" max="99" step="2">
+                <button class="action-btn" onclick="generateUserSquare()" id="btn-gen">GENERAR</button>
+            </div>
+            <p class="error" id="error-msg">Por ahora solo soporta números impares (3, 5, 7...) para visualizar el algoritmo Siamés.</p>
+            
+            <div style="width: 100%; height: 1px; background: var(--border); margin: 10px 0;"></div>
+            
+            <button class="sagrada-btn" onclick="generateSagrada()" id="btn-sagrada">ver SAGRADA FAMILIA (4x4)</button>
+        </div>
+
+        <div class="formula-box" id="formula-display">
+            </div>
+
+        <div id="magic-grid"></div>
+
+    </div>
+
+    <footer>
+        <a href="../../index.html" class="back-link">← Volver al Laboratorio Central</a>
+    </footer>
+
+    <script>
+        /* --- TRADUCCIONES --- */
+        const translations = {
+            'es': {
+                title: "CUADRADO MÁGICO",
+                desc: "Generador de patrones numéricos donde filas, columnas y diagonales suman lo mismo.",
+                lbl_size: "Tamaño (Impar):",
+                btn_gen: "GENERAR",
+                btn_sagrada: "ver SAGRADA FAMILIA (4x4)",
+                formula: "Constante Mágica (Suma): ",
+                error: "Por ahora solo soporta números impares (3, 5, 7...) para este algoritmo.",
+                sagrada_note: "Nota: El cuadro de Subirachs (Sagrada Familia) suma 33 (Edad de Cristo)."
+            },
+            'en': {
+                title: "MAGIC SQUARE",
+                desc: "Numerical pattern generator where rows, columns, and diagonals sum to the same value.",
+                lbl_size: "Size (Odd):",
+                btn_gen: "GENERATE",
+                btn_sagrada: "view SAGRADA FAMILIA (4x4)",
+                formula: "Magic Constant (Sum): ",
+                error: "Currently supports only odd numbers (3, 5, 7...) for this algorithm.",
+                sagrada_note: "Note: Subirachs' square (Sagrada Familia) sums to 33 (Age of Christ)."
+            },
+            'ja': {
+                title: "魔方陣",
+                desc: "行、列、対角線の和が同じになる数値パターンジェネレーター。",
+                lbl_size: "サイズ (奇数):",
+                btn_gen: "生成する",
+                btn_sagrada: "サグラダ・ファミリアを見る (4x4)",
+                formula: "魔法定数 (合計): ",
+                error: "現在、このアルゴリズムでは奇数 (3, 5, 7...) のみをサポートしています。",
+                sagrada_note: "注: スビラクスの方陣 (サグラダ・ファミリア) の合計は33 (キリストの年齢) です。"
+            }
+        };
+
+        let currentLang = 'es';
+
+        function setLang(lang) {
+            currentLang = lang;
+            const t = translations[lang];
+            document.getElementById('txt-title').innerText = t.title;
+            document.getElementById('txt-desc').innerText = t.desc;
+            document.getElementById('lbl-size').innerText = t.lbl_size;
+            document.getElementById('btn-gen').innerText = t.btn_gen;
+            document.getElementById('btn-sagrada').innerText = t.btn_sagrada;
+            document.getElementById('error-msg').innerText = t.error;
+            
+            // Actualizar botones estilo
+            document.querySelectorAll('.lang-switch button').forEach(b => b.classList.remove('active'));
+            document.getElementById('btn-' + lang).classList.add('active');
+            
+            // Si hay un cuadrado generado, actualizar texto formula
+            const formulaBox = document.getElementById('formula-display');
+            if(formulaBox.innerText.includes(':')) {
+                const val = formulaBox.innerText.split(': ')[1];
+                formulaBox.innerText = t.formula + val;
+            }
+        }
+
+        /* --- LOGICA MATEMATICA --- */
+
+        function generateUserSquare() {
+            const n = parseInt(document.getElementById('size-input').value);
+            const errorMsg = document.getElementById('error-msg');
+            
+            // Validacion simple para demo (Algoritmo Siamés solo funciona bien con impares)
+            if (n % 2 === 0) {
+                errorMsg.style.display = 'block';
+                return;
+            }
+            errorMsg.style.display = 'none';
+
+            // 1. Calcular Constante Mágica: M = n(n^2 + 1) / 2
+            const magicConstant = (n * (n*n + 1)) / 2;
+            document.getElementById('formula-display').innerText = translations[currentLang].formula + magicConstant;
+            
+            // 2. Generar Matriz (Algoritmo Siamés)
+            let square = Array.from({ length: n }, () => Array(n).fill(0));
+            let i = 0;
+            let j = Math.floor(n / 2);
+
+            for (let num = 1; num <= n * n; num++) {
+                square[i][j] = num;
+                let nextI = (i - 1 + n) % n;
+                let nextJ = (j + 1) % n;
+                if (square[nextI][nextJ] !== 0) {
+                    i = (i + 1) % n;
+                } else {
+                    i = nextI;
+                    j = nextJ;
+                }
+            }
+
+            drawGrid(square, n);
+        }
+
+        function generateSagrada() {
+            // El cuadrado de la fachada de la Pasión no es un cuadrado mágico perfecto matemático estándar
+            // (repite números 10 y 14), pero suma 33. Lo "hardcodeamos" por historia.
+            const sagrada = [
+                [1, 14, 14, 4],
+                [11, 7, 6, 9],
+                [8, 10, 10, 5],
+                [13, 2, 3, 15]
+            ];
+            
+            document.getElementById('formula-display').innerText = translations[currentLang].formula + "33 (" + (currentLang === 'es' ? "Edad de Cristo" : "Age of Christ") + ")";
+            document.getElementById('error-msg').style.display = 'none';
+            drawGrid(sagrada, 4);
+        }
+
+        function drawGrid(matrix, size) {
+            const container = document.getElementById('magic-grid');
+            container.innerHTML = '';
+            
+            // Ajustar tamaño celdas según cantidad
+            let cellSize = size > 10 ? '30px' : '50px';
+            if(size > 20) cellSize = '20px';
+            
+            container.style.gridTemplateColumns = `repeat(${size}, ${cellSize})`;
+            
+            for (let row of matrix) {
+                for (let val of row) {
+                    let div = document.createElement('div');
+                    div.className = 'cell';
+                    div.style.width = cellSize;
+                    div.innerText = val;
+                    // Animación de entrada
+                    div.style.opacity = '0';
+                    div.style.animation = 'fadeIn 0.5s forwards';
+                    container.appendChild(div);
+                }
+            }
+        }
+
+        /* --- PARTICULAS DE FONDO (Copiado del Prompt Maestro) --- */
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        let particlesArray;
+        let mouse = { x: null, y: null, radius: (canvas.height/130) * (canvas.width/130) };
+        window.addEventListener('mousemove', function(e) { mouse.x = e.x; mouse.y = e.y; });
+
+        class Particle {
+            constructor(x, y, dx, dy, size, color) {
+                this.x = x; this.y = y; this.dx = dx; this.dy = dy; this.size = size; this.color = color;
+            }
+            draw() { ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fillStyle = '#00f3ff'; ctx.fill(); }
+            update() {
+                if(this.x>canvas.width||this.x<0) this.dx=-this.dx;
+                if(this.y>canvas.height||this.y<0) this.dy=-this.dy;
+                let dist = Math.sqrt((mouse.x-this.x)**2 + (mouse.y-this.y)**2);
+                if(dist < mouse.radius+this.size){
+                    if(mouse.x<this.x && this.x<canvas.width-this.size*10) this.x+=2;
+                    if(mouse.x>this.x && this.x>this.size*10) this.x-=2;
+                    if(mouse.y<this.y && this.y<canvas.height-this.size*10) this.y+=2;
+                    if(mouse.y>this.y && this.y>this.size*10) this.y-=2;
+                }
+                this.x+=this.dx*0.4; this.y+=this.dy*0.4;
+                this.draw();
+            }
+        }
+        function init(){
+            particlesArray=[];
+            let n=(canvas.height*canvas.width)/5000;
+            for(let i=0; i<n; i++){
+                let size=(Math.random()*1.5)+0.5;
+                particlesArray.push(new Particle(Math.random()*innerWidth, Math.random()*innerHeight, (Math.random()*1)-0.5, (Math.random()*1)-0.5, size, '#00f3ff'));
+            }
+        }
+        function animate(){
+            requestAnimationFrame(animate); ctx.clearRect(0,0,innerWidth,innerHeight);
+            for(let i=0; i<particlesArray.length; i++){
+                particlesArray[i].update();
+                for(let j=i; j<particlesArray.length; j++){
+                    let dx=particlesArray[i].x-particlesArray[j].x;
+                    let dy=particlesArray[i].y-particlesArray[j].y;
+                    let dist=dx*dx+dy*dy;
+                    if(dist<(canvas.width/9)*(canvas.height/9)){
+                        ctx.strokeStyle='rgba(0,243,255,'+(1-(dist/15000))+')'; ctx.lineWidth=0.5;
+                        ctx.beginPath(); ctx.moveTo(particlesArray[i].x,particlesArray[i].y); ctx.lineTo(particlesArray[j].x,particlesArray[j].y); ctx.stroke();
+                    }
+                }
+            }
+        }
+        window.addEventListener('resize', ()=>{canvas.width=innerWidth;canvas.height=innerHeight;init();});
+        init(); animate();
+        
+        // Animacion CSS inyectada
+        const styleSheet = document.createElement("style");
+        styleSheet.innerText = `@keyframes fadeIn { to { opacity: 1; } }`;
+        document.head.appendChild(styleSheet);
+        
+        // Generar uno por defecto al cargar
+        generateUserSquare();
+    </script>
+</body>
+</html>
