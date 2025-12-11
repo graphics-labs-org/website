@@ -11,6 +11,7 @@
             --glass: rgba(255, 255, 255, 0.05);
             --border: rgba(255, 255, 255, 0.1);
             --text: #ffffff;
+            --muted: #888;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', monospace, sans-serif; }
@@ -19,6 +20,9 @@
             background-color: #050505;
             color: var(--text);
             overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
 
         /* --- CANVAS DE FONDO --- */
@@ -34,44 +38,63 @@
             position: relative;
             max-width: 1200px;
             margin: 0 auto;
-            padding: 40px 20px;
+            padding: 20px 20px;
             text-align: center;
+            flex: 1; /* Para empujar el footer abajo */
         }
 
-        /* Header & Idiomas */
+        /* Nav & Idiomas */
         nav {
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
             align-items: center;
-            padding-bottom: 40px;
+            gap: 20px;
+            margin-bottom: 40px;
         }
         
-        .logo { font-size: 1.5rem; font-weight: bold; letter-spacing: 2px; color: var(--primary); }
+        @media(min-width: 768px) {
+            nav {
+                flex-direction: row;
+                justify-content: space-between;
+            }
+        }
         
+        .logo { font-size: 1.5rem; font-weight: bold; letter-spacing: 2px; color: var(--primary); text-shadow: 0 0 10px rgba(0, 243, 255, 0.3); }
+        
+        .lang-switch {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
         .lang-switch button {
-            background: transparent;
+            background: rgba(0,0,0,0.3);
             border: 1px solid var(--border);
-            color: var(--text);
-            padding: 5px 15px;
+            color: var(--muted);
+            padding: 5px 10px;
             cursor: pointer;
             transition: 0.3s;
-            border-radius: 20px;
+            border-radius: 4px;
+            font-size: 0.8rem;
         }
         .lang-switch button:hover, .lang-switch button.active {
             background: var(--primary);
             color: #000;
             border-color: var(--primary);
+            font-weight: bold;
         }
 
         /* Títulos */
-        h1 { font-size: 3.5rem; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 5px; }
-        .subtitle { color: #888; margin-bottom: 50px; font-size: 1.2rem; }
+        h1 { font-size: 3rem; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 5px; }
+        .subtitle { color: var(--muted); margin-bottom: 50px; font-size: 1.1rem; max-width: 800px; margin-left: auto; margin-right: auto; }
 
         /* --- GRID DE LABS --- */
         .labs-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 30px;
+            gap: 25px;
+            margin-bottom: 50px;
         }
 
         .card {
@@ -80,21 +103,20 @@
             -webkit-backdrop-filter: blur(10px);
             border: 1px solid var(--border);
             padding: 30px;
-            border-radius: 15px;
+            border-radius: 12px;
             transition: transform 0.3s, box-shadow 0.3s;
             text-align: left;
             position: relative;
-            overflow: hidden;
         }
 
         .card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 243, 255, 0.1);
-            border-color: var(--primary);
+            box-shadow: 0 10px 30px rgba(0, 243, 255, 0.05);
+            border-color: rgba(0, 243, 255, 0.3);
         }
 
-        .card h3 { color: var(--primary); margin-bottom: 10px; font-size: 1.4rem; }
-        .card p { color: #ccc; font-size: 0.9rem; line-height: 1.5; margin-bottom: 20px; }
+        .card h3 { color: var(--primary); margin-bottom: 10px; font-size: 1.3rem; }
+        .card p { color: #ccc; font-size: 0.9rem; line-height: 1.5; margin-bottom: 20px; min-height: 60px; }
         
         .btn-lab {
             display: inline-block;
@@ -105,8 +127,69 @@
             border-radius: 5px;
             font-size: 0.8rem;
             transition: 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
         .btn-lab:hover { background: var(--secondary); box-shadow: 0 0 15px var(--secondary); }
+
+        /* --- ESPACIO ADSENSE --- */
+        .ad-container {
+            width: 100%;
+            max-width: 728px; /* Tamaño estándar leaderboard */
+            margin: 20px auto;
+            min-height: 90px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* Borde sutil solo para que veas donde está, luego lo puedes quitar */
+            border: 1px dashed rgba(255,255,255,0.1); 
+            border-radius: 8px;
+        }
+        .ad-placeholder-text {
+            color: var(--border);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* --- FOOTER --- */
+        footer {
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+            border-top: 1px solid var(--border);
+            padding: 20px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--muted);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .footer-links a {
+            color: var(--text);
+            text-decoration: none;
+            margin: 0 10px;
+            transition: 0.3s;
+        }
+        .footer-links a:hover { color: var(--primary); }
+
+        .coffee-btn {
+            background: linear-gradient(45deg, #FFDD00, #FBB03B);
+            color: #000;
+            padding: 8px 15px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: transform 0.2s;
+            margin-top: 5px;
+        }
+        .coffee-btn:hover { transform: scale(1.05); }
 
     </style>
 </head>
@@ -121,6 +204,10 @@
                 <button onclick="setLang('es')" id="btn-es" class="active">ES</button>
                 <button onclick="setLang('en')" id="btn-en">EN</button>
                 <button onclick="setLang('fr')" id="btn-fr">FR</button>
+                <button onclick="setLang('de')" id="btn-de">DE</button>
+                <button onclick="setLang('pt')" id="btn-pt">PT</button>
+                <button onclick="setLang('it')" id="btn-it">IT</button>
+                <button onclick="setLang('nl')" id="btn-nl">NL</button>
             </div>
         </nav>
 
@@ -138,25 +225,40 @@
             <div class="card">
                 <h3 id="card2-title">Cimática & Audio</h3>
                 <p id="card2-desc">Visualiza el sonido. Observa cómo las frecuencias crean formas en tiempo real.</p>
-                <a href="#" class="btn-lab">PRÓXIMAMENTE</a>
+                <a href="https://geometriasagrada.top/cymatics-lab/index.html" class="btn-lab" id="btn-enter-2">ENTRAR AL LAB</a>
             </div>
 
             <div class="card">
                 <h3 id="card3-title">Física de Partículas</h3>
                 <p id="card3-desc">Simulaciones de gravedad, fluidos y sistemas de enjambre interactivos.</p>
-                <a href="#" class="btn-lab">PRÓXIMAMENTE</a>
+                <a href="#" class="btn-lab prx">PRÓXIMAMENTE</a>
             </div>
 
              <div class="card">
                 <h3 id="card4-title">Luz y Color</h3>
                 <p id="card4-desc">Herramientas para diseñadores. Generadores de paletas y fractales de color.</p>
-                <a href="#" class="btn-lab">PRÓXIMAMENTE</a>
+                <a href="#" class="btn-lab prx">PRÓXIMAMENTE</a>
             </div>
         </div>
+
+        <div class="ad-container">
+            <span class="ad-placeholder-text">Ad Space</span>
+        </div>
+
     </div>
 
+    <footer>
+        <div class="footer-links">
+            <span id="footer-rights">© 2025 Graphics Labs</span> | 
+            <a href="https://github.com/graphics-labs-org" target="_blank">GitHub</a>
+        </div>
+        <a href="https://paypal.me/TU_USUARIO_PAYPAL" target="_blank" class="coffee-btn">
+            ☕ <span id="btn-coffee">Invítame a un café</span>
+        </a>
+    </footer>
+
     <script>
-/* --- 1. SISTEMA DE IDIOMAS (Sin cambios) --- */
+        /* --- 1. DICCIONARIO DE 7 IDIOMAS --- */
         const translations = {
             'es': {
                 title: "EXPLORA EL CÓDIGO",
@@ -169,7 +271,9 @@
                 card3_desc: "Simulaciones de gravedad, fluidos y sistemas de enjambre interactivos.",
                 card4_title: "Luz y Color",
                 card4_desc: "Herramientas para diseñadores. Generadores de paletas y fractales de color.",
-                btn_enter: "ENTRAR AL LAB"
+                btn_enter: "ENTRAR AL LAB",
+                prx: "PRÓXIMAMENTE",
+                coffee: "Invítame a un café"
             },
             'en': {
                 title: "EXPLORE THE CODE",
@@ -182,7 +286,9 @@
                 card3_desc: "Gravity simulations, fluids, and interactive swarm systems.",
                 card4_title: "Light & Color",
                 card4_desc: "Tools for designers. Palette generators and color fractals.",
-                btn_enter: "ENTER LAB"
+                btn_enter: "ENTER LAB",
+                prx: "COMING SOON",
+                coffee: "Buy me a coffee"
             },
             'fr': {
                 title: "EXPLOREZ LE CODE",
@@ -195,13 +301,78 @@
                 card3_desc: "Simulations de gravité, fluides et systèmes d'essaim interactifs.",
                 card4_title: "Lumière et Couleur",
                 card4_desc: "Outils pour designers. Générateurs de palettes et fractales.",
-                btn_enter: "ENTRER"
+                btn_enter: "ENTRER",
+                prx: "BIENTÔT",
+                coffee: "Offrez-moi un café"
+            },
+            'de': {
+                title: "ENTDECKE DEN CODE",
+                subtitle: "Labor für visuelle Experimente, Geometrie und generative Kunst.",
+                card1_title: "Heilige Geometrie",
+                card1_desc: "Neon-Mandala-Generator. Experimentiere mit Symmetrie und mathematischem Chaos.",
+                card2_title: "Kymatik & Audio",
+                card2_desc: "Visualisiere den Klang. Beobachte, wie Frequenzen in Echtzeit Formen erzeugen.",
+                card3_title: "Teilchenphysik",
+                card3_desc: "Schwerkraftsimulationen, Flüssigkeiten und interaktive Schwarmsysteme.",
+                card4_title: "Licht & Farbe",
+                card4_desc: "Werkzeuge für Designer. Palettengeneratoren und Farbfraktale.",
+                btn_enter: "LABOR BETRETEN",
+                prx: "DEMNÄCHST",
+                coffee: "Kauf mir einen Kaffee"
+            },
+            'pt': {
+                title: "EXPLORE O CÓDIGO",
+                subtitle: "Laboratório de experimentos visuais, geometria e arte generativa.",
+                card1_title: "Geometria Sagrada",
+                card1_desc: "Gerador de mandalas neon. Experimente a simetria e o caos matemático.",
+                card2_title: "Cimática & Áudio",
+                card2_desc: "Visualize o som. Veja como as frequências criam formas em tempo real.",
+                card3_title: "Física de Partículas",
+                card3_desc: "Simulações de gravidade, fluidos e sistemas de enxame interativos.",
+                card4_title: "Luz e Cor",
+                card4_desc: "Ferramentas para designers. Geradores de paletas e fractais de cores.",
+                btn_enter: "ENTRAR NO LAB",
+                prx: "EM BREVE",
+                coffee: "Pague-me um café"
+            },
+            'it': {
+                title: "ESPLORA IL CODICE",
+                subtitle: "Laboratorio di esperimenti visivi, geometria e arte generativa.",
+                card1_title: "Geometria Sacra",
+                card1_desc: "Generatore di mandala al neon. Sperimenta con la simmetria e il caos matematico.",
+                card2_title: "Cimatica & Audio",
+                card2_desc: "Visualizza il suono. Osserva come le frequenze creano forme in tempo reale.",
+                card3_title: "Fisica delle Particelle",
+                card3_desc: "Simulazioni di gravità, fluidi e sistemi di sciame interattivi.",
+                card4_title: "Luce e Colore",
+                card4_desc: "Strumenti per designer. Generatori di palette e frattali di colore.",
+                btn_enter: "ENTRA NEL LAB",
+                prx: "PROSSIMAMENTE",
+                coffee: "Offrimi un caffè"
+            },
+            'nl': {
+                title: "VERKEN DE CODE",
+                subtitle: "Laboratorium voor visuele experimenten, geometrie en generatieve kunst.",
+                card1_title: "Heilige Geometrie",
+                card1_desc: "Neon mandala generator. Experimenteer met symmetrie en wiskundige chaos.",
+                card2_title: "Cymatics & Audio",
+                card2_desc: "Visualiseer geluid. Bekijk hoe frequenties vormen creëren in real-time.",
+                card3_title: "Deeltjesfysica",
+                card3_desc: "Zwaartekrachtsimulaties, vloeistoffen en interactieve zwermsystemen.",
+                card4_title: "Licht & Kleur",
+                card4_desc: "Tools voor ontwerpers. Paletgeneratoren en kleurfraktalen.",
+                btn_enter: "GA NAAR LAB",
+                prx: "BINNENKORT",
+                coffee: "Koop een koffie voor me"
             }
         };
 
         function setLang(lang) {
+            // Textos Generales
             document.getElementById('txt-title').innerText = translations[lang].title;
             document.getElementById('txt-subtitle').innerText = translations[lang].subtitle;
+            
+            // Cards
             document.getElementById('card1-title').innerText = translations[lang].card1_title;
             document.getElementById('card1-desc').innerText = translations[lang].card1_desc;
             document.getElementById('card2-title').innerText = translations[lang].card2_title;
@@ -210,20 +381,29 @@
             document.getElementById('card3-desc').innerText = translations[lang].card3_desc;
             document.getElementById('card4-title').innerText = translations[lang].card4_title;
             document.getElementById('card4-desc').innerText = translations[lang].card4_desc;
+            
+            // Botones
             document.getElementById('btn-enter').innerText = translations[lang].btn_enter;
+            document.getElementById('btn-enter-2').innerText = translations[lang].btn_enter; // Botón Lab 2
+            
+            // Textos Comunes
+            const prxElements = document.querySelectorAll('.prx');
+            prxElements.forEach(el => el.innerText = translations[lang].prx);
+            
+            document.getElementById('btn-coffee').innerText = translations[lang].coffee;
+
+            // Estilo botones idioma
             document.querySelectorAll('.lang-switch button').forEach(b => b.classList.remove('active'));
             document.getElementById('btn-' + lang).classList.add('active');
         }
 
-        /* --- 2. FONDO DE PARTÍCULAS (MODIFICADO: MÁS SUTIL Y DENSO) --- */
+        /* --- 2. FONDO DE PARTÍCULAS (Configuración Sutil) --- */
         const canvas = document.getElementById('bg-canvas');
         const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
         let particlesArray;
-        
-        // AJUSTE 1: Reducimos el radio de acción del ratón para que sea menos invasivo
         let mouse = { x: null, y: null, radius: (canvas.height/130) * (canvas.width/130) };
 
         window.addEventListener('mousemove', function(event) {
@@ -247,18 +427,15 @@
                 if (this.x > canvas.width || this.x < 0) this.directionX = -this.directionX;
                 if (this.y > canvas.height || this.y < 0) this.directionY = -this.directionY;
                 
-                // Interacción con el ratón
                 let dx = mouse.x - this.x;
                 let dy = mouse.y - this.y;
                 let distance = Math.sqrt(dx*dx + dy*dy);
                 if (distance < mouse.radius + this.size){
-                    // AJUSTE 2: Velocidad de repulsión MUCHO más suave (de 10 bajamos a 2)
                     if (mouse.x < this.x && this.x < canvas.width - this.size * 10) this.x += 2;
                     if (mouse.x > this.x && this.x > this.size * 10) this.x -= 2;
                     if (mouse.y < this.y && this.y < canvas.height - this.size * 10) this.y += 2;
                     if (mouse.y > this.y && this.y > this.size * 10) this.y -= 2;
                 }
-                // Velocidad normal más lenta para que sea más relajante
                 this.x += this.directionX * 0.4;
                 this.y += this.directionY * 0.4;
                 this.draw();
@@ -267,15 +444,12 @@
 
         function init() {
             particlesArray = [];
-            // AJUSTE 3: Aumentar densidad (Cuanto menor el número divisor, más partículas)
-            // Antes era 9000, ahora 5000 para que haya casi el doble.
+            // Densidad alta para efecto "tejido"
             let numberOfParticles = (canvas.height * canvas.width) / 5000;
             for (let i = 0; i < numberOfParticles; i++) {
-                // Puntos un poco más pequeños también
                 let size = (Math.random() * 1.5) + 0.5;
                 let x = (Math.random() * ((innerWidth - size * 2) - (size * 2)) + size * 2);
                 let y = (Math.random() * ((innerHeight - size * 2) - (size * 2)) + size * 2);
-                // Dirección más lenta al iniciar
                 let directionX = (Math.random() * 1) - 0.5;
                 let directionY = (Math.random() * 1) - 0.5;
                 let color = '#00f3ff';
@@ -289,11 +463,9 @@
                 for (let b = a; b < particlesArray.length; b++) {
                     let distance = ((particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x))
                     + ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y));
-                    // AJUSTE 4: Distancia de conexión un poco más corta para que no haya líneas larguísimas
                     if (distance < (canvas.width/9) * (canvas.height/9)) {
                         opacityValue = 1 - (distance/15000);
                         ctx.strokeStyle = 'rgba(0, 243, 255,' + opacityValue + ')';
-                        // AJUSTE 5: Líneas mucho más finas y elegantes
                         ctx.lineWidth = 0.5;
                         ctx.beginPath();
                         ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
