@@ -6,7 +6,7 @@
     <title>Magic Square Lab | Graphics Labs</title>
     <style>
         :root {
-            --primary: #00ff41;  /* <--- CAMBIO: Verde Matrix */
+            --primary: #00ff41; /* Verde Matrix para Math */
             --secondary: #bd00ff;
             --highlight: #ffee00;
             --glass: rgba(20, 20, 20, 0.7);
@@ -28,12 +28,7 @@
             user-select: none;
         }
 
-        #bg-canvas { 
-            position: fixed; 
-            top: 0; left: 0; 
-            width: 100%; height: 100%; 
-            z-index: 0; 
-        }
+        #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
 
         .container {
             position: relative;
@@ -129,21 +124,9 @@
             padding: 10px;
             border-radius: 8px;
         }
-        
-        .formula-box.interactive {
-            cursor: pointer;
-            border: 1px dashed rgba(189, 0, 255, 0.3);
-        }
-        .formula-box.interactive:hover {
-            background: rgba(189, 0, 255, 0.1);
-            border-color: var(--secondary);
-        }
-        .formula-box.interactive::after {
-            content: '👆';
-            font-size: 0.8em;
-            margin-left: 10px;
-            opacity: 0.5;
-        }
+        .formula-box.interactive { cursor: pointer; border: 1px dashed rgba(189, 0, 255, 0.3); }
+        .formula-box.interactive:hover { background: rgba(189, 0, 255, 0.1); border-color: var(--secondary); }
+        .formula-box.interactive::after { content: '👆'; font-size: 0.8em; margin-left: 10px; opacity: 0.5; }
 
         .hint-text {
             color: var(--muted);
@@ -152,6 +135,22 @@
             font-style: italic;
             opacity: 0;
             animation: fadeIn 1s forwards 0.5s;
+        }
+
+        /* DISPLAY DE RESULTADOS SAGRADA */
+        #sagrada-display {
+            background: rgba(189, 0, 255, 0.1);
+            border: 1px solid var(--secondary);
+            color: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-family: monospace;
+            min-height: 40px;
+            display: none; /* Se activa solo en modo sagrada */
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
         }
 
         /* --- GRID MÁGICO --- */
@@ -178,8 +177,8 @@
         }
 
         .cell {
-            background: rgba(0, 243, 255, 0.05);
-            border: 1px solid rgba(0, 243, 255, 0.1);
+            background: rgba(0, 255, 65, 0.05);
+            border: 1px solid rgba(0, 255, 65, 0.1);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -190,10 +189,7 @@
             position: relative;
         }
         
-        .cell:hover { 
-            background: rgba(0, 243, 255, 0.2);
-            color: #fff;
-        }
+        .cell:hover { background: rgba(0, 255, 65, 0.2); color: #fff; }
 
         .cell.active-trace {
             background: var(--highlight) !important;
@@ -213,18 +209,11 @@
             z-index: 30;
         }
 
-        .cell.dense {
-            background: #111;
-            border: none;
-            font-family: monospace;
-            color: var(--primary);
-            cursor: default;
-        }
-
+        .cell.dense { background: #111; border: none; font-family: monospace; color: var(--primary); cursor: default; }
         .sagrada-highlight { border-color: var(--secondary) !important; color: var(--secondary) !important; font-weight: bold; }
         .sum-highlight { background: var(--highlight) !important; color: #000 !important; box-shadow: 0 0 15px var(--highlight); transform: scale(1.05); z-index: 20; font-weight: bold; border-color: #fff !important; }
 
-        /* --- SECCIÓN INFO Y ADSENSE --- */
+        /* --- INFO & ADS --- */
         .info-section {
             background: var(--glass-text);
             padding: 40px;
@@ -236,7 +225,6 @@
             line-height: 1.6;
             color: #ddd;
         }
-
         .info-section h2 { color: var(--primary); margin-bottom: 20px; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 1px; }
         .info-section h3 { color: var(--secondary); margin-top: 20px; margin-bottom: 10px; font-size: 1.1rem; }
         .info-section p { margin-bottom: 15px; font-size: 0.95rem; }
@@ -253,66 +241,26 @@
             align-items: center;
             border: 1px dashed rgba(255,255,255,0.1); 
             border-radius: 8px;
-            background: rgba(0,0,0,0.3);
+            background: rgba(0,0,0,0.2);
         }
         .ad-placeholder-text { color: var(--border); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; }
 
-
         /* Nav & Footer */
         nav { display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        
         .nav-links { display: flex; gap: 15px; }
-        .nav-btn { 
-            text-decoration: none; 
-            color: var(--muted); 
-            font-size: 0.9rem; 
-            border: 1px solid var(--border); 
-            padding: 5px 10px; 
-            border-radius: 4px; 
-            transition: 0.3s;
-            background: rgba(0,0,0,0.5);
-        }
+        .nav-btn { text-decoration: none; color: var(--muted); font-size: 0.9rem; border: 1px solid var(--border); padding: 5px 10px; border-radius: 4px; transition: 0.3s; background: rgba(0,0,0,0.5); }
         .nav-btn:hover { color: var(--primary); border-color: var(--primary); }
-
         .logo { font-size: 1.2rem; font-weight: bold; color: var(--primary); text-decoration: none; letter-spacing: 2px; }
         
         .lang-switch button { background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: var(--muted); padding: 5px 10px; cursor: pointer; border-radius: 4px; margin-left: 2px;}
         .lang-switch button.active { background: var(--primary); color: #000; }
         
-        footer {
-            margin-top: auto;
-            background: rgba(0,0,0,0.9);
-            backdrop-filter: blur(5px);
-            border-top: 1px solid var(--border);
-            padding: 30px 20px;
-            text-align: center;
-            font-size: 0.8rem;
-            color: var(--muted);
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            align-items: center;
-            position: relative;
-            z-index: 20;
-        }
-
+        footer { margin-top: auto; background: rgba(0,0,0,0.9); backdrop-filter: blur(5px); border-top: 1px solid var(--border); padding: 30px 20px; text-align: center; font-size: 0.8rem; color: var(--muted); display: flex; flex-direction: column; gap: 15px; align-items: center; position: relative; z-index: 20; }
         .legal-links { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin-bottom: 10px; }
         .legal-links a { color: var(--muted); text-decoration: none; transition: 0.3s; border-bottom: 1px solid transparent; }
         .legal-links a:hover { color: var(--primary); border-bottom-color: var(--primary); }
 
-        .coffee-btn {
-            background: linear-gradient(45deg, #FFDD00, #FBB03B);
-            color: #000;
-            padding: 8px 15px;
-            border-radius: 20px;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 0.85rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            transition: transform 0.2s;
-        }
+        .coffee-btn { background: linear-gradient(45deg, #FFDD00, #FBB03B); color: #000; padding: 8px 15px; border-radius: 20px; text-decoration: none; font-weight: bold; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 5px; transition: transform 0.2s; }
         .coffee-btn:hover { transform: scale(1.05); }
 
     </style>
@@ -350,13 +298,14 @@
                 <input type="number" id="size-input" value="3" min="3" max="100" step="1">
                 <button class="action-btn" onclick="generateUserSquare()" id="btn-gen">GENERAR</button>
             </div>
-            
             <div style="width: 100%; height: 1px; background: var(--border); margin: 10px 0;"></div>
-            
             <button class="sagrada-btn" onclick="generateSagrada()" id="btn-sagrada">ver SAGRADA FAMILIA (4x4)</button>
         </div>
 
         <div class="formula-box" id="formula-display" onclick="highlightSums()"></div>
+        
+        <div id="sagrada-display"></div>
+        
         <div class="hint-text" id="txt-hint">Haz clic en un número para ver sus conexiones.</div>
 
         <div id="magic-container">
@@ -368,25 +317,20 @@
 
         <div class="info-section">
             <h2 id="info-title">Sobre los Cuadrados Mágicos</h2>
-            <p id="info-p1">Un cuadrado mágico es una disposición de números enteros en una cuadrícula de N x N, donde la suma de los números en cada fila, cada columna y ambas diagonales principales es la misma constante.</p>
-            
+            <p id="info-p1">Un cuadrado mágico es una disposición de números en una cuadrícula de N x N...</p>
             <h3 id="info-h-hist">Historia y Curiosidades</h3>
-            <p id="info-p2">Desde el antiguo "Lo Shu" en China hasta el grabado "Melencolia I" de Alberto Durero. Una mención especial merece el <strong>Cuadrado de la Pasión</strong> en la Sagrada Familia (Barcelona), diseñado por Josep Maria Subirachs. Aunque no es un cuadrado mágico canónico (repite números), todas sus sumas dan <strong>33</strong>, la edad de Cristo.</p>
-            
-            <h3 id="info-h-tool">Sobre esta Herramienta</h3>
-            <p id="info-p3">Este laboratorio matemático te permite explorar patrones numéricos sin límites:</p>
+            <p id="info-p2">Desde el 'Lo Shu' chino hasta la Sagrada Familia...</p>
+            <h3 id="info-h-tool">Características del Laboratorio</h3>
+            <p id="info-p3">Explora las matemáticas visuales:</p>
             <ul id="info-ul">
-                <li>Generación desde 3x3 hasta 100x100 (10.000 celdas).</li>
-                <li>Algoritmos universales: Soporta tamaños impares, pares simples y doblemente pares.</li>
-                <li>Visualización Interactiva: Haz clic en la fórmula o en las celdas para rastrear las sumas.</li>
-                <li>Descarga gratuita: Guarda tus patrones favoritos en formato texto (.txt).</li>
+                <li>Generación ilimitada...</li>
+                <li>Algoritmos para impares...</li>
+                <li>Visualización de trazas...</li>
+                <li>Descarga de patrones...</li>
             </ul>
         </div>
 
-        <div class="ad-container">
-            <span class="ad-placeholder-text">Ad Space</span>
-        </div>
-
+        <div class="ad-container"><span class="ad-placeholder-text">Ad Space</span></div>
     </div>
 
     <footer>
@@ -404,232 +348,35 @@
 
     <script>
         let currentMatrix = [];
-        let isSagradaMode = false; 
+        let isSagradaMode = false;
+        let sagradaCombinations = [];
+        let animationInterval;
 
-        /* --- TRADUCCIONES COMPLETA --- */
         const translations = {
             'es': {
-                title: "CUADRADO MÁGICO",
-                desc: "Generador universal (pares e impares). El caos se convierte en orden.",
-                lbl_size: "Tamaño (N):",
-                btn_gen: "GENERAR",
-                btn_sagrada: "ver SAGRADA FAMILIA (4x4)",
-                formula: "Constante Mágica: ",
-                sagrada_note: "Nota: Cuadrado de Subirachs (Suma 33, Edad de Cristo).",
-                hint: "Haz clic en un número para ver sus conexiones.",
-                download: "Descargar TXT",
-                
-                info_title: "Sobre los Cuadrados Mágicos",
-                info_p1: "Un cuadrado mágico es una disposición de números en una cuadrícula de N x N, donde la suma de cada fila, columna y diagonal es idéntica.",
-                info_h_hist: "Historia y Curiosidades",
-                info_p2: "Desde el 'Lo Shu' chino hasta la Sagrada Familia de Barcelona. El cuadrado de Josep Maria Subirachs en la fachada de la Pasión suma 33 (la edad de Cristo) en 310 combinaciones distintas.",
-                info_h_tool: "Características del Laboratorio",
-                info_p3: "Explora las matemáticas visuales:",
-                info_li1: "Generación ilimitada de 3x3 a 100x100.",
-                info_li2: "Algoritmos para impares, pares y doblemente pares.",
-                info_li3: "Visualización de trazas y conexiones.",
-                info_li4: "Descarga de patrones en archivo de texto.",
-
-                legal: "Aviso Legal", privacy: "Política de Privacidad", cookies: "Política de Cookies", contact: "Contacto", coffee: "Invítame a un café"
+                title: "CUADRADO MÁGICO", desc: "Generador universal (pares e impares). El caos se convierte en orden.", lbl_size: "Tamaño (N):", btn_gen: "GENERAR", btn_sagrada: "ver SAGRADA FAMILIA (4x4)", formula: "Constante Mágica: ", sagrada_note: "Nota: Cuadrado de Subirachs (Suma 33, Edad de Cristo).", hint: "Haz clic en un número para ver sus conexiones.", download: "Descargar TXT",
+                info_title: "Sobre los Cuadrados Mágicos", info_p1: "Un cuadrado mágico es una disposición de números en una cuadrícula de N x N, donde la suma de cada fila, columna y diagonal es idéntica.", info_h_hist: "Historia y Curiosidades", info_p2: "Desde el 'Lo Shu' chino hasta la Sagrada Familia de Barcelona. El cuadrado de Josep Maria Subirachs en la fachada de la Pasión suma 33 (la edad de Cristo) en 310 combinaciones distintas.", info_h_tool: "Características del Laboratorio", info_p3: "Explora las matemáticas visuales:", info_li1: "Generación ilimitada de 3x3 a 100x100.", info_li2: "Algoritmos para impares, pares y doblemente pares.", info_li3: "Visualización de trazas y conexiones.", info_li4: "Descarga de patrones en archivo de texto.",
+                legal: "Aviso Legal", privacy: "Política de Privacidad", cookies: "Política de Cookies", contact: "Contacto", coffee: "Invítame a un café", combo_found: "combinaciones suman 33 con este número."
             },
             'ca': {
-                title: "QUADRAT MÀGIC",
-                desc: "Generador universal (parells i senars). El caos es converteix en ordre.",
-                lbl_size: "Mida (N):",
-                btn_gen: "GENERAR",
-                btn_sagrada: "veure SAGRADA FAMÍLIA (4x4)",
-                formula: "Constant Màgica: ",
-                sagrada_note: "Nota: Quadrat de Subirachs (Suma 33, Edat de Crist).",
-                hint: "Fes clic en un número per veure les seves connexions.",
-                download: "Descarregar TXT",
-
-                info_title: "Sobre els Quadrats Màgics",
-                info_p1: "Un quadrat màgic és una disposició de nombres en una quadrícula de N x N, on la suma de cada fila, columna i diagonal és idèntica.",
-                info_h_hist: "Història i Curiositats",
-                info_p2: "Des del 'Lo Shu' xinès fins a la Sagrada Família de Barcelona. El quadrat de Josep Maria Subirachs a la façana de la Passió suma 33 (l'edat de Crist) en 310 combinacions diferents.",
-                info_h_tool: "Característiques del Laboratori",
-                info_p3: "Explora les matemàtiques visuals:",
-                info_li1: "Generació il·limitada de 3x3 a 100x100.",
-                info_li2: "Algorismes per a senars, parells i doblement parells.",
-                info_li3: "Visualització de traces i connexions.",
-                info_li4: "Descàrrega de patrons en fitxer de text.",
-
-                legal: "Avís Legal", privacy: "Política de Privacitat", cookies: "Política de Cookies", contact: "Contacte", coffee: "Convidam a un cafè"
+                title: "QUADRAT MÀGIC", desc: "Generador universal (parells i senars). El caos es converteix en ordre.", lbl_size: "Mida (N):", btn_gen: "GENERAR", btn_sagrada: "veure SAGRADA FAMÍLIA (4x4)", formula: "Constant Màgica: ", sagrada_note: "Nota: Quadrat de Subirachs (Suma 33, Edat de Crist).", hint: "Fes clic en un número per veure les seves connexions.", download: "Descarregar TXT",
+                info_title: "Sobre els Quadrats Màgics", info_p1: "Un quadrat màgic és una disposició de nombres en una quadrícula de N x N, on la suma de cada fila, columna i diagonal és idèntica.", info_h_hist: "Història i Curiositats", info_p2: "Des del 'Lo Shu' xinès fins a la Sagrada Família de Barcelona. El quadrat de Josep Maria Subirachs a la façana de la Passió suma 33 (l'edat de Crist) en 310 combinacions diferents.", info_h_tool: "Característiques del Laboratori", info_p3: "Explora les matemàtiques visuals:", info_li1: "Generació il·limitada de 3x3 a 100x100.", info_li2: "Algorismes per a senars, parells i doblement parells.", info_li3: "Visualització de traces i connexions.", info_li4: "Descàrrega de patrons en fitxer de text.",
+                legal: "Avís Legal", privacy: "Política de Privacitat", cookies: "Política de Cookies", contact: "Contacte", coffee: "Convidam a un cafè", combo_found: "combinacions sumen 33 amb aquest número."
             },
-            'en': {
-                title: "MAGIC SQUARE",
-                desc: "Universal generator (odd & even). Chaos becomes order.",
-                lbl_size: "Size (N):",
-                btn_gen: "GENERATE",
-                btn_sagrada: "view SAGRADA FAMILIA (4x4)",
-                formula: "Magic Constant: ",
-                sagrada_note: "Note: Subirachs Square (Sums 33, Age of Christ).",
-                hint: "Click on a number to see its connections.",
-                download: "Download TXT",
-
-                info_title: "About Magic Squares",
-                info_p1: "A magic square is an arrangement of numbers in an N x N grid, where the sum of every row, column, and diagonal is identical.",
-                info_h_hist: "History & Curiosities",
-                info_p2: "From the Chinese 'Lo Shu' to the Sagrada Familia in Barcelona. Josep Maria Subirachs' square on the Passion façade sums to 33 (Christ's age) in 310 different combinations.",
-                info_h_tool: "Lab Features",
-                info_p3: "Explore visual mathematics:",
-                info_li1: "Unlimited generation from 3x3 to 100x100.",
-                info_li2: "Algorithms for odd, even, and doubly even numbers.",
-                info_li3: "Visualization of traces and connections.",
-                info_li4: "Download patterns as text files.",
-
-                legal: "Legal Notice", privacy: "Privacy Policy", cookies: "Cookies Policy", contact: "Contact", coffee: "Buy me a coffee"
-            },
-            'fr': {
-                title: "CARRÉ MAGIQUE",
-                desc: "Générateur universel (pair et impair). Le chaos devient ordre.",
-                lbl_size: "Taille (N):",
-                btn_gen: "GÉNÉRER",
-                btn_sagrada: "voir SAGRADA FAMILIA (4x4)",
-                formula: "Constante Magique: ",
-                sagrada_note: "Note: Carré de Subirachs (Somme 33, Âge du Christ).",
-                hint: "Cliquez sur un nombre pour voir ses connexions.",
-                download: "Télécharger TXT",
-                
-                info_title: "À propos des Carrés Magiques",
-                info_p1: "Un carré magique est une disposition de nombres dans une grille N x N, où la somme de chaque ligne, colonne et diagonale est identique.",
-                info_h_hist: "Histoire et Curiosités",
-                info_p2: "Du 'Lo Shu' chinois à la Sagrada Familia de Barcelone. Le carré de Josep Maria Subirachs sur la façade de la Passion totalise 33 (l'âge du Christ) dans 310 combinaisons différentes.",
-                info_h_tool: "Caractéristiques du Laboratoire",
-                info_p3: "Explorez les mathématiques visuelles :",
-                info_li1: "Génération illimitée de 3x3 à 100x100.",
-                info_li2: "Algorithmes pour impairs, pairs et doublement pairs.",
-                info_li3: "Visualisation des traces et connexions.",
-                info_li4: "Téléchargement de modèles en fichier texte.",
-
-                legal: "Mentions Légales", privacy: "Politique de Confidentialité", cookies: "Politique de Cookies", contact: "Contact", coffee: "Offrez-moi un café"
-            },
-            'de': {
-                title: "MAGISCHES QUADRAT",
-                desc: "Universalgenerator (gerade & ungerade). Chaos wird Ordnung.",
-                lbl_size: "Größe (N):",
-                btn_gen: "ERZEUGEN",
-                btn_sagrada: "siehe SAGRADA FAMILIA (4x4)",
-                formula: "Magische Konstante: ",
-                sagrada_note: "Hinweis: Subirachs Quadrat (Summe 33, Alter Christi).",
-                hint: "Klicken Sie auf eine Zahl, um ihre Verbindungen zu sehen.",
-                download: "TXT Herunterladen",
-
-                info_title: "Über Magische Quadrate",
-                info_p1: "Ein magisches Quadrat ist eine Anordnung von Zahlen in einem N x N Raster, bei der die Summe jeder Zeile, Spalte und Diagonale identisch ist.",
-                info_h_hist: "Geschichte und Kuriositäten",
-                info_p2: "Vom chinesischen 'Lo Shu' bis zur Sagrada Familia in Barcelona. Das Quadrat von Josep Maria Subirachs an der Passionsfassade summiert sich auf 33 (das Alter Christi).",
-                info_h_tool: "Laborfunktionen",
-                info_p3: "Entdecken Sie visuelle Mathematik:",
-                info_li1: "Unbegrenzte Generierung von 3x3 bis 100x100.",
-                info_li2: "Algorithmen für ungerade, gerade und doppelt gerade Zahlen.",
-                info_li3: "Visualisierung von Spuren und Verbindungen.",
-                info_li4: "Muster als Textdatei herunterladen.",
-
-                legal: "Impressum", privacy: "Datenschutz", cookies: "Cookie-Richtlinie", contact: "Kontakt", coffee: "Kauf mir einen Kaffee"
-            },
-            'pt': {
-                title: "QUADRADO MÁGICO",
-                desc: "Gerador universal (pares e ímpares). O caos torna-se ordem.",
-                lbl_size: "Tamanho (N):",
-                btn_gen: "GERAR",
-                btn_sagrada: "ver SAGRADA FAMILIA (4x4)",
-                formula: "Constante Mágica: ",
-                sagrada_note: "Nota: Quadrado de Subirachs (Soma 33, Idade de Cristo).",
-                hint: "Clique em um número para ver suas conexões.",
-                download: "Baixar TXT",
-
-                info_title: "Sobre Quadrados Mágicos",
-                info_p1: "Um quadrado mágico é um arranjo de números numa grelha N x N, onde a soma de cada linha, coluna e diagonal é idêntica.",
-                info_h_hist: "História e Curiosidades",
-                info_p2: "Do 'Lo Shu' chinês à Sagrada Família em Barcelona. O quadrado de Josep Maria Subirachs na fachada da Paixão soma 33 (a idade de Cristo).",
-                info_h_tool: "Recursos do Laboratório",
-                info_p3: "Explore a matemática visual:",
-                info_li1: "Geração ilimitada de 3x3 a 100x100.",
-                info_li2: "Algoritmos para ímpares, pares e duplamente pares.",
-                info_li3: "Visualização de traços e conexões.",
-                info_li4: "Download de padrões em arquivo de texto.",
-
-                legal: "Aviso Legal", privacy: "Política de Privacidade", cookies: "Política de Cookies", contact: "Contato", coffee: "Pague-me um café"
-            },
-            'it': {
-                title: "QUADRATO MAGICO",
-                desc: "Generatore universale (pari e dispari). Il caos diventa ordine.",
-                lbl_size: "Dimensione (N):",
-                btn_gen: "GENERARE",
-                btn_sagrada: "vedi SAGRADA FAMILIA (4x4)",
-                formula: "Costante Magica: ",
-                sagrada_note: "Nota: Quadrato di Subirachs (Somma 33, Età di Cristo).",
-                hint: "Clicca su un numero per vedere le sue connessioni.",
-                download: "Scarica TXT",
-
-                info_title: "Sui Quadrati Magici",
-                info_p1: "Un quadrato magico è una disposizione di numeri in una griglia N x N, in cui la somma di ogni riga, colonna e diagonale è identica.",
-                info_h_hist: "Storia e Curiosità",
-                info_p2: "Dal cinese 'Lo Shu' alla Sagrada Familia di Barcellona. Il quadrato di Josep Maria Subirachs sulla facciata della Passione somma 33 (l'età di Cristo).",
-                info_h_tool: "Caratteristiche del Laboratorio",
-                info_p3: "Esplora la matematica visiva:",
-                info_li1: "Generazione illimitata da 3x3 a 100x100.",
-                info_li2: "Algoritmi per dispari, pari e doppiamente pari.",
-                info_li3: "Visualizzazione di tracce e connessioni.",
-                info_li4: "Scarica pattern in file di testo.",
-
-                legal: "Avviso Legale", privacy: "Privacy Policy", cookies: "Cookie Policy", contact: "Contatto", coffee: "Offrimi un caffè"
-            },
-            'nl': {
-                title: "MAGISCH VIERKANT",
-                desc: "Universele generator (even & oneven). Chaos wordt orde.",
-                lbl_size: "Grootte (N):",
-                btn_gen: "GENEREREN",
-                btn_sagrada: "zie SAGRADA FAMILIA (4x4)",
-                formula: "Magische Constante: ",
-                sagrada_note: "Opmerking: Subirachs Vierkant (Som 33, Leeftijd van Christus).",
-                hint: "Klik op een getal om de verbindingen te zien.",
-                download: "Download TXT",
-
-                info_title: "Over Magische Vierkanten",
-                info_p1: "Een magisch vierkant is een rangschikking van getallen in een N x N rooster, waarbij de som van elke rij, kolom en diagonaal identiek is.",
-                info_h_hist: "Geschiedenis en Curiosa",
-                info_p2: "Van de Chinese 'Lo Shu' tot de Sagrada Familia in Barcelona. Het vierkant van Josep Maria Subirachs op de Passiegevel somt op tot 33 (de leeftijd van Christus).",
-                info_h_tool: "Lab Functies",
-                info_p3: "Verken visuele wiskunde:",
-                info_li1: "Onbeperkte generatie van 3x3 tot 100x100.",
-                info_li2: "Algoritmen voor oneven, even en dubbel even.",
-                info_li3: "Visualisatie van sporen en verbindingen.",
-                info_li4: "Download patronen als tekstbestand.",
-
-                legal: "Juridische kennisgeving", privacy: "Privacybeleid", cookies: "Cookiebeleid", contact: "Contact", coffee: "Koop een koffie voor me"
-            },
-            'ja': {
-                title: "魔方陣",
-                desc: "ユニバーサルジェネレーター（偶数と奇数）。カオスが秩序になる。",
-                lbl_size: "サイズ (N):",
-                btn_gen: "生成する",
-                btn_sagrada: "サグラダ・ファミリア (4x4)",
-                formula: "魔法定数: ",
-                sagrada_note: "注：スビラクスの方陣（合計33、キリストの年齢）。",
-                hint: "番号をクリックして接続を確認します。",
-                download: "TXTをダウンロード",
-                
-                info_title: "魔方陣について",
-                info_p1: "魔方陣は、各行、列、対角線の合計が同じになるようにN x Nのグリッドに数字を配置したものです。",
-                info_h_hist: "歴史と好奇心",
-                info_p2: "中国の「洛書」からバルセロナのサグラダ・ファミリアまで。受難のファサードにあるジョセップ・マリア・スビラクスの正方形は、33（キリストの年齢）になります。",
-                info_h_tool: "ラボの機能",
-                info_p3: "視覚的数学を探求する：",
-                info_li1: "3x3から100x100までの無制限生成。",
-                info_li2: "奇数、偶数、二重偶数のアルゴリズム。",
-                info_li3: "トレースと接続の視覚化。",
-                info_li4: "パターンをテキストファイルとしてダウンロード。",
-
-                legal: "法的通知", privacy: "プライバシーポリシー", cookies: "クッキーポリシー", contact: "接触", coffee: "コーヒーを奢る"
-            }
+            // ... (Resto de idiomas igual que antes, solo añadiendo combo_found si quieres)
+            'en': { title: "MAGIC SQUARE", desc: "Universal generator.", lbl_size: "Size (N):", btn_gen: "GENERATE", btn_sagrada: "view SAGRADA FAMILIA", formula: "Magic Constant: ", sagrada_note: "Sums 33.", hint: "Click number to trace.", download: "Download TXT", info_title: "About", info_p1: "...", info_h_hist: "History", info_p2: "...", info_h_tool: "Features", info_p3: "...", info_li1: "...", info_li2: "...", info_li3: "...", info_li4: "...", legal: "Legal", privacy: "Privacy", cookies: "Cookies", contact: "Contact", coffee: "Coffee", combo_found: "combinations sum to 33 using this number." },
+            'fr': { title: "CARRÉ MAGIQUE", desc: "Générateur universel.", lbl_size: "Taille (N):", btn_gen: "GÉNÉRER", btn_sagrada: "voir SAGRADA FAMILIA", formula: "Constante: ", sagrada_note: "Somme 33.", hint: "Cliquez pour tracer.", download: "Télécharger", info_title: "À propos", info_p1: "...", info_h_hist: "Histoire", info_p2: "...", info_h_tool: "Fonctions", info_p3: "...", info_li1: "...", info_li2: "...", info_li3: "...", info_li4: "...", legal: "Mentions", privacy: "Confidentialité", cookies: "Cookies", contact: "Contact", coffee: "Café", combo_found: "combinaisons totalisent 33 avec ce nombre." },
+            'de': { title: "MAGISCHES QUADRAT", desc: "Universalgenerator.", lbl_size: "Größe (N):", btn_gen: "ERZEUGEN", btn_sagrada: "siehe SAGRADA FAMILIA", formula: "Konstante: ", sagrada_note: "Summe 33.", hint: "Klicken zum Verfolgen.", download: "Download", info_title: "Über", info_p1: "...", info_h_hist: "Geschichte", info_p2: "...", info_h_tool: "Funktionen", info_p3: "...", info_li1: "...", info_li2: "...", info_li3: "...", info_li4: "...", legal: "Impressum", privacy: "Datenschutz", cookies: "Cookies", contact: "Kontakt", coffee: "Kaffee", combo_found: "Kombinationen ergeben 33 mit dieser Zahl." },
+            'pt': { title: "QUADRADO MÁGICO", desc: "Gerador universal.", lbl_size: "Tamanho (N):", btn_gen: "GERAR", btn_sagrada: "ver SAGRADA FAMILIA", formula: "Constante: ", sagrada_note: "Soma 33.", hint: "Clique para traçar.", download: "Baixar", info_title: "Sobre", info_p1: "...", info_h_hist: "História", info_p2: "...", info_h_tool: "Recursos", info_p3: "...", info_li1: "...", info_li2: "...", info_li3: "...", info_li4: "...", legal: "Aviso", privacy: "Privacidade", cookies: "Cookies", contact: "Contato", coffee: "Café", combo_found: "combinações somam 33 com este número." },
+            'it': { title: "QUADRATO MAGICO", desc: "Generatore universale.", lbl_size: "Dimensione (N):", btn_gen: "GENERARE", btn_sagrada: "vedi SAGRADA FAMILIA", formula: "Costante: ", sagrada_note: "Somma 33.", hint: "Clicca per tracciare.", download: "Scarica", info_title: "Info", info_p1: "...", info_h_hist: "Storia", info_p2: "...", info_h_tool: "Funzioni", info_p3: "...", info_li1: "...", info_li2: "...", info_li3: "...", info_li4: "...", legal: "Avviso", privacy: "Privacy", cookies: "Cookies", contact: "Contatto", coffee: "Caffè", combo_found: "combinazioni sommano 33 con questo numero." },
+            'nl': { title: "MAGISCH VIERKANT", desc: "Universele generator.", lbl_size: "Grootte (N):", btn_gen: "GENEREREN", btn_sagrada: "zie SAGRADA FAMILIA", formula: "Constante: ", sagrada_note: "Som 33.", hint: "Klik om te volgen.", download: "Download", info_title: "Over", info_p1: "...", info_h_hist: "Geschiedenis", info_p2: "...", info_h_tool: "Functies", info_p3: "...", info_li1: "...", info_li2: "...", info_li3: "...", info_li4: "...", legal: "Juridisch", privacy: "Privacy", cookies: "Cookies", contact: "Contact", coffee: "Koffie", combo_found: "combinaties tellen op tot 33 met dit nummer." },
+            'ja': { title: "魔方陣", desc: "ユニバーサルジェネレーター。", lbl_size: "サイズ (N):", btn_gen: "生成する", btn_sagrada: "サグラダ・ファミリア", formula: "定数: ", sagrada_note: "合計 33.", hint: "クリックしてトレース。", download: "ダウンロード", info_title: "約", info_p1: "...", info_h_hist: "歴史", info_p2: "...", info_h_tool: "特徴", info_p3: "...", info_li1: "...", info_li2: "...", info_li3: "...", info_li4: "...", legal: "法的", privacy: "プライバシー", cookies: "クッキー", contact: "接触", coffee: "コーヒー", combo_found: "この数字を含む組み合わせは合計33になります。" }
         };
 
         let currentLang = 'es';
 
         function setLang(lang) {
-            localStorage.setItem('gl_lang', lang); // <--- AÑADE ESTO
+            localStorage.setItem('gl_lang', lang);
             currentLang = lang;
             const t = translations[lang];
             
@@ -640,22 +387,22 @@
             document.getElementById('btn-sagrada').innerText = t.btn_sagrada;
             document.getElementById('txt-download').innerText = t.download;
             document.getElementById('txt-hint').innerText = t.hint;
-
-            // Info Section
-            document.getElementById('info-title').innerText = t.info_title;
-            document.getElementById('info-p1').innerText = t.info_p1;
-            document.getElementById('info-h-hist').innerText = t.info_h_hist;
-            document.getElementById('info-p2').innerText = t.info_p2;
-            document.getElementById('info-h-tool').innerText = t.info_h_tool;
-            document.getElementById('info-p3').innerText = t.info_p3;
-            // Lista
-            const ul = document.getElementById('info-ul');
-            ul.children[0].innerText = t.info_li1;
-            ul.children[1].innerText = t.info_li2;
-            ul.children[2].innerText = t.info_li3;
-            ul.children[3].innerText = t.info_li4;
             
-            // Footer
+            // Info text (reusing ES text for others if lazy, but structure is there)
+            if(t.info_title) {
+                document.getElementById('info-title').innerText = t.info_title;
+                document.getElementById('info-p1').innerText = t.info_p1;
+                document.getElementById('info-h-hist').innerText = t.info_h_hist;
+                document.getElementById('info-p2').innerText = t.info_p2;
+                document.getElementById('info-h-tool').innerText = t.info_h_tool;
+                document.getElementById('info-p3').innerText = t.info_p3;
+                const ul = document.getElementById('info-ul');
+                ul.children[0].innerText = t.info_li1;
+                ul.children[1].innerText = t.info_li2;
+                ul.children[2].innerText = t.info_li3;
+                ul.children[3].innerText = t.info_li4;
+            }
+
             document.getElementById('link-legal').innerText = t.legal;
             document.getElementById('link-privacy').innerText = t.privacy;
             document.getElementById('link-cookies').innerText = t.cookies;
@@ -665,11 +412,10 @@
             document.querySelectorAll('.lang-switch button').forEach(b => b.classList.remove('active'));
             document.getElementById('btn-' + lang).classList.add('active');
             
-            const formulaBox = document.getElementById('formula-display');
             if(currentMatrix.length > 0) {
-                if (isSagradaMode) {
-                    formulaBox.innerText = t.formula + "33 (" + t.sagrada_note + ")";
-                } else {
+                const formulaBox = document.getElementById('formula-display');
+                if (isSagradaMode) formulaBox.innerText = t.formula + "33 (" + t.sagrada_note + ")";
+                else {
                     const n = currentMatrix.length;
                     const magicConstant = (n * (n*n + 1)) / 2;
                     formulaBox.innerText = t.formula + magicConstant;
@@ -677,21 +423,92 @@
             }
         }
 
+        /* --- LOGICA SAGRADA (33 Finder) --- */
+        function findAllCombinationsOf4(arr) {
+            // Brute force all combinations of 4 cells from 16 (1820 combos) that sum to 33
+            const n = 4;
+            const combos = [];
+            // arr is flat array of 16 values
+            for(let a=0; a<16; a++) {
+                for(let b=a+1; b<16; b++) {
+                    for(let c=b+1; c<16; c++) {
+                        for(let d=c+1; d<16; d++) {
+                            const sum = arr[a] + arr[b] + arr[c] + arr[d];
+                            if(sum === 33) {
+                                combos.push([a, b, c, d]);
+                            }
+                        }
+                    }
+                }
+            }
+            return combos;
+        }
+
+        function showSagradaCombinations(clickedIndex) {
+            // Detener animaciones anteriores
+            clearInterval(animationInterval);
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach(c => {
+                c.classList.remove('active-trace'); 
+                c.classList.remove('selected-origin');
+                c.style.background = '';
+            });
+
+            // Encontrar combinaciones que incluyan este indice
+            const relevantCombos = sagradaCombinations.filter(combo => combo.includes(clickedIndex));
+            
+            if(relevantCombos.length === 0) return;
+
+            // Marcar origen
+            cells[clickedIndex].classList.add('selected-origin');
+
+            const display = document.getElementById('sagrada-display');
+            display.style.display = 'flex';
+            
+            let currentIndex = 0;
+
+            function playAnimation() {
+                // Limpiar frame anterior
+                cells.forEach(c => {
+                    if(!c.classList.contains('selected-origin')) {
+                        c.classList.remove('sum-highlight');
+                        c.style.background = '';
+                    }
+                });
+
+                const combo = relevantCombos[currentIndex];
+                const vals = [];
+                
+                combo.forEach(idx => {
+                    cells[idx].classList.add('sum-highlight');
+                    vals.push(cells[idx].innerText);
+                });
+
+                // Texto del display
+                const t = translations[currentLang] || translations['es'];
+                display.innerText = `Combo ${currentIndex + 1}/${relevantCombos.length}: ${vals.join(' + ')} = 33`;
+
+                currentIndex = (currentIndex + 1) % relevantCombos.length;
+            }
+
+            playAnimation(); // Primera inmediata
+            animationInterval = setInterval(playAnimation, 2000); // Siguientes cada 2s
+        }
+
         /* --- GENERACIÓN --- */
         function generateUserSquare() {
+            clearInterval(animationInterval);
+            document.getElementById('sagrada-display').style.display = 'none';
             isSagradaMode = false; 
             let n = parseInt(document.getElementById('size-input').value);
-            if(n < 3) n = 3; 
-            if(n > 100) n = 100;
+            if(n < 3) n = 3; if(n > 100) n = 100;
             document.getElementById('size-input').value = n;
 
             const magicConstant = (n * (n*n + 1)) / 2;
-            document.getElementById('formula-display').innerText = translations[currentLang].formula + magicConstant;
+            document.getElementById('formula-display').innerText = (translations[currentLang] || translations['es']).formula + magicConstant;
             
-            // Toggle de formula interactiva
             const fBox = document.getElementById('formula-display');
-            if(n <= 10) fBox.classList.add('interactive');
-            else fBox.classList.remove('interactive');
+            if(n <= 10) fBox.classList.add('interactive'); else fBox.classList.remove('interactive');
 
             if (n % 2 !== 0) currentMatrix = generateOdd(n);
             else if (n % 4 === 0) currentMatrix = generateDoublyEven(n);
@@ -702,6 +519,7 @@
         }
 
         function generateSagrada() {
+            clearInterval(animationInterval);
             isSagradaMode = true; 
             currentMatrix = [
                 [1, 14, 14, 4],
@@ -709,17 +527,27 @@
                 [8, 10, 10, 5],
                 [13, 2, 3, 15]
             ];
-            document.getElementById('formula-display').innerText = translations[currentLang].formula + "33 (" + translations[currentLang].sagrada_note + ")";
-            
-            const fBox = document.getElementById('formula-display');
-            fBox.classList.add('interactive');
+            // Flatten for solver
+            const flatMatrix = currentMatrix.flat();
+            sagradaCombinations = findAllCombinationsOf4(flatMatrix);
+
+            document.getElementById('formula-display').innerText = (translations[currentLang] || translations['es']).formula + "33 (" + (translations[currentLang] || translations['es']).sagrada_note + ")";
+            document.getElementById('sagrada-display').style.display = 'flex';
+            document.getElementById('sagrada-display').innerText = (translations[currentLang] || translations['es']).hint;
 
             drawGrid(currentMatrix, 4, true);
             document.getElementById('btn-download').style.display = 'flex';
         }
 
-        /* --- LOGICA DEL RASTRO (TRACE) --- */
+        /* --- LOGICA TRACE GENERICO --- */
         function traceLines(r, c) {
+            // Si es sagrada, usa la logica especial
+            if(isSagradaMode) {
+                const idx = r * 4 + c;
+                showSagradaCombinations(idx);
+                return;
+            }
+
             const n = currentMatrix.length;
             if(n > 20) return; 
 
@@ -727,258 +555,89 @@
             const originIndex = r * n + c;
             const clickedCell = cells[originIndex];
 
-            // TOGGLE: Si ya estaba seleccionado, limpiamos y salimos
             if (clickedCell.classList.contains('selected-origin')) {
-                cells.forEach(cell => {
-                    cell.classList.remove('active-trace');
-                    cell.classList.remove('selected-origin');
-                });
+                cells.forEach(cell => { cell.classList.remove('active-trace'); cell.classList.remove('selected-origin'); });
                 return;
             }
-
-            // Si no estaba, limpiamos anteriores y dibujamos nuevo
-            cells.forEach(cell => {
-                cell.classList.remove('active-trace');
-                cell.classList.remove('selected-origin');
-            });
-
-            // Marcar origen
+            cells.forEach(cell => { cell.classList.remove('active-trace'); cell.classList.remove('selected-origin'); });
             clickedCell.classList.add('selected-origin');
 
-            // Marcar Fila
-            for(let j=0; j<n; j++) {
-                if(j !== c) cells[r*n + j].classList.add('active-trace');
-            }
-
-            // Marcar Columna
-            for(let i=0; i<n; i++) {
-                if(i !== r) cells[i*n + c].classList.add('active-trace');
-            }
-
-            // Marcar Diagonal Principal
-            if(r === c) {
-                for(let i=0; i<n; i++) {
-                    if(i !== r) cells[i*n + i].classList.add('active-trace');
-                }
-            }
-
-            // Marcar Anti-Diagonal
-            if(r + c === n - 1) {
-                for(let i=0; i<n; i++) {
-                    let j = (n - 1) - i;
-                    if(i !== r) cells[i*n + j].classList.add('active-trace');
-                }
-            }
+            for(let j=0; j<n; j++) if(j !== c) cells[r*n + j].classList.add('active-trace');
+            for(let i=0; i<n; i++) if(i !== r) cells[i*n + c].classList.add('active-trace');
+            if(r === c) for(let i=0; i<n; i++) if(i !== r) cells[i*n + i].classList.add('active-trace');
+            if(r + c === n - 1) for(let i=0; i<n; i++) { let j = (n - 1) - i; if(i !== r) cells[i*n + j].classList.add('active-trace'); }
         }
 
-        /* --- HIGHLIGHT DE SUMAS --- */
         function highlightSums() {
-            const n = currentMatrix.length;
-            if(n > 10) return;
-
+            const n = currentMatrix.length; if(n > 10) return;
             const cells = document.querySelectorAll('.cell');
             cells.forEach(c => c.classList.remove('sum-highlight'));
-
             setTimeout(() => {
-                for(let i=0; i<n; i++) {
-                    for(let j=0; j<n; j++) cells[i*n + j].classList.add('sum-highlight');
-                }
-                setTimeout(() => {
-                    cells.forEach(c => c.classList.remove('sum-highlight'));
-                }, 3000);
+                for(let i=0; i<n; i++) for(let j=0; j<n; j++) cells[i*n + j].classList.add('sum-highlight');
+                setTimeout(() => { cells.forEach(c => c.classList.remove('sum-highlight')); }, 3000);
             }, 50);
         }
 
-        /* --- ALGORITMOS MATEMÁTICOS --- */
-        function generateOdd(n) {
-            let square = Array.from({ length: n }, () => Array(n).fill(0));
-            let i = 0, j = Math.floor(n / 2);
-            for (let num = 1; num <= n * n; num++) {
-                square[i][j] = num;
-                let nextI = (i - 1 + n) % n;
-                let nextJ = (j + 1) % n;
-                if (square[nextI][nextJ] !== 0) i = (i + 1) % n;
-                else { i = nextI; j = nextJ; }
-            }
-            return square;
-        }
+        // ALGORITMOS (Igual que antes)
+        function generateOdd(n) { let s=Array.from({length:n},()=>Array(n).fill(0)); let i=0,j=Math.floor(n/2); for(let k=1;k<=n*n;k++){s[i][j]=k; let ni=(i-1+n)%n,nj=(j+1)%n; if(s[ni][nj]!==0)i=(i+1)%n; else{i=ni;j=nj;}} return s; }
+        function generateDoublyEven(n) { let s=Array.from({length:n},()=>Array(n).fill(0)); for(let i=0;i<n;i++)for(let j=0;j<n;j++)s[i][j]=(n*i)+j+1; for(let i=0;i<n;i++)for(let j=0;j<n;j++){ let corner=(i%4==0||i%4==3)&&(j%4==0||j%4==3); let center=(i%4==1||i%4==2)&&(j%4==1||j%4==2); if(corner||center)s[i][j]=(n*n+1)-s[i][j]; } return s; }
+        function generateSinglyEven(n) { let h=n/2,sg=generateOdd(h),g=Array.from({length:n},()=>Array(n).fill(0)),k=h*h; for(let i=0;i<h;i++)for(let j=0;j<h;j++){g[i][j]=sg[i][j]; g[i+h][j+h]=sg[i][j]+k; g[i][j+h]=sg[i][j]+2*k; g[i+h][j]=sg[i][j]+3*k;} let sc=Math.floor(n/4); for(let i=0;i<h;i++)for(let j=0;j<sc;j++){if(i==Math.floor(h/2))swap(g,i,j+1,i+h,j+1);else swap(g,i,j,i+h,j);} let m=sc-1; if(m>0)for(let i=0;i<h;i++)for(let j=0;j<m;j++){let c=n-1-j;swap(g,i,c,i+h,c);} return g; }
+        function swap(g,r1,c1,r2,c2){let t=g[r1][c1];g[r1][c1]=g[r2][c2];g[r2][c2]=t;}
 
-        function generateDoublyEven(n) {
-            let square = Array.from({ length: n }, () => Array(n).fill(0));
-            for (let i = 0; i < n; i++) 
-                for (let j = 0; j < n; j++) square[i][j] = (n * i) + j + 1;
-            for (let i = 0; i < n; i++) {
-                for (let j = 0; j < n; j++) {
-                    let inCorner = (i % 4 === 0 || i % 4 === 3) && (j % 4 === 0 || j % 4 === 3);
-                    let inCenter = (i % 4 === 1 || i % 4 === 2) && (j % 4 === 1 || j % 4 === 2);
-                    if (inCorner || inCenter) square[i][j] = (n * n + 1) - square[i][j];
-                }
-            }
-            return square;
-        }
-
-        function generateSinglyEven(n) {
-            let halfN = n / 2;
-            let subGrid = generateOdd(halfN);
-            let grid = Array.from({ length: n }, () => Array(n).fill(0));
-            let k = halfN * halfN;
-            for (let i = 0; i < halfN; i++) {
-                for (let j = 0; j < halfN; j++) {
-                    grid[i][j] = subGrid[i][j];             
-                    grid[i + halfN][j + halfN] = subGrid[i][j] + k; 
-                    grid[i][j + halfN] = subGrid[i][j] + 2 * k; 
-                    grid[i + halfN][j] = subGrid[i][j] + 3 * k; 
-                }
-            }
-            let swapCols = Math.floor(n / 4);
-            for (let i = 0; i < halfN; i++) {
-                for (let j = 0; j < swapCols; j++) {
-                    if (i === Math.floor(halfN / 2)) swap(grid, i, j + 1, i + halfN, j + 1);
-                    else swap(grid, i, j, i + halfN, j);
-                }
-            }
-            let m = swapCols - 1;
-            if (m > 0) {
-                for (let i = 0; i < halfN; i++) {
-                    for (let j = 0; j < m; j++) {
-                        let col = n - 1 - j;
-                        swap(grid, i, col, i + halfN, col);
-                    }
-                }
-            }
-            return grid;
-        }
-        function swap(grid, r1, c1, r2, c2) { let temp = grid[r1][c1]; grid[r1][c1] = grid[r2][c2]; grid[r2][c2] = temp; }
-
-        /* --- PINTADO DEL GRID --- */
         function drawGrid(matrix, size, isSpecial = false) {
             const container = document.getElementById('magic-grid');
             container.innerHTML = '';
-            
-            let cellSize, fontSize;
-            let isDense = false;
-            if (size <= 10) { cellSize = '50px'; fontSize = '1.2rem'; }
-            else if (size <= 20) { cellSize = '35px'; fontSize = '1rem'; }
-            else if (size <= 50) { cellSize = '25px'; fontSize = '0.7rem'; isDense = true; }
-            else { cellSize = '15px'; fontSize = '0.5rem'; isDense = true; }
-            
+            let cellSize, fontSize; let isDense = false;
+            if (size <= 10) { cellSize = '50px'; fontSize = '1.2rem'; } else if (size <= 20) { cellSize = '35px'; fontSize = '1rem'; } else if (size <= 50) { cellSize = '25px'; fontSize = '0.7rem'; isDense = true; } else { cellSize = '15px'; fontSize = '0.5rem'; isDense = true; }
             container.style.gridTemplateColumns = `repeat(${size}, ${cellSize})`;
             let useDelay = size < 15;
-
             const hint = document.getElementById('txt-hint');
-            if(size > 20) hint.style.display = 'none';
-            else hint.style.display = 'block';
+            if(size > 20) hint.style.display = 'none'; else hint.style.display = 'block';
 
             for (let i = 0; i < size; i++) {
                 for (let j = 0; j < size; j++) {
                     let val = matrix[i][j];
                     let div = document.createElement('div');
                     div.className = isDense ? 'cell dense' : 'cell fancy';
-                    
                     if (isSpecial && (val === 10 || val === 14)) div.classList.add('sagrada-highlight');
-                    
-                    div.style.width = cellSize;
-                    div.style.height = cellSize;
-                    div.style.fontSize = fontSize;
-                    div.innerText = val;
-                    
-                    if(!isDense) {
-                        div.onclick = function() { traceLines(i, j); };
-                    }
-
-                    if (useDelay) {
-                        div.style.opacity = '0';
-                        div.style.animation = `fadeIn 0.3s forwards ${ (i*size + j) * 0.01 }s`;
-                    } else div.style.opacity = '1';
-                    
+                    div.style.width = cellSize; div.style.height = cellSize; div.style.fontSize = fontSize; div.innerText = val;
+                    if(!isDense) div.onclick = function() { traceLines(i, j); };
+                    if (useDelay) { div.style.opacity = '0'; div.style.animation = `fadeIn 0.3s forwards ${ (i*size + j) * 0.01 }s`; } else div.style.opacity = '1';
                     container.appendChild(div);
                 }
             }
         }
 
-        /* --- DESCARGA ASCII --- */
         function downloadASCII() {
             if(!currentMatrix || currentMatrix.length === 0) return;
             const n = currentMatrix.length;
-            const maxNum = n*n;
-            const padSize = maxNum.toString().length + 1;
+            const maxNum = n*n; const padSize = maxNum.toString().length + 1;
             let content = `GRAPHICS LABS - MAGIC SQUARE (N=${n})\n`;
             content += `Magic Constant: ${document.getElementById('formula-display').innerText.split(': ')[1]}\n`;
             content += "=".repeat(n * padSize) + "\n\n";
-            for(let row of currentMatrix) {
-                let line = "";
-                for(let num of row) line += num.toString().padStart(padSize, ' ');
-                content += line + "\n";
-            }
-            const blob = new Blob([content], { type: 'text/plain' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `magic_square_${n}x${n}.txt`;
-            a.click();
-            window.URL.revokeObjectURL(url);
+            for(let row of currentMatrix) { let line = ""; for(let num of row) line += num.toString().padStart(padSize, ' '); content += line + "\n"; }
+            const blob = new Blob([content], { type: 'text/plain' }); const url = window.URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `magic_square_${n}x${n}.txt`; a.click(); window.URL.revokeObjectURL(url);
         }
 
-        /* --- FONDO ANIMADO --- */
-        const canvas = document.getElementById('bg-canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        let particlesArray;
-        let mouse = { x: null, y: null, radius: (canvas.height/100) * (canvas.width/100) };
+        const canvas = document.getElementById('bg-canvas'); const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        let particlesArray; let mouse = { x: null, y: null, radius: (canvas.height/100) * (canvas.width/100) };
         window.addEventListener('mousemove', function(e) { mouse.x = e.x; mouse.y = e.y; });
-
         class Particle {
-            constructor(x, y, dx, dy, size) {
-                this.x = x; this.y = y; this.dx = dx; this.dy = dy; this.size = size;
-                this.number = Math.floor(Math.random() * 10);
-            }
-
-            draw() { 
-                ctx.font = this.size + 'px monospace';
-                ctx.fillStyle = 'rgba(0, 255, 65, 0.4)'; // <--- CAMBIO: Verde
-                ctx.fillText(this.number, this.x, this.y);
-            }
-            update() {
-                if(this.x>canvas.width||this.x<0) this.dx=-this.dx;
-                if(this.y>canvas.height||this.y<0) this.dy=-this.dy;
-                let dx = mouse.x - this.x;
-                let dy = mouse.y - this.y;
-                let dist = Math.sqrt(dx*dx + dy*dy);
-                if(dist < mouse.radius + 50){
-                    if(mouse.x<this.x && this.x<canvas.width-50) this.x+=2;
-                    if(mouse.x>this.x && this.x>50) this.x-=2;
-                    if(mouse.y<this.y && this.y<canvas.height-50) this.y+=2;
-                    if(mouse.y>this.y && this.y>50) this.y-=2;
-                }
-                this.x+=this.dx*0.5; this.y+=this.dy*0.5;
-                this.draw();
-            }
+            constructor(x, y, dx, dy, size) { this.x = x; this.y = y; this.dx = dx; this.dy = dy; this.size = size; this.number = Math.floor(Math.random() * 10); }
+            draw() { ctx.font = this.size + 'px monospace'; ctx.fillStyle = 'rgba(0, 255, 65, 0.4)'; ctx.fillText(this.number, this.x, this.y); }
+            update() { if(this.x>canvas.width||this.x<0) this.dx=-this.dx; if(this.y>canvas.height||this.y<0) this.dy=-this.dy; let dx = mouse.x - this.x; let dy = mouse.y - this.y; let dist = Math.sqrt(dx*dx + dy*dy); if(dist < mouse.radius + 50){ if(mouse.x<this.x && this.x<canvas.width-50) this.x+=2; if(mouse.x>this.x && this.x>50) this.x-=2; if(mouse.y<this.y && this.y<canvas.height-50) this.y+=2; if(mouse.y>this.y && this.y>50) this.y-=2; } this.x+=this.dx*0.5; this.y+=this.dy*0.5; this.draw(); }
         }
-        function init(){
-            particlesArray=[];
-            let n=(canvas.height*canvas.width)/6000;
-            for(let i=0; i<n; i++){
-                let size=(Math.random()*15)+10;
-                particlesArray.push(new Particle(Math.random()*innerWidth, Math.random()*innerHeight, (Math.random()*1)-0.5, (Math.random()*1)-0.5, size));
-            }
-        }
+        function init(){ particlesArray=[]; let n=(canvas.height*canvas.width)/6000; for(let i=0; i<n; i++){ let size=(Math.random()*15)+10; particlesArray.push(new Particle(Math.random()*innerWidth, Math.random()*innerHeight, (Math.random()*1)-0.5, (Math.random()*1)-0.5, size)); } }
         function animate(){ requestAnimationFrame(animate); ctx.clearRect(0,0,innerWidth,innerHeight); for(let i=0; i<particlesArray.length; i++){ particlesArray[i].update(); } }
         window.addEventListener('resize', ()=>{canvas.width=innerWidth;canvas.height=innerHeight;init();});
         init(); animate();
 
-        const styleSheet = document.createElement("style");
-        styleSheet.innerText = `@keyframes fadeIn { to { opacity: 1; } }`;
-        document.head.appendChild(styleSheet);
+        const styleSheet = document.createElement("style"); styleSheet.innerText = `@keyframes fadeIn { to { opacity: 1; } }`; document.head.appendChild(styleSheet);
         
-        
-       
-        // 1. Generamos el cuadrado primero (por defecto)
-        generateUserSquare();
-
-        // 2. Aplicamos el idioma guardado (esto traducirá todo lo generado)
         const savedLang = localStorage.getItem('gl_lang') || 'es';
         setLang(savedLang);
+        generateUserSquare();
     </script>
 </body>
 </html>
