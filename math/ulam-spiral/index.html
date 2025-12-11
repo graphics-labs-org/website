@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graphics Labs | Ulam Spirals</title>
+    <meta name="description" content="Visualización interactiva de la Espiral de Ulam y la distribución de números primos.">
+    <style>
+        /* --- 1. CORE & RESET --- */
+        :root {
+            --primary: #00ff41;       /* Matrix Green */
+            --primary-dim: #008f11;
+            --accent: #e0ffe0;
+            --bg-color: #020502;
+            --glass-bg: rgba(0, 15, 0, 0.85);
+            --glass-border: 1px solid rgba(0, 255, 65, 0.3);
+            --font-ui: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --font-mono: 'Courier New', Courier, monospace;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--accent);
+            font-family: var(--font-ui);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary) var(--bg-color);
+        }
+
+        /* Scrollbar Webkit */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-color); }
+        ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 4px; }
+
+        /* --- 2. BACKGROUND ANIMATION --- */
+        #bg-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: -1;
+            opacity: 0.6;
+        }
+
+        /* --- 3. LAYOUT & CONTAINER --- */
+        .container {
+            width: 95%;
+            max-width: 1200px;
+            margin: 20px auto;
+            flex: 1;
+            z-index: 1;
+        }
+
+        /* --- 4. NAVIGATION --- */
+        .nav-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: var(--glass-border);
+            padding: 15px 20px;
+            border-radius: 4px;
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.1);
+            margin-bottom: 25px;
+        }
+
+        .nav-group { display: flex; gap: 10px; flex-wrap: wrap; }
+
+        .btn-nav {
+            text-decoration: none;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            padding: 8px 15px;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(0,0,0,0.5);
+        }
+
+        .btn-nav:hover {
+            background: var(--primary);
+            color: #000;
+            box-shadow: 0 0 15px var(--primary);
+        }
+
+        select.lang-select {
+            background: #000;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            padding: 5px 10px;
+            font-family: var(--font-mono);
+            cursor: pointer;
+            outline: none;
+        }
+
+        /* --- 5. MAIN WORKSPACE --- */
+        .workspace {
+            background: var(--glass-bg);
+            border: var(--glass-border);
+            backdrop-filter: blur(12px);
+            border-radius: 4px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        h1 {
+            font-family: var(--font-mono);
+            color: var(--primary);
+            font-size: 2.2rem;
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+            letter-spacing: 2px;
+        }
+
+        /* Controls */
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(0, 255, 65, 0.2);
+        }
+
+        .input-group { display: flex; flex-direction: column; gap: 8px; }
+        .input-group label { font-size: 0.8rem; color: #88ff88; font-family: var(--font-mono); }
+        
+        input {
+            background: #001100;
+            border: 1px solid var(--primary-dim);
+            color: var(--primary);
+            padding: 10px;
+            font-family: var(--font-mono);
+            outline: none;
+            transition: border 0.3s;
+        }
+        input:focus { border-color: var(--primary); box-shadow: 0 0 5px var(--primary-dim); }
+
+        .btn-action {
+            background: var(--primary-dim);
+            color: #fff;
+            border: none;
+            padding: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            font-family: var(--font-mono);
+            margin-top: auto; /* Push to bottom of grid cell */
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-action:hover {
+            background: var(--primary);
+            color: #000;
+            box-shadow: 0 0 15px var(--primary);
+        }
+
+        .btn-download { background: #004400; border: 1px solid var(--primary); color: var(--primary); }
+
+        /* Canvas Display */
+        .canvas-wrapper {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            background: #000500;
+            border: 1px solid #113311;
+            padding: 10px;
+            overflow: auto;
+            max-height: 80vh;
+            margin-bottom: 40px;
+        }
+
+        #ulam-canvas { box-shadow: 0 0 20px rgba(0,0,0,0.8); cursor: crosshair; }
+
+        /* --- 6. TEXT CONTENT --- */
+        .info-section {
+            max-width: 900px;
+            margin: 0 auto;
+            color: #ccffcc;
+            line-height: 1.8;
+            font-size: 1.05rem;
+        }
+
+        .info-section h2 {
+            color: var(--primary);
+            font-family: var(--font-mono);
+            margin: 30px 0 15px 0;
+            border-bottom: 1px solid var(--primary-dim);
+            display: inline-block;
+            padding-bottom: 5px;
+        }
+
+        .info-section p { margin-bottom: 20px; text-align: justify; }
+
+        .math-block {
+            background: rgba(0, 255, 65, 0.05);
+            padding: 15px;
+            border-left: 3px solid var(--primary);
+            font-family: var(--font-mono);
+            margin: 20px 0;
+            color: #fff;
+        }
+
+        /* --- 7. FOOTER & ADS --- */
+        .ad-container {
+            width: 100%;
+            max-width: 728px;
+            height: 90px;
+            background: repeating-linear-gradient(
+                45deg,
+                #050a05,
+                #050a05 10px,
+                #0a140a 10px,
+                #0a140a 20px
+            );
+            border: 1px dashed #333;
+            margin: 50px auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #444;
+            font-family: var(--font-mono);
+            letter-spacing: 2px;
+        }
+
+        footer {
+            background: #010a01;
+            border-top: 1px solid var(--primary-dim);
+            padding: 40px 20px;
+            text-align: center;
+            margin-top: auto;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: #66cc66;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+        .footer-links a:hover { color: var(--primary); text-shadow: 0 0 5px var(--primary); }
+
+        .donation-btn {
+            display: inline-block;
+            background: #ffb700; /* Contrast color for CTA */
+            color: #000;
+            font-weight: bold;
+            padding: 10px 20px;
+            border-radius: 50px;
+            text-decoration: none;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 15px rgba(255, 183, 0, 0.3);
+            transition: transform 0.2s;
+        }
+        .donation-btn:hover { transform: scale(1.05); }
+
+    </style>
+</head>
+<body>
+
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="container">
+        <nav class="nav-bar">
+            <div class="nav-group">
+                <a href="../../index.html" class="btn-nav">← <span data-i18n="mainHub">HUB PRINCIPAL</span></a>
+                <a href="../index.html" class="btn-nav">← <span data-i18n="mathHub">HUB MATH</span></a>
+            </div>
+            
+            <select id="lang-selector" class="lang-select" onchange="changeLanguage(this.value)">
+                <option value="es">Español</option>
+                <option value="ca">Català</option>
+                <option value="en">English</option>
+                <option value="fr">Français</option>
+                <option value="de">Deutsch</option>
+                <option value="pt">Português</option>
+                <option value="it">Italiano</option>
+                <option value="nl">Nederlands</option>
+                <option value="ja">日本語</option>
+            </select>
+        </nav>
+
+        <div class="workspace">
+            <h1 data-i18n="title">ESPIRAL DE ULAM</h1>
+
+            <div class="controls-grid">
+                <div class="input-group">
+                    <label data-i18n="lblMax">Máximo (N)</label>
+                    <input type="number" id="inp-max" value="40000" min="100" max="500000" step="1000">
+                </div>
+                <div class="input-group">
+                    <label data-i18n="lblStart">Inicio</label>
+                    <input type="number" id="inp-start" value="1" min="1">
+                </div>
+                <div class="input-group">
+                    <label data-i18n="lblDotSize">Grosor Punto (px)</label>
+                    <input type="number" id="inp-zoom" value="2" min="1" max="10">
+                </div>
+                <div class="input-group">
+                    <button class="btn-action" onclick="generateSpiral()" data-i18n="btnGen">EJECUTAR</button>
+                </div>
+                <div class="input-group">
+                    <button class="btn-action btn-download" onclick="downloadImage()" data-i18n="btnSave">GUARDAR IMAGEN</button>
+                </div>
+            </div>
+
+            <div class="canvas-wrapper">
+                <canvas id="ulam-canvas" width="800" height="800"></canvas>
+            </div>
+
+            <div class="info-section">
+                <h2 data-i18n="sec1Title">El Hallazgo Accidental</h2>
+                <p data-i18n="sec1Text">
+                    En 1963, el matemático polaco Stanislaw Ulam se encontraba en una reunión científica aburrida. Para pasar el tiempo, comenzó a escribir los enteros positivos en una cuadrícula, comenzando con el 1 en el centro y moviéndose en espiral hacia afuera. Instintivamente, marcó los números primos. Lo que emergió no fue ruido aleatorio, sino una estructura ordenada sorprendente.
+                </p>
+
+                <h2 data-i18n="sec2Title">Patrones en el Caos</h2>
+                <p data-i18n="sec2Text">
+                    Al visualizar la espiral, se observa que los números primos tienen una fuerte tendencia a alinearse en diagonales. Esto fue un descubrimiento visual impactante porque, tradicionalmente, se considera que los primos aparecen de manera pseudo-aleatoria. Sin embargo, la Espiral de Ulam sugiere que existen funciones cuadráticas que generan primos con mucha más frecuencia de lo normal.
+                </p>
+
+                <div class="math-block" data-i18n="mathNote">
+                    La diagonal más famosa corresponde al polinomio de Euler: f(n) = n² + n + 41
+                </div>
+
+                <h2 data-i18n="sec3Title">Interpretación Gráfica</h2>
+                <p data-i18n="sec3Text">
+                    En esta herramienta de Graphics Labs, cada punto iluminado representa un número primo. Puedes ajustar el "Máximo" para hacer zoom out y ver la estructura a gran escala. A medida que te alejas, las líneas diagonales (ricas en primos) y los espacios vacíos (pobres en primos) se vuelven más evidentes, formando un patrón que recuerda a una galaxia digital o un circuito integrado.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="ad-container">
+        <span class="ad-placeholder-text">Ad Space (Google AdSense)</span>
+    </div>
+
+    <footer>
+        <div class="footer-links">
+            <a href="../../legal.html" data-i18n="legal">Aviso Legal</a>
+            <a href="../../privacy.html" data-i18n="privacy">Política de Privacidad</a>
+            <a href="../../cookies.html" data-i18n="cookies">Cookies</a>
+            <a href="mailto:pbazan@gmail.com" data-i18n="contact">Contacto</a>
+        </div>
+        <p>&copy; 2025 Graphics Labs - Math Department</p>
+        <a href="https://paypal.me/pbazan" target="_blank" class="donation-btn" data-i18n="donate">☕ Invítame a un café</a>
+    </footer>
+
+    <script>
+        /* =========================================
+           1. SEGURIDAD & INICIALIZACIÓN
+           ========================================= */
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.addEventListener('keydown', e => {
+            if(e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) e.preventDefault();
+        });
+
+        /* =========================================
+           2. SISTEMA MULTI-IDIOMA
+           ========================================= */
+        const translations = {
+            es: {
+                mainHub: "HUB PRINCIPAL", mathHub: "HUB MATH", title: "ESPIRAL DE ULAM",
+                lblMax: "Máximo (N)", lblStart: "Inicio", lblDotSize: "Grosor Punto",
+                btnGen: "EJECUTAR", btnSave: "GUARDAR JPG",
+                sec1Title: "El Hallazgo Accidental",
+                sec1Text: "En 1963, el matemático polaco Stanislaw Ulam se encontraba en una reunión científica aburrida. Escribió enteros en espiral y marcó los primos. Emergió una estructura ordenada sorprendente.",
+                sec2Title: "Patrones en el Caos",
+                sec2Text: "Los números primos tienden a alinearse en diagonales, contradiciendo la idea de aleatoriedad pura. Esto sugiere la existencia de polinomios generadores de primos.",
+                mathNote: "Polinomio de Euler: f(n) = n² + n + 41",
+                sec3Title: "Interpretación Gráfica",
+                sec3Text: "Cada punto brillante es un primo. Al alejar la vista, las diagonales ricas en primos forman patrones similares a galaxias.",
+                legal: "Aviso Legal", privacy: "Privacidad", cookies: "Cookies", contact: "Contacto", donate: "☕ Invítame a un café"
+            },
+            en: {
+                mainHub: "MAIN HUB", mathHub: "MATH HUB", title: "ULAM SPIRAL",
+                lblMax: "Maximum (N)", lblStart: "Start Num", lblDotSize: "Dot Size",
+                btnGen: "RUN", btnSave: "SAVE JPG",
+                sec1Title: "The Accidental Find",
+                sec1Text: "In 1963, mathematician Stanislaw Ulam doodled integers in a spiral during a boring meeting. Marking the primes revealed a surprising ordered structure.",
+                sec2Title: "Patterns in Chaos",
+                sec2Text: "Prime numbers tend to align in diagonals, suggesting they aren't purely random but follow certain quadratic functions.",
+                mathNote: "Euler's Polynomial: f(n) = n² + n + 41",
+                sec3Title: "Graphical Interpretation",
+                sec3Text: "Each glowing dot is a prime. Zooming out reveals galaxy-like structures composed of prime-rich diagonals.",
+                legal: "Legal Notice", privacy: "Privacy Policy", cookies: "Cookies", contact: "Contact", donate: "☕ Buy me a coffee"
+            },
+            ca: {
+                mainHub: "HUB PRINCIPAL", mathHub: "HUB MATH", title: "ESPIRAL D'ULAM",
+                lblMax: "Màxim (N)", lblStart: "Inici", lblDotSize: "Mida Punt",
+                btnGen: "EXECUTAR", btnSave: "DESAR JPG",
+                sec1Title: "La Troballa Accidental",
+                sec1Text: "El 1963, Stanislaw Ulam va dibuixar enters en espiral durant una reunió. En marcar els primers, va aparèixer una estructura ordenada.",
+                sec2Title: "Patrons en el Caos",
+                sec2Text: "Els nombres primers s'alineen en diagonals, suggerint que segueixen certes funcions quadràtiques.",
+                mathNote: "Polinomi d'Euler: f(n) = n² + n + 41",
+                sec3Title: "Interpretació Gràfica",
+                sec3Text: "Cada punt brillant és un primer. En allunyar la vista, apareixen estructures similars a galàxies.",
+                legal: "Avís Legal", privacy: "Privacitat", cookies: "Cookies", contact: "Contacte", donate: "☕ Convida'm a un cafè"
+            },
+            fr: { mainHub: "HUB PRINCIPAL", mathHub: "HUB MATH", title: "SPIRALE D'ULAM", lblMax: "Maximum", lblStart: "Début", lblDotSize: "Taille Point", btnGen: "GÉNÉRER", btnSave: "ENREGISTRER", sec1Title: "Découverte", sec1Text: "Ulam a découvert ce motif en 1963.", sec2Title: "Motifs", sec2Text: "Les nombres premiers s'alignent en diagonales.", mathNote: "Polynôme d'Euler", sec3Title: "Visualisation", sec3Text: "Chaque point est un nombre premier.", legal: "Mentions Légales", privacy: "Confidentialité", cookies: "Cookies", contact: "Contact", donate: "☕ Offrez-moi un café" },
+            de: { mainHub: "HAUPT-HUB", mathHub: "MATH HUB", title: "ULAM-SPIRALE", lblMax: "Maximum", lblStart: "Start", lblDotSize: "Punktgröße", btnGen: "GENERIEREN", btnSave: "SPEICHERN", sec1Title: "Entdeckung", sec1Text: "Ulam entdeckte dieses Muster 1963.", sec2Title: "Muster", sec2Text: "Primzahlen richten sich diagonal aus.", mathNote: "Euler-Polynom", sec3Title: "Visualisierung", sec3Text: "Jeder Punkt ist eine Primzahl.", legal: "Impressum", privacy: "Datenschutz", cookies: "Cookies", contact: "Kontakt", donate: "☕ Kauf mir einen Kaffee" },
+            pt: { mainHub: "HUB PRINCIPAL", mathHub: "HUB MATH", title: "ESPIRAL DE ULAM", lblMax: "Máximo", lblStart: "Início", lblDotSize: "Tamanho", btnGen: "GERAR", btnSave: "SALVAR", sec1Title: "Descoberta", sec1Text: "Ulam descobriu este padrão em 1963.", sec2Title: "Padrões", sec2Text: "Os primos alinham-se em diagonais.", mathNote: "Polinômio de Euler", sec3Title: "Visualização", sec3Text: "Cada ponto é um primo.", legal: "Aviso Legal", privacy: "Privacidade", cookies: "Cookies", contact: "Contato", donate: "☕ Pagar um café" },
+            it: { mainHub: "HUB PRINCIPALE", mathHub: "HUB MATH", title: "SPIRALE DI ULAM", lblMax: "Massimo", lblStart: "Inizio", lblDotSize: "Dimensione", btnGen: "GENERARE", btnSave: "SALVARE", sec1Title: "Scoperta", sec1Text: "Ulam scoprì questo schema nel 1963.", sec2Title: "Schemi", sec2Text: "I numeri primi si allineano in diagonale.", mathNote: "Polinomio di Eulero", sec3Title: "Visualizzazione", sec3Text: "Ogni punto è un numero primo.", legal: "Legale", privacy: "Privacy", cookies: "Cookies", contact: "Contatto", donate: "☕ Offrimi un caffè" },
+            nl: { mainHub: "HOOFDHUB", mathHub: "MATH HUB", title: "ULAM SPIRAAL", lblMax: "Maximum", lblStart: "Start", lblDotSize: "Grootte", btnGen: "GENEREREN", btnSave: "OPSLAAN", sec1Title: "Ontdekking", sec1Text: "Ulam ontdekte dit patroon in 1963.", sec2Title: "Patronen", sec2Text: "Priemgetallen staan diagonaal.", mathNote: "Euler's Polynoom", sec3Title: "Visualisatie", sec3Text: "Elke stip is een priemgetal.", legal: "Juridisch", privacy: "Privacy", cookies: "Cookies", contact: "Contact", donate: "☕ Koop koffie" },
+            ja: { mainHub: "メインハブ", mathHub: "数学ハブ", title: "ウラムの螺旋", lblMax: "最大値", lblStart: "開始", lblDotSize: "サイズ", btnGen: "生成", btnSave: "保存", sec1Title: "発見", sec1Text: "ウラムは1963年にこれを発見しました。", sec2Title: "パターン", sec2Text: "素数は対角線上に並ぶ傾向があります。", mathNote: "オイラーの多項式", sec3Title: "視覚化", sec3Text: "各点は素数です。", legal: "法的通知", privacy: "プライバシー", cookies: "クッキー", contact: "連絡先", donate: "☕ コーヒーを奢る" }
+        };
+
+        function changeLanguage(lang) {
+            localStorage.setItem('gl_lang', lang);
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[lang] && translations[lang][key]) {
+                    el.innerText = translations[lang][key];
+                }
+            });
+            document.documentElement.lang = lang;
+        }
+
+        // Init Language
+        const savedLang = localStorage.getItem('gl_lang') || 'es';
+        document.getElementById('lang-selector').value = savedLang;
+        changeLanguage(savedLang);
+
+
+        /* =========================================
+           3. BACKGROUND PARTICLES (MATH THEME)
+           ========================================= */
+        const bgCanvas = document.getElementById('bg-canvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        let particles = [];
+
+        function resizeBg() {
+            bgCanvas.width = window.innerWidth;
+            bgCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeBg);
+        resizeBg();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * bgCanvas.width;
+                this.y = Math.random() * bgCanvas.height;
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
+                this.size = Math.random() * 14 + 8;
+                // Math symbols
+                const symbols = ['π', '∞', '∑', '√', '∫', '≠', '≈', '0', '1'];
+                this.text = symbols[Math.floor(Math.random() * symbols.length)];
+                this.baseColor = `rgba(0, 255, 65, ${Math.random() * 0.2 + 0.05})`;
+            }
+
+            update(mouseX, mouseY) {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Mouse repel
+                const dx = this.x - mouseX;
+                const dy = this.y - mouseY;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                if (dist < 150) {
+                    const angle = Math.atan2(dy, dx);
+                    const force = (150 - dist) / 150;
+                    this.x += Math.cos(angle) * force * 5;
+                    this.y += Math.sin(angle) * force * 5;
+                }
+
+                // Wrap around
+                if (this.x < 0) this.x = bgCanvas.width;
+                if (this.x > bgCanvas.width) this.x = 0;
+                if (this.y < 0) this.y = bgCanvas.height;
+                if (this.y > bgCanvas.height) this.y = 0;
+            }
+
+            draw() {
+                bgCtx.font = `${this.size}px monospace`;
+                bgCtx.fillStyle = this.baseColor;
+                bgCtx.fillText(this.text, this.x, this.y);
+            }
+        }
+
+        for (let i = 0; i < 60; i++) particles.push(new Particle());
+
+        let mouse = { x: -1000, y: -1000 };
+        document.addEventListener('mousemove', e => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+
+        function animateBg() {
+            bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+            particles.forEach(p => {
+                p.update(mouse.x, mouse.y);
+                p.draw();
+            });
+            requestAnimationFrame(animateBg);
+        }
+        animateBg();
+
+
+        /* =========================================
+           4. ULAM SPIRAL LOGIC
+           ========================================= */
+        const canvas = document.getElementById('ulam-canvas');
+        const ctx = canvas.getContext('2d');
+
+        function isPrime(num) {
+            if (num <= 1) return false;
+            if (num <= 3) return true;
+            if (num % 2 === 0 || num % 3 === 0) return false;
+            let i = 5;
+            while (i * i <= num) {
+                if (num % i === 0 || num % (i + 2) === 0) return false;
+                i += 6;
+            }
+            return true;
+        }
+
+        function generateSpiral() {
+            const max = parseInt(document.getElementById('inp-max').value);
+            const start = parseInt(document.getElementById('inp-start').value);
+            const dotSize = parseInt(document.getElementById('inp-zoom').value);
+            
+            // Auto-size canvas based on max number approx square root
+            // Spiral width is approx sqrt(max).
+            const spiralDim = Math.ceil(Math.sqrt(max));
+            const pixelDim = spiralDim * dotSize + 100; // padding
+            
+            // Limit max canvas size to avoid crash, scale if necessary
+            let displayW = pixelDim;
+            if(pixelDim > 4000) displayW = 4000; // Cap at 4k resolution
+            
+            canvas.width = displayW;
+            canvas.height = displayW;
+
+            // Black Background
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            let x = canvas.width / 2;
+            let y = canvas.height / 2;
+            
+            // Directions: Right, Up, Left, Down
+            // dx, dy
+            const dirs = [[1, 0], [0, -1], [-1, 0], [0, 1]];
+            let dirIdx = 0;
+            
+            let num = start;
+            let steps = 1;      // Steps to take in current direction
+            let stepCount = 0;  // Steps taken in current segment
+            let turnCount = 0;  // Number of turns taken (increase steps every 2 turns)
+
+            ctx.fillStyle = '#00ff41'; // Base Prime Color
+
+            for (let n = 0; n < max; n++) {
+                
+                // Draw if Prime
+                if (isPrime(num)) {
+                    // Optional: Color variation based on number magnitude for depth
+                    // Simple logic: Matrix green
+                    ctx.beginPath();
+                    // Draw a circle for better aesthetics than rect
+                    ctx.arc(x, y, dotSize/2, 0, Math.PI*2);
+                    ctx.fill();
+                }
+
+                // Move
+                x += dirs[dirIdx][0] * dotSize;
+                y += dirs[dirIdx][1] * dotSize;
+                
+                num++;
+                stepCount++;
+
+                // Turn logic
+                if (stepCount === steps) {
+                    stepCount = 0;
+                    dirIdx = (dirIdx + 1) % 4;
+                    turnCount++;
+                    if (turnCount % 2 === 0) {
+                        steps++;
+                    }
+                }
+            }
+        }
+
+        function downloadImage() {
+            const link = document.createElement('a');
+            link.download = 'ulam_spiral_gl.jpg';
+            link.href = canvas.toDataURL('image/jpeg', 0.9);
+            link.click();
+        }
+
+        // Initial Generation
+        window.onload = () => {
+            generateSpiral();
+        };
+
+    </script>
+</body>
+</html>
