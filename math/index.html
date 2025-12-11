@@ -391,6 +391,7 @@
         };
 
         function setLang(lang) {
+            localStorage.setItem('gl_lang', lang); // <--- AÑADE ESTO
             const t = translations[lang];
             
             document.getElementById('txt-title').innerText = t.title;
@@ -487,6 +488,10 @@
 
         window.addEventListener('resize', ()=>{ canvas.width = innerWidth; canvas.height = innerHeight; init(); });
         init(); animate();
+
+        // CARGAR IDIOMA GUARDADO
+        const savedLang = localStorage.getItem('gl_lang') || 'es';
+        setLang(savedLang);
     </script>
 </body>
 </html>
