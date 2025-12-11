@@ -8,7 +8,8 @@
         :root {
             --primary: #00f3ff;
             --secondary: #bd00ff;
-            --glass: rgba(20, 20, 20, 0.6); /* Más oscuro para legibilidad */
+            --highlight: #ffd700; /* Dorado para las sumas */
+            --glass: rgba(20, 20, 20, 0.6);
             --border: rgba(255, 255, 255, 0.1);
             --text: #ffffff;
             --muted: #888;
@@ -30,12 +31,12 @@
             position: fixed; 
             top: 0; left: 0; 
             width: 100%; height: 100%; 
-            z-index: 0; /* Al fondo absoluto */
+            z-index: 0; 
         }
 
         .container {
             position: relative;
-            z-index: 10; /* Por encima del canvas */
+            z-index: 10;
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
@@ -58,7 +59,7 @@
             flex-direction: column;
             gap: 15px;
             align-items: center;
-            backdrop-filter: blur(10px); /* Efecto borroso potente para separar del fondo */
+            backdrop-filter: blur(10px);
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
@@ -115,6 +116,7 @@
         }
         button.download-btn:hover { background: rgba(255,255,255,0.2); border-color: #fff; }
 
+        /* --- FÓRMULA INTERACTIVA --- */
         .formula-box {
             font-family: 'Courier New', monospace;
             color: var(--secondary);
@@ -124,6 +126,25 @@
             text-shadow: 0 0 5px rgba(189, 0, 255, 0.4);
             position: relative;
             z-index: 10;
+            padding: 10px;
+            border-radius: 8px;
+            transition: 0.3s;
+        }
+        
+        /* Clase para cuando es clickable (<= 10x10) */
+        .formula-box.interactive {
+            cursor: pointer;
+            border: 1px dashed rgba(189, 0, 255, 0.3);
+        }
+        .formula-box.interactive:hover {
+            background: rgba(189, 0, 255, 0.1);
+            border-color: var(--secondary);
+        }
+        .formula-box.interactive::after {
+            content: '👆';
+            font-size: 0.8em;
+            margin-left: 10px;
+            opacity: 0.5;
         }
 
         /* --- GRID MÁGICO --- */
@@ -143,13 +164,13 @@
             display: grid;
             gap: 2px;
             margin: 0 auto;
-            background: rgba(0,0,0,0.3); /* Fondo oscuro detrás del grid */
+            background: rgba(0,0,0,0.3);
             padding: 10px;
             border-radius: 8px;
         }
 
         .cell {
-            background: rgba(0, 243, 255, 0.08); /* Un poco más opaco */
+            background: rgba(0, 243, 255, 0.08);
             border: 1px solid rgba(0, 243, 255, 0.2);
             display: flex;
             align-items: center;
@@ -177,6 +198,17 @@
 
         .sagrada-highlight { border-color: var(--secondary) !important; color: var(--secondary) !important; font-weight: bold; }
 
+        /* Highlight de suma interactiva */
+        .sum-highlight {
+            background: var(--highlight) !important;
+            color: #000 !important;
+            box-shadow: 0 0 15px var(--highlight);
+            transform: scale(1.05);
+            z-index: 20;
+            font-weight: bold;
+            border-color: #fff !important;
+        }
+
         /* Nav & Footer */
         nav { display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         
@@ -198,10 +230,9 @@
         .lang-switch button { background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: var(--muted); padding: 5px 10px; cursor: pointer; border-radius: 4px; margin-left: 2px;}
         .lang-switch button.active { background: var(--primary); color: #000; }
         
-        /* FOOTER COMPLETO */
         footer {
             margin-top: auto;
-            background: rgba(0,0,0,0.9); /* Muy opaco para tapar números */
+            background: rgba(0,0,0,0.9);
             backdrop-filter: blur(5px);
             border-top: 1px solid var(--border);
             padding: 30px 20px;
@@ -275,7 +306,7 @@
             <button class="sagrada-btn" onclick="generateSagrada()" id="btn-sagrada">ver SAGRADA FAMILIA (4x4)</button>
         </div>
 
-        <div class="formula-box" id="formula-display"></div>
+        <div class="formula-box" id="formula-display" onclick="highlightSums()"></div>
 
         <div id="magic-container">
             <div id="magic-grid"></div>
@@ -301,10 +332,9 @@
     </footer>
 
     <script>
-        /* --- VARIABLE GLOBAL PARA DESCARGA --- */
         let currentMatrix = [];
+        let isSagradaMode = false; // Estado para corregir bug de idioma
 
-        /* --- 1. IDIOMAS --- */
         const translations = {
             'es': {
                 title: "CUADRADO MÁGICO",
@@ -401,6 +431,7 @@
         function setLang(lang) {
             currentLang = lang;
             const t = translations[lang];
+            
             document.getElementById('txt-title').innerText = t.title;
             document.getElementById('txt-desc').innerText = t.desc;
             document.getElementById('lbl-size').innerText = t.lbl_size;
@@ -408,7 +439,6 @@
             document.getElementById('btn-sagrada').innerText = t.btn_sagrada;
             document.getElementById('txt-download').innerText = t.download;
             
-            // Footer
             document.getElementById('link-legal').innerText = t.legal;
             document.getElementById('link-privacy').innerText = t.privacy;
             document.getElementById('link-cookies').innerText = t.cookies;
@@ -417,16 +447,27 @@
             document.querySelectorAll('.lang-switch button').forEach(b => b.classList.remove('active'));
             document.getElementById('btn-' + lang).classList.add('active');
             
+            // CORRECCION BUG: Usamos el estado isSagradaMode
             const formulaBox = document.getElementById('formula-display');
-            if(formulaBox.innerText.includes(':')) {
-                const val = formulaBox.innerText.split(': ')[1];
-                formulaBox.innerText = t.formula + val;
+            
+            // Solo actualizamos si hay contenido
+            if(currentMatrix.length > 0) {
+                if (isSagradaMode) {
+                    // Modo Sagrada: Texto especial
+                    formulaBox.innerText = t.formula + "33 (" + t.sagrada_note + ")";
+                } else {
+                    // Modo Normal: Calculo
+                    const n = currentMatrix.length;
+                    const magicConstant = (n * (n*n + 1)) / 2;
+                    formulaBox.innerText = t.formula + magicConstant;
+                }
             }
         }
 
-        /* --- 2. LÓGICA MATEMÁTICA --- */
+        /* --- GENERACIÓN --- */
 
         function generateUserSquare() {
+            isSagradaMode = false; // Reset flag
             let n = parseInt(document.getElementById('size-input').value);
             if(n < 3) n = 3; 
             if(n > 100) n = 100;
@@ -434,19 +475,68 @@
 
             const magicConstant = (n * (n*n + 1)) / 2;
             document.getElementById('formula-display').innerText = translations[currentLang].formula + magicConstant;
+            
+            // Manejo de interactividad para visualizar sumas
+            const fBox = document.getElementById('formula-display');
+            if(n <= 10) fBox.classList.add('interactive');
+            else fBox.classList.remove('interactive');
 
-            if (n % 2 !== 0) {
-                currentMatrix = generateOdd(n);
-            } else if (n % 4 === 0) {
-                currentMatrix = generateDoublyEven(n);
-            } else {
-                currentMatrix = generateSinglyEven(n);
-            }
+            if (n % 2 !== 0) currentMatrix = generateOdd(n);
+            else if (n % 4 === 0) currentMatrix = generateDoublyEven(n);
+            else currentMatrix = generateSinglyEven(n);
 
             drawGrid(currentMatrix, n);
             document.getElementById('btn-download').style.display = 'flex';
         }
 
+        function generateSagrada() {
+            isSagradaMode = true; // Activar flag
+            currentMatrix = [
+                [1, 14, 14, 4],
+                [11, 7, 6, 9],
+                [8, 10, 10, 5],
+                [13, 2, 3, 15]
+            ];
+            document.getElementById('formula-display').innerText = translations[currentLang].formula + "33 (" + translations[currentLang].sagrada_note + ")";
+            
+            const fBox = document.getElementById('formula-display');
+            fBox.classList.add('interactive'); // Sagrada es pequeño, siempre interactivo
+
+            drawGrid(currentMatrix, 4, true);
+            document.getElementById('btn-download').style.display = 'flex';
+        }
+
+        /* --- VISUALIZAR SUMAS (HIGHLIGHT) --- */
+        function highlightSums() {
+            // Solo funciona si el grid es manejable
+            const n = currentMatrix.length;
+            if(n > 10) return;
+
+            const cells = document.querySelectorAll('.cell');
+            
+            // Limpiar destacados previos
+            cells.forEach(c => c.classList.remove('sum-highlight'));
+
+            // Aplicar efecto (Highlight de filas, columnas y diagonales)
+            // Añadimos timeout pequeño para que se note el clic
+            setTimeout(() => {
+                // Filas
+                for(let i=0; i<n; i++) {
+                    for(let j=0; j<n; j++) cells[i*n + j].classList.add('sum-highlight');
+                }
+                
+                // Columnas (Se marcan, pero como ya marcamos todo en filas, esto solo refuerza)
+                // En realidad, en un cuadrado magico TODO suma la constante.
+                // Así que iluminamos TODO el grid para indicar "Todo está conectado".
+                
+                // Para que sea educativo, quitamos el highlight después de 3 segundos
+                setTimeout(() => {
+                    cells.forEach(c => c.classList.remove('sum-highlight'));
+                }, 3000);
+            }, 50);
+        }
+
+        /* --- ALGORITMOS (Sin cambios) --- */
         function generateOdd(n) {
             let square = Array.from({ length: n }, () => Array(n).fill(0));
             let i = 0, j = Math.floor(n / 2);
@@ -464,7 +554,6 @@
             let square = Array.from({ length: n }, () => Array(n).fill(0));
             for (let i = 0; i < n; i++) 
                 for (let j = 0; j < n; j++) square[i][j] = (n * i) + j + 1;
-            
             for (let i = 0; i < n; i++) {
                 for (let j = 0; j < n; j++) {
                     let inCorner = (i % 4 === 0 || i % 4 === 3) && (j % 4 === 0 || j % 4 === 3);
@@ -480,7 +569,6 @@
             let subGrid = generateOdd(halfN);
             let grid = Array.from({ length: n }, () => Array(n).fill(0));
             let k = halfN * halfN;
-            
             for (let i = 0; i < halfN; i++) {
                 for (let j = 0; j < halfN; j++) {
                     grid[i][j] = subGrid[i][j];             
@@ -507,24 +595,7 @@
             }
             return grid;
         }
-
-        function swap(grid, r1, c1, r2, c2) {
-            let temp = grid[r1][c1];
-            grid[r1][c1] = grid[r2][c2];
-            grid[r2][c2] = temp;
-        }
-
-        function generateSagrada() {
-            currentMatrix = [
-                [1, 14, 14, 4],
-                [11, 7, 6, 9],
-                [8, 10, 10, 5],
-                [13, 2, 3, 15]
-            ];
-            document.getElementById('formula-display').innerText = translations[currentLang].formula + "33 (" + translations[currentLang].sagrada_note + ")";
-            drawGrid(currentMatrix, 4, true);
-            document.getElementById('btn-download').style.display = 'flex';
-        }
+        function swap(grid, r1, c1, r2, c2) { let temp = grid[r1][c1]; grid[r1][c1] = grid[r2][c2]; grid[r2][c2] = temp; }
 
         function drawGrid(matrix, size, isSpecial = false) {
             const container = document.getElementById('magic-grid');
@@ -550,38 +621,28 @@
                     div.style.height = cellSize;
                     div.style.fontSize = fontSize;
                     div.innerText = val;
-                    
                     if (useDelay) {
                         div.style.opacity = '0';
                         div.style.animation = `fadeIn 0.3s forwards ${ (i*size + j) * 0.01 }s`;
                     } else div.style.opacity = '1';
-                    
                     container.appendChild(div);
                 }
             }
         }
 
-        /* --- 3. FUNCIÓN DE DESCARGA ASCII --- */
         function downloadASCII() {
             if(!currentMatrix || currentMatrix.length === 0) return;
-            
             const n = currentMatrix.length;
-            // Calcular el ancho de la columna basado en el número más grande (n*n)
             const maxNum = n*n;
-            const padSize = maxNum.toString().length + 1; // +1 espacio extra
-            
+            const padSize = maxNum.toString().length + 1;
             let content = `GRAPHICS LABS - MAGIC SQUARE (N=${n})\n`;
             content += `Magic Constant: ${document.getElementById('formula-display').innerText.split(': ')[1]}\n`;
             content += "=".repeat(n * padSize) + "\n\n";
-
             for(let row of currentMatrix) {
                 let line = "";
-                for(let num of row) {
-                    line += num.toString().padStart(padSize, ' ');
-                }
+                for(let num of row) line += num.toString().padStart(padSize, ' ');
                 content += line + "\n";
             }
-
             const blob = new Blob([content], { type: 'text/plain' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -591,7 +652,6 @@
             window.URL.revokeObjectURL(url);
         }
 
-        /* --- 4. FONDO NUMÉRICO (DETRÁS DE TODO) --- */
         const canvas = document.getElementById('bg-canvas');
         const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth;
@@ -607,7 +667,7 @@
             }
             draw() { 
                 ctx.font = this.size + 'px monospace';
-                ctx.fillStyle = 'rgba(0, 243, 255, 0.4)'; // Color tenue
+                ctx.fillStyle = 'rgba(0, 243, 255, 0.4)';
                 ctx.fillText(this.number, this.x, this.y);
             }
             update() {
@@ -634,11 +694,7 @@
                 particlesArray.push(new Particle(Math.random()*innerWidth, Math.random()*innerHeight, (Math.random()*1)-0.5, (Math.random()*1)-0.5, size));
             }
         }
-        function animate(){
-            requestAnimationFrame(animate); 
-            ctx.clearRect(0,0,innerWidth,innerHeight);
-            for(let i=0; i<particlesArray.length; i++){ particlesArray[i].update(); }
-        }
+        function animate(){ requestAnimationFrame(animate); ctx.clearRect(0,0,innerWidth,innerHeight); for(let i=0; i<particlesArray.length; i++){ particlesArray[i].update(); } }
         window.addEventListener('resize', ()=>{canvas.width=innerWidth;canvas.height=innerHeight;init();});
         init(); animate();
 
