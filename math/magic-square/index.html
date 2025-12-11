@@ -10,9 +10,10 @@
             --secondary: #bd00ff;
             --highlight: #ffee00;
             --glass: rgba(20, 20, 20, 0.7);
+            --glass-text: rgba(30, 30, 30, 0.8);
             --border: rgba(255, 255, 255, 0.1);
             --text: #ffffff;
-            --muted: #888;
+            --muted: #aaaaaa;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', monospace, sans-serif; }
@@ -223,6 +224,40 @@
         .sagrada-highlight { border-color: var(--secondary) !important; color: var(--secondary) !important; font-weight: bold; }
         .sum-highlight { background: var(--highlight) !important; color: #000 !important; box-shadow: 0 0 15px var(--highlight); transform: scale(1.05); z-index: 20; font-weight: bold; border-color: #fff !important; }
 
+        /* --- SECCIÓN INFO Y ADSENSE --- */
+        .info-section {
+            background: var(--glass-text);
+            padding: 40px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin: 40px auto;
+            max-width: 800px;
+            text-align: left;
+            line-height: 1.6;
+            color: #ddd;
+        }
+
+        .info-section h2 { color: var(--primary); margin-bottom: 20px; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 1px; }
+        .info-section h3 { color: var(--secondary); margin-top: 20px; margin-bottom: 10px; font-size: 1.1rem; }
+        .info-section p { margin-bottom: 15px; font-size: 0.95rem; }
+        .info-section ul { margin-left: 20px; margin-bottom: 15px; }
+        .info-section li { margin-bottom: 5px; }
+
+        .ad-container {
+            width: 100%;
+            max-width: 728px;
+            margin: 30px auto;
+            min-height: 90px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px dashed rgba(255,255,255,0.1); 
+            border-radius: 8px;
+            background: rgba(0,0,0,0.3);
+        }
+        .ad-placeholder-text { color: var(--border); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; }
+
+
         /* Nav & Footer */
         nav { display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         
@@ -331,6 +366,27 @@
             </button>
         </div>
 
+        <div class="info-section">
+            <h2 id="info-title">Sobre los Cuadrados Mágicos</h2>
+            <p id="info-p1">Un cuadrado mágico es una disposición de números enteros en una cuadrícula de N x N, donde la suma de los números en cada fila, cada columna y ambas diagonales principales es la misma constante.</p>
+            
+            <h3 id="info-h-hist">Historia y Curiosidades</h3>
+            <p id="info-p2">Desde el antiguo "Lo Shu" en China hasta el grabado "Melencolia I" de Alberto Durero. Una mención especial merece el <strong>Cuadrado de la Pasión</strong> en la Sagrada Familia (Barcelona), diseñado por Josep Maria Subirachs. Aunque no es un cuadrado mágico canónico (repite números), todas sus sumas dan <strong>33</strong>, la edad de Cristo.</p>
+            
+            <h3 id="info-h-tool">Sobre esta Herramienta</h3>
+            <p id="info-p3">Este laboratorio matemático te permite explorar patrones numéricos sin límites:</p>
+            <ul id="info-ul">
+                <li>Generación desde 3x3 hasta 100x100 (10.000 celdas).</li>
+                <li>Algoritmos universales: Soporta tamaños impares, pares simples y doblemente pares.</li>
+                <li>Visualización Interactiva: Haz clic en la fórmula o en las celdas para rastrear las sumas.</li>
+                <li>Descarga gratuita: Guarda tus patrones favoritos en formato texto (.txt).</li>
+            </ul>
+        </div>
+
+        <div class="ad-container">
+            <span class="ad-placeholder-text">Ad Space</span>
+        </div>
+
     </div>
 
     <footer>
@@ -350,7 +406,7 @@
         let currentMatrix = [];
         let isSagradaMode = false; 
 
-        /* --- TRADUCCIONES --- */
+        /* --- TRADUCCIONES COMPLETA --- */
         const translations = {
             'es': {
                 title: "CUADRADO MÁGICO",
@@ -362,6 +418,18 @@
                 sagrada_note: "Nota: Cuadrado de Subirachs (Suma 33, Edad de Cristo).",
                 hint: "Haz clic en un número para ver sus conexiones.",
                 download: "Descargar TXT",
+                
+                info_title: "Sobre los Cuadrados Mágicos",
+                info_p1: "Un cuadrado mágico es una disposición de números en una cuadrícula de N x N, donde la suma de cada fila, columna y diagonal es idéntica.",
+                info_h_hist: "Historia y Curiosidades",
+                info_p2: "Desde el 'Lo Shu' chino hasta la Sagrada Familia de Barcelona. El cuadrado de Josep Maria Subirachs en la fachada de la Pasión suma 33 (la edad de Cristo) en 310 combinaciones distintas.",
+                info_h_tool: "Características del Laboratorio",
+                info_p3: "Explora las matemáticas visuales:",
+                info_li1: "Generación ilimitada de 3x3 a 100x100.",
+                info_li2: "Algoritmos para impares, pares y doblemente pares.",
+                info_li3: "Visualización de trazas y conexiones.",
+                info_li4: "Descarga de patrones en archivo de texto.",
+
                 legal: "Aviso Legal", privacy: "Política de Privacidad", cookies: "Política de Cookies", contact: "Contacto", coffee: "Invítame a un café"
             },
             'ca': {
@@ -374,6 +442,18 @@
                 sagrada_note: "Nota: Quadrat de Subirachs (Suma 33, Edat de Crist).",
                 hint: "Fes clic en un número per veure les seves connexions.",
                 download: "Descarregar TXT",
+
+                info_title: "Sobre els Quadrats Màgics",
+                info_p1: "Un quadrat màgic és una disposició de nombres en una quadrícula de N x N, on la suma de cada fila, columna i diagonal és idèntica.",
+                info_h_hist: "Història i Curiositats",
+                info_p2: "Des del 'Lo Shu' xinès fins a la Sagrada Família de Barcelona. El quadrat de Josep Maria Subirachs a la façana de la Passió suma 33 (l'edat de Crist) en 310 combinacions diferents.",
+                info_h_tool: "Característiques del Laboratori",
+                info_p3: "Explora les matemàtiques visuals:",
+                info_li1: "Generació il·limitada de 3x3 a 100x100.",
+                info_li2: "Algorismes per a senars, parells i doblement parells.",
+                info_li3: "Visualització de traces i connexions.",
+                info_li4: "Descàrrega de patrons en fitxer de text.",
+
                 legal: "Avís Legal", privacy: "Política de Privacitat", cookies: "Política de Cookies", contact: "Contacte", coffee: "Convidam a un cafè"
             },
             'en': {
@@ -386,6 +466,18 @@
                 sagrada_note: "Note: Subirachs Square (Sums 33, Age of Christ).",
                 hint: "Click on a number to see its connections.",
                 download: "Download TXT",
+
+                info_title: "About Magic Squares",
+                info_p1: "A magic square is an arrangement of numbers in an N x N grid, where the sum of every row, column, and diagonal is identical.",
+                info_h_hist: "History & Curiosities",
+                info_p2: "From the Chinese 'Lo Shu' to the Sagrada Familia in Barcelona. Josep Maria Subirachs' square on the Passion façade sums to 33 (Christ's age) in 310 different combinations.",
+                info_h_tool: "Lab Features",
+                info_p3: "Explore visual mathematics:",
+                info_li1: "Unlimited generation from 3x3 to 100x100.",
+                info_li2: "Algorithms for odd, even, and doubly even numbers.",
+                info_li3: "Visualization of traces and connections.",
+                info_li4: "Download patterns as text files.",
+
                 legal: "Legal Notice", privacy: "Privacy Policy", cookies: "Cookies Policy", contact: "Contact", coffee: "Buy me a coffee"
             },
             'fr': {
@@ -398,6 +490,18 @@
                 sagrada_note: "Note: Carré de Subirachs (Somme 33, Âge du Christ).",
                 hint: "Cliquez sur un nombre pour voir ses connexions.",
                 download: "Télécharger TXT",
+                
+                info_title: "À propos des Carrés Magiques",
+                info_p1: "Un carré magique est une disposition de nombres dans une grille N x N, où la somme de chaque ligne, colonne et diagonale est identique.",
+                info_h_hist: "Histoire et Curiosités",
+                info_p2: "Du 'Lo Shu' chinois à la Sagrada Familia de Barcelone. Le carré de Josep Maria Subirachs sur la façade de la Passion totalise 33 (l'âge du Christ) dans 310 combinaisons différentes.",
+                info_h_tool: "Caractéristiques du Laboratoire",
+                info_p3: "Explorez les mathématiques visuelles :",
+                info_li1: "Génération illimitée de 3x3 à 100x100.",
+                info_li2: "Algorithmes pour impairs, pairs et doublement pairs.",
+                info_li3: "Visualisation des traces et connexions.",
+                info_li4: "Téléchargement de modèles en fichier texte.",
+
                 legal: "Mentions Légales", privacy: "Politique de Confidentialité", cookies: "Politique de Cookies", contact: "Contact", coffee: "Offrez-moi un café"
             },
             'de': {
@@ -410,6 +514,18 @@
                 sagrada_note: "Hinweis: Subirachs Quadrat (Summe 33, Alter Christi).",
                 hint: "Klicken Sie auf eine Zahl, um ihre Verbindungen zu sehen.",
                 download: "TXT Herunterladen",
+
+                info_title: "Über Magische Quadrate",
+                info_p1: "Ein magisches Quadrat ist eine Anordnung von Zahlen in einem N x N Raster, bei der die Summe jeder Zeile, Spalte und Diagonale identisch ist.",
+                info_h_hist: "Geschichte und Kuriositäten",
+                info_p2: "Vom chinesischen 'Lo Shu' bis zur Sagrada Familia in Barcelona. Das Quadrat von Josep Maria Subirachs an der Passionsfassade summiert sich auf 33 (das Alter Christi).",
+                info_h_tool: "Laborfunktionen",
+                info_p3: "Entdecken Sie visuelle Mathematik:",
+                info_li1: "Unbegrenzte Generierung von 3x3 bis 100x100.",
+                info_li2: "Algorithmen für ungerade, gerade und doppelt gerade Zahlen.",
+                info_li3: "Visualisierung von Spuren und Verbindungen.",
+                info_li4: "Muster als Textdatei herunterladen.",
+
                 legal: "Impressum", privacy: "Datenschutz", cookies: "Cookie-Richtlinie", contact: "Kontakt", coffee: "Kauf mir einen Kaffee"
             },
             'pt': {
@@ -422,6 +538,18 @@
                 sagrada_note: "Nota: Quadrado de Subirachs (Soma 33, Idade de Cristo).",
                 hint: "Clique em um número para ver suas conexões.",
                 download: "Baixar TXT",
+
+                info_title: "Sobre Quadrados Mágicos",
+                info_p1: "Um quadrado mágico é um arranjo de números numa grelha N x N, onde a soma de cada linha, coluna e diagonal é idêntica.",
+                info_h_hist: "História e Curiosidades",
+                info_p2: "Do 'Lo Shu' chinês à Sagrada Família em Barcelona. O quadrado de Josep Maria Subirachs na fachada da Paixão soma 33 (a idade de Cristo).",
+                info_h_tool: "Recursos do Laboratório",
+                info_p3: "Explore a matemática visual:",
+                info_li1: "Geração ilimitada de 3x3 a 100x100.",
+                info_li2: "Algoritmos para ímpares, pares e duplamente pares.",
+                info_li3: "Visualização de traços e conexões.",
+                info_li4: "Download de padrões em arquivo de texto.",
+
                 legal: "Aviso Legal", privacy: "Política de Privacidade", cookies: "Política de Cookies", contact: "Contato", coffee: "Pague-me um café"
             },
             'it': {
@@ -434,6 +562,18 @@
                 sagrada_note: "Nota: Quadrato di Subirachs (Somma 33, Età di Cristo).",
                 hint: "Clicca su un numero per vedere le sue connessioni.",
                 download: "Scarica TXT",
+
+                info_title: "Sui Quadrati Magici",
+                info_p1: "Un quadrato magico è una disposizione di numeri in una griglia N x N, in cui la somma di ogni riga, colonna e diagonale è identica.",
+                info_h_hist: "Storia e Curiosità",
+                info_p2: "Dal cinese 'Lo Shu' alla Sagrada Familia di Barcellona. Il quadrato di Josep Maria Subirachs sulla facciata della Passione somma 33 (l'età di Cristo).",
+                info_h_tool: "Caratteristiche del Laboratorio",
+                info_p3: "Esplora la matematica visiva:",
+                info_li1: "Generazione illimitata da 3x3 a 100x100.",
+                info_li2: "Algoritmi per dispari, pari e doppiamente pari.",
+                info_li3: "Visualizzazione di tracce e connessioni.",
+                info_li4: "Scarica pattern in file di testo.",
+
                 legal: "Avviso Legale", privacy: "Privacy Policy", cookies: "Cookie Policy", contact: "Contatto", coffee: "Offrimi un caffè"
             },
             'nl': {
@@ -446,6 +586,18 @@
                 sagrada_note: "Opmerking: Subirachs Vierkant (Som 33, Leeftijd van Christus).",
                 hint: "Klik op een getal om de verbindingen te zien.",
                 download: "Download TXT",
+
+                info_title: "Over Magische Vierkanten",
+                info_p1: "Een magisch vierkant is een rangschikking van getallen in een N x N rooster, waarbij de som van elke rij, kolom en diagonaal identiek is.",
+                info_h_hist: "Geschiedenis en Curiosa",
+                info_p2: "Van de Chinese 'Lo Shu' tot de Sagrada Familia in Barcelona. Het vierkant van Josep Maria Subirachs op de Passiegevel somt op tot 33 (de leeftijd van Christus).",
+                info_h_tool: "Lab Functies",
+                info_p3: "Verken visuele wiskunde:",
+                info_li1: "Onbeperkte generatie van 3x3 tot 100x100.",
+                info_li2: "Algoritmen voor oneven, even en dubbel even.",
+                info_li3: "Visualisatie van sporen en verbindingen.",
+                info_li4: "Download patronen als tekstbestand.",
+
                 legal: "Juridische kennisgeving", privacy: "Privacybeleid", cookies: "Cookiebeleid", contact: "Contact", coffee: "Koop een koffie voor me"
             },
             'ja': {
@@ -458,6 +610,18 @@
                 sagrada_note: "注：スビラクスの方陣（合計33、キリストの年齢）。",
                 hint: "番号をクリックして接続を確認します。",
                 download: "TXTをダウンロード",
+                
+                info_title: "魔方陣について",
+                info_p1: "魔方陣は、各行、列、対角線の合計が同じになるようにN x Nのグリッドに数字を配置したものです。",
+                info_h_hist: "歴史と好奇心",
+                info_p2: "中国の「洛書」からバルセロナのサグラダ・ファミリアまで。受難のファサードにあるジョセップ・マリア・スビラクスの正方形は、33（キリストの年齢）になります。",
+                info_h_tool: "ラボの機能",
+                info_p3: "視覚的数学を探求する：",
+                info_li1: "3x3から100x100までの無制限生成。",
+                info_li2: "奇数、偶数、二重偶数のアルゴリズム。",
+                info_li3: "トレースと接続の視覚化。",
+                info_li4: "パターンをテキストファイルとしてダウンロード。",
+
                 legal: "法的通知", privacy: "プライバシーポリシー", cookies: "クッキーポリシー", contact: "接触", coffee: "コーヒーを奢る"
             }
         };
@@ -475,7 +639,22 @@
             document.getElementById('btn-sagrada').innerText = t.btn_sagrada;
             document.getElementById('txt-download').innerText = t.download;
             document.getElementById('txt-hint').innerText = t.hint;
+
+            // Info Section
+            document.getElementById('info-title').innerText = t.info_title;
+            document.getElementById('info-p1').innerText = t.info_p1;
+            document.getElementById('info-h-hist').innerText = t.info_h_hist;
+            document.getElementById('info-p2').innerText = t.info_p2;
+            document.getElementById('info-h-tool').innerText = t.info_h_tool;
+            document.getElementById('info-p3').innerText = t.info_p3;
+            // Lista
+            const ul = document.getElementById('info-ul');
+            ul.children[0].innerText = t.info_li1;
+            ul.children[1].innerText = t.info_li2;
+            ul.children[2].innerText = t.info_li3;
+            ul.children[3].innerText = t.info_li4;
             
+            // Footer
             document.getElementById('link-legal').innerText = t.legal;
             document.getElementById('link-privacy').innerText = t.privacy;
             document.getElementById('link-cookies').innerText = t.cookies;
@@ -591,7 +770,7 @@
             }
         }
 
-        /* --- HIGHLIGHT DE SUMAS (Al hacer click en formula) --- */
+        /* --- HIGHLIGHT DE SUMAS --- */
         function highlightSums() {
             const n = currentMatrix.length;
             if(n > 10) return;
@@ -677,7 +856,6 @@
             
             let cellSize, fontSize;
             let isDense = false;
-            // Ajuste responsive
             if (size <= 10) { cellSize = '50px'; fontSize = '1.2rem'; }
             else if (size <= 20) { cellSize = '35px'; fontSize = '1rem'; }
             else if (size <= 50) { cellSize = '25px'; fontSize = '0.7rem'; isDense = true; }
@@ -686,7 +864,6 @@
             container.style.gridTemplateColumns = `repeat(${size}, ${cellSize})`;
             let useDelay = size < 15;
 
-            // Mostrar/Ocultar hint
             const hint = document.getElementById('txt-hint');
             if(size > 20) hint.style.display = 'none';
             else hint.style.display = 'block';
@@ -704,7 +881,6 @@
                     div.style.fontSize = fontSize;
                     div.innerText = val;
                     
-                    // EVENTO DE CLIC PARA RASTRO (Solo si no es denso)
                     if(!isDense) {
                         div.onclick = function() { traceLines(i, j); };
                     }
