@@ -145,10 +145,26 @@
             line-height: 1.8;
             color: #ddd;
         }
-        .info-section h2 { color: var(--primary); margin-bottom: 20px; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-top: 30px; }
+        .info-section h2 { color: var(--primary); margin-bottom: 20px; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-top: 40px; }
         .info-section h2:first-child { margin-top: 0; }
         .info-section p { margin-bottom: 20px; font-size: 1rem; text-align: justify; }
         .math-highlight { color: var(--highlight); font-family: monospace; background: rgba(255, 238, 0, 0.1); padding: 2px 5px; border-radius: 3px; }
+
+        /* ASCII Art Box */
+        .ascii-box {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px dashed var(--primary);
+            color: var(--primary);
+            font-family: 'Courier New', monospace;
+            padding: 15px;
+            border-radius: 6px;
+            white-space: pre;
+            overflow-x: auto;
+            margin: 20px 0;
+            text-align: center;
+            font-size: 0.9rem;
+            line-height: 1.2;
+        }
 
         .ad-container {
             width: 100%;
@@ -191,8 +207,8 @@
     <div class="container">
         <nav>
             <div class="nav-links">
-                <a href="../../index.html" class="nav-btn">← HUB PRINCIPAL</a>
-                <a href="../index.html" class="nav-btn">← HUB MATH</a>
+                <a href="../../index.html" class="nav-btn" id="nav-main">← HUB PRINCIPAL</a>
+                <a href="../index.html" class="nav-btn" id="nav-math">← HUB MATH</a>
             </div>
             <div class="logo">GRAPHICS LABS</div>
             <div class="lang-switch">
@@ -243,9 +259,25 @@
                 En 1963, el matemático polaco <strong>Stanislaw Ulam</strong> se encontraba en una reunión científica. Presa del aburrimiento, comenzó a garabatear números enteros consecutivos en una cuadrícula, empezando por el 1 en el centro y moviéndose en espiral hacia afuera. Instintivamente, marcó los <span class="math-highlight">números primos</span>.
             </p>
             
-            <h2 id="info-h-why">¿Por qué se llama "Espiral"?</h2>
-            <p id="info-p-why">
-                Esta es la pregunta más común. La "espiral" se refiere al <strong>método de construcción</strong> invisible, no al resultado final. Imagina una línea que conecta todos los números naturales (1, 2, 3...) en orden saliendo del centro como un caracol cuadrado. Si viéramos todos los números, veríamos esa espiral perfecta. Sin embargo, en este gráfico borramos la estructura y dejamos encendidos <strong>solo los números primos</strong>. Lo sorprendente es que, al eliminar el orden visible, emerge un nuevo orden oculto en forma de diagonales.
+            <h2 id="info-h-why">¿Por qué se llama "Espiral" si no veo una espiral?</h2>
+            <p id="info-p-why-1">
+                Es una pregunta excelente y es la confusión número uno con este gráfico. La "espiral" es el método de construcción (el camino invisible), no el resultado final visible. Imagina que dibujas una línea conectando todos los números naturales en orden (1, 2, 3...) saliendo del centro. Si haces eso, verías una espiral cuadrada perfecta:
+            </p>
+
+            <div class="ascii-box">
+17--16--15--14--13
+|                |
+18   5---4---3  12
+|    |       |   |
+19   6   1---2  11
+|    |           |
+20   7---8---9--10</div>
+
+            <p id="info-p-why-2">
+                En la visualización final (tu imagen), borramos la línea de la espiral y apagamos los números compuestos (4, 6, 8...), dejando encendida la luz solo en los <strong>Números Primos</strong> (2, 3, 5, 7, 11...). Lo sorprendente es que, al borrar la estructura, los números primos (que deberían ser aleatorios) se quedan formando líneas diagonales.
+            </p>
+            <p id="info-p-why-summary" style="color: var(--highlight); font-weight: bold;">
+                En resumen: Se llama "Espiral de Ulam" por cómo se colocan los asientos del teatro, no por dónde se sienta la gente.
             </p>
 
             <h2 id="info-h-math">La Matemática del Patrón</h2>
@@ -253,7 +285,7 @@
                 Las líneas diagonales, horizontales y verticales visibles corresponden a polinomios cuadráticos. Por ejemplo, la diagonal más prominente a menudo se relaciona con el famoso polinomio de Euler: <span class="math-highlight">f(n) = n² + n + 41</span>, que genera una densidad inusualmente alta de números primos.
             </p>
             <p id="info-p4">
-                En esta herramienta de <strong>Graphics Labs</strong>, cada punto verde brillante representa un número primo. Al aumentar el número "Máximo (N)" y reducir el "Zoom", puedes observar estructuras a gran escala que se asemejan a galaxias o circuitos integrados, revelando la belleza oculta en la teoría de números.
+                En esta herramienta de <strong>Graphics Labs</strong>, cada punto verde brillante representa un número primo. Al aumentar el número "Máximo (N)" y reducir el "Zoom", puedes observar estructuras a gran escala que se asemejan a galaxias o circuitos integrados.
             </p>
         </div>
 
@@ -281,57 +313,161 @@
             }
         });
 
-        /* --- 2. TRADUCCIONES --- */
+        /* --- 2. TRADUCCIONES COMPLETAS --- */
         const translations = {
             'es': {
+                nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH",
                 title: "ESPIRAL DE ULAM", desc: "Visualización de la distribución de números primos en un patrón en espiral.",
                 lbl_max: "Máximo (N):", lbl_zoom: "Grosor (px):", lbl_start: "Número Inicio:",
                 btn_gen: "GENERAR", btn_save: "GUARDAR JPG",
                 canvas_note: "Usa el botón GUARDAR JPG para descargar tu imagen.",
                 history_title: "El Hallazgo Accidental",
                 p1: "En 1963, el matemático Stanislaw Ulam descubrió este patrón por aburrimiento en una reunión. Al escribir números en espiral y marcar los primos, notó alineaciones diagonales.",
-                why_title: "¿Por qué se llama 'Espiral'?",
-                p_why: "La espiral es el método de construcción (el camino invisible de los números 1, 2, 3...). Al borrar los números no primos, la espiral desaparece y quedan solo las diagonales de primos.",
+                why_title: "¿Por qué se llama 'Espiral' si no veo una espiral?",
+                p_why_1: "La 'espiral' es el método de construcción (el camino invisible), no el resultado visible. Imagina una línea conectando todos los números naturales (1, 2, 3...) saliendo del centro. Si viéramos todos los números, veríamos esa espiral cuadrada perfecta.",
+                p_why_2: "En la imagen final borramos la línea y apagamos los números compuestos, dejando solo los Primos. Lo sorprendente es que, al borrar la estructura, los primos forman diagonales.",
+                p_why_summary: "En resumen: Se llama 'Espiral de Ulam' por cómo se colocan los asientos del teatro, no por dónde se sienta la gente.",
                 math_title: "La Matemática del Patrón",
                 p3: "Las diagonales corresponden a polinomios como el de Euler: n² + n + 41. Esta herramienta permite visualizar estas 'galaxias matemáticas'.",
                 p4: "Aumenta el número máximo para ver la estructura a gran escala.",
                 legal: "Aviso Legal", privacy: "Política de Privacidad", cookies: "Cookies", contact: "Contacto", coffee: "Invítame a un café"
             },
             'en': {
+                nav_main: "← MAIN HUB", nav_math: "← MATH HUB",
                 title: "ULAM SPIRAL", desc: "Visualization of prime number distribution in a spiral pattern.",
                 lbl_max: "Maximum (N):", lbl_zoom: "Dot Size:", lbl_start: "Start Num:",
                 btn_gen: "GENERATE", btn_save: "SAVE JPG",
                 canvas_note: "Use the SAVE JPG button to download your image.",
                 history_title: "The Accidental Discovery",
                 p1: "In 1963, mathematician Stanislaw Ulam discovered this pattern while doodling during a boring meeting. Marking primes in a number spiral revealed diagonal alignments.",
-                why_title: "Why is it called a 'Spiral'?",
-                p_why: "The spiral is the construction method (the invisible path of numbers 1, 2, 3...). When non-primes are removed, the spiral shape disappears, leaving only the diagonal patterns of primes.",
+                why_title: "Why is it called 'Spiral' if I don't see one?",
+                p_why_1: "The 'spiral' is the construction method (the invisible path), not the visible result. Imagine a line connecting all natural numbers (1, 2, 3...) spiraling out from the center. If we saw all numbers, we would see that square spiral.",
+                p_why_2: "In the final image, we erase the line and turn off composite numbers, leaving only Primes. Surprisingly, when the structure is removed, primes form diagonal lines.",
+                p_why_summary: "In short: It's called 'Ulam Spiral' because of how the theater seats are arranged, not where people sit.",
                 math_title: "The Mathematics",
                 p3: "Diagonals correspond to polynomials like Euler's n² + n + 41. This tool lets you visualize these 'math galaxies'.",
                 p4: "Increase the maximum number to see large-scale structures.",
                 legal: "Legal Notice", privacy: "Privacy Policy", cookies: "Cookies", contact: "Contact", coffee: "Buy me a coffee"
             },
             'ca': {
+                nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH",
                 title: "ESPIRAL D'ULAM", desc: "Visualització de la distribució de nombres primers en un patró en espiral.",
                 lbl_max: "Màxim (N):", lbl_zoom: "Gruix (px):", lbl_start: "Nombre Inici:",
                 btn_gen: "GENERAR", btn_save: "DESAR JPG",
                 canvas_note: "Usa el botó DESAR JPG per descarregar la teva imatge.",
                 history_title: "La Troballa Accidental",
                 p1: "El 1963, el matemàtic Stanislaw Ulam va descobrir aquest patró per avorriment. En escriure nombres en espiral i marcar els primers, va notar alineacions diagonals.",
-                why_title: "Per què es diu 'Espiral'?",
-                p_why: "L'espiral és el mètode de construcció. En esborrar els nombres no primers, l'espiral desapareix i queden només les diagonals de primers.",
+                why_title: "Per què es diu 'Espiral' si no en veig cap?",
+                p_why_1: "L'espiral és el mètode de construcció (el camí invisible), no el resultat visible. Imagina una línia connectant tots els nombres naturals sortint del centre. Si veiéssim tots els nombres, veuríem aquesta espiral quadrada.",
+                p_why_2: "En la imatge final esborrem la línia i apaguem els nombres compostos, deixant només els Primers. El sorprenent és que, en esborrar l'estructura, els primers formen diagonals.",
+                p_why_summary: "En resum: Es diu 'Espiral d'Ulam' per com es col·loquen els seients del teatre, no per on seu la gent.",
                 math_title: "La Matemàtica del Patró",
-                p3: "Les diagonals corresponen a polinomis com el d'Euler: n² + n + 41.",
+                p3: "Les diagonals corresponen a polinomis com el d'Euler: n² + n + 41. Aquesta eina permet visualitzar aquestes 'galàxies matemàtiques'.",
                 p4: "Augmenta el nombre màxim per veure l'estructura a gran escala.",
                 legal: "Avís Legal", privacy: "Política de Privacitat", cookies: "Cookies", contact: "Contacte", coffee: "Convida'm a un cafè"
             },
-            // Fallbacks
-            'fr': { title: "SPIRALE D'ULAM", btn_gen: "GÉNÉRER", btn_save: "ENREGISTRER", canvas_note: "Utilisez le bouton pour enregistrer.", why_title: "Pourquoi une spirale ?", p_why: "La spirale est la méthode de construction invisible.", history_title: "Découverte", p1: "Découvert par Ulam en 1963.", math_title: "Mathématiques", p3: "Polynôme d'Euler.", legal: "Mentions", privacy: "Confidentialité", cookies: "Cookies", contact: "Contact", coffee: "Café" },
-            'de': { title: "ULAM-SPIRALE", btn_gen: "GENERIEREN", btn_save: "SPEICHERN", canvas_note: "Benutzen Sie den Button zum Speichern.", why_title: "Warum Spirale?", p_why: "Die Spirale ist die unsichtbare Konstruktionsmethode.", history_title: "Entdeckung", p1: "1963 von Ulam entdeckt.", math_title: "Mathematik", p3: "Euler-Polynom.", legal: "Impressum", privacy: "Datenschutz", cookies: "Cookies", contact: "Kontakt", coffee: "Kaffee" },
-            'pt': { title: "ESPIRAL DE ULAM", btn_gen: "GERAR", btn_save: "SALVAR", canvas_note: "Use o botão para salvar.", why_title: "Por que Espiral?", p_why: "A espiral é o método de construção invisível.", history_title: "Descoberta", p1: "Descoberto por Ulam em 1963.", math_title: "Matemática", p3: "Polinômio de Euler.", legal: "Aviso", privacy: "Privacidade", cookies: "Cookies", contact: "Contato", coffee: "Café" },
-            'it': { title: "SPIRALE DI ULAM", btn_gen: "GENERARE", btn_save: "SALVARE", canvas_note: "Usa il pulsante per salvare.", why_title: "Perché Spirale?", p_why: "La spirale è il metodo di costruzione invisibile.", history_title: "Scoperta", p1: "Scoperto da Ulam nel 1963.", math_title: "Matematica", p3: "Polinomio di Eulero.", legal: "Legale", privacy: "Privacy", cookies: "Cookies", contact: "Contatto", coffee: "Caffè" },
-            'nl': { title: "ULAM SPIRAAL", btn_gen: "GENEREREN", btn_save: "OPSLAAN", canvas_note: "Gebruik de knop om op te slaan.", why_title: "Waarom Spiraal?", p_why: "De spiraal is de onzichtbare bouwmethode.", history_title: "Ontdekking", p1: "Ontdekt door Ulam in 1963.", math_title: "Wiskunde", p3: "Euler's Polynoom.", legal: "Juridisch", privacy: "Privacy", cookies: "Cookies", contact: "Contact", coffee: "Koffie" },
-            'ja': { title: "ウラムの螺旋", btn_gen: "生成", btn_save: "保存", canvas_note: "保存ボタンを使用してください。", why_title: "なぜ螺旋？", p_why: "螺旋は目に見えない構築方法です。", history_title: "発見", p1: "1963年にウラムが発見。", math_title: "数学", p3: "オイラーの多項式。", legal: "法的", privacy: "プライバシー", cookies: "クッキー", contact: "接触", coffee: "コーヒー" }
+            'fr': {
+                nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH",
+                title: "SPIRALE D'ULAM", desc: "Visualisation de la distribution des nombres premiers.",
+                lbl_max: "Maximum (N):", lbl_zoom: "Zoom (px):", lbl_start: "Début:",
+                btn_gen: "GÉNÉRER", btn_save: "ENREGISTRER",
+                canvas_note: "Utilisez le bouton ENREGISTRER pour télécharger.",
+                history_title: "La Découverte Accidentelle",
+                p1: "En 1963, Stanislaw Ulam a découvert ce motif par ennui. En écrivant des nombres en spirale, il a remarqué que les nombres premiers s'alignaient.",
+                why_title: "Pourquoi une 'Spirale' ?",
+                p_why_1: "La spirale est la méthode de construction invisible (1, 2, 3...). Si nous voyions tous les nombres, nous verrions cette spirale carrée.",
+                p_why_2: "Nous effaçons la spirale et ne laissons que les nombres premiers. Surprise : ils forment des diagonales.",
+                p_why_summary: "En bref : C'est l'arrangement des sièges du théâtre, pas là où les gens s'assoient.",
+                math_title: "Les Mathématiques",
+                p3: "Les diagonales correspondent à des polynômes comme celui d'Euler. Visualisez ces galaxies mathématiques.",
+                p4: "Augmentez le nombre maximum pour voir la structure.",
+                legal: "Mentions Légales", privacy: "Confidentialité", cookies: "Cookies", contact: "Contact", coffee: "Offrez-moi un café"
+            },
+            'de': {
+                nav_main: "← HAUPT-HUB", nav_math: "← MATH HUB",
+                title: "ULAM-SPIRALE", desc: "Visualisierung der Primzahlverteilung.",
+                lbl_max: "Maximum (N):", lbl_zoom: "Zoom (px):", lbl_start: "Start:",
+                btn_gen: "GENERIEREN", btn_save: "SPEICHERN",
+                canvas_note: "Benutzen Sie den Button SPEICHERN.",
+                history_title: "Die zufällige Entdeckung",
+                p1: "1963 entdeckte Ulam dieses Muster aus Langeweile. Primzahlen ordnen sich diagonal an.",
+                why_title: "Warum 'Spirale'?",
+                p_why_1: "Die Spirale ist die unsichtbare Konstruktionsmethode (1, 2, 3...). Wenn wir alle Zahlen sehen würden, sähen wir die quadratische Spirale.",
+                p_why_2: "Wir löschen die Spirale und lassen nur die Primzahlen stehen. Überraschung: Sie bilden Diagonalen.",
+                p_why_summary: "Kurz gesagt: Es geht um die Anordnung der Sitze im Theater, nicht darum, wo die Leute sitzen.",
+                math_title: "Die Mathematik",
+                p3: "Diagonalen entsprechen Polynomen wie dem Euler-Polynom.",
+                p4: "Erhöhen Sie das Maximum, um die Struktur zu sehen.",
+                legal: "Impressum", privacy: "Datenschutz", cookies: "Cookies", contact: "Kontakt", coffee: "Kauf mir einen Kaffee"
+            },
+            'pt': {
+                nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH",
+                title: "ESPIRAL DE ULAM", desc: "Visualização da distribuição dos números primos.",
+                lbl_max: "Máximo (N):", lbl_zoom: "Zoom (px):", lbl_start: "Início:",
+                btn_gen: "GERAR", btn_save: "SALVAR",
+                canvas_note: "Use o botão SALVAR para baixar a imagem.",
+                history_title: "A Descoberta Acidental",
+                p1: "Em 1963, Ulam descobriu esse padrão por tédio. Os números primos alinham-se diagonalmente.",
+                why_title: "Por que 'Espiral'?",
+                p_why_1: "A espiral é o método de construção invisível. Se víssemos todos os números, veríamos a espiral quadrada.",
+                p_why_2: "Apagamos a linha e deixamos apenas os Primos. Surpreendentemente, eles formam diagonais.",
+                p_why_summary: "Em resumo: É sobre como as cadeiras do teatro são colocadas, não onde as pessoas sentam.",
+                math_title: "A Matemática",
+                p3: "As diagonais correspondem a polinômios como o de Euler.",
+                p4: "Aumente o número máximo para ver a estrutura.",
+                legal: "Aviso Legal", privacy: "Privacidade", cookies: "Cookies", contact: "Contato", coffee: "Pagar um café"
+            },
+            'it': {
+                nav_main: "← HUB PRINCIPALE", nav_math: "← HUB MATH",
+                title: "SPIRALE DI ULAM", desc: "Visualizzazione della distribuzione dei numeri primi.",
+                lbl_max: "Massimo (N):", lbl_zoom: "Zoom (px):", lbl_start: "Inizio:",
+                btn_gen: "GENERARE", btn_save: "SALVARE",
+                canvas_note: "Usa il pulsante SALVARE per scaricare.",
+                history_title: "La Scoperta Accidentale",
+                p1: "Nel 1963, Ulam scoprì questo schema per noia. I numeri primi si allineano in diagonale.",
+                why_title: "Perché 'Spirale'?",
+                p_why_1: "La spirale è il metodo di costruzione invisibile. Se vedessimo tutti i numeri, vedremmo la spirale quadrata.",
+                p_why_2: "Cancelliamo la linea e lasciamo solo i Primi. Sorprendentemente, formano diagonali.",
+                p_why_summary: "In breve: Riguarda la disposizione dei posti a teatro, non dove si siede la gente.",
+                math_title: "La Matematica",
+                p3: "Le diagonali corrispondono a polinomi come quello di Eulero.",
+                p4: "Aumenta il numero massimo per vedere la struttura.",
+                legal: "Note Legali", privacy: "Privacy", cookies: "Cookies", contact: "Contatto", coffee: "Offrimi un caffè"
+            },
+            'nl': {
+                nav_main: "← HOOFDHUB", nav_math: "← MATH HUB",
+                title: "ULAM SPIRAAL", desc: "Visualisatie van priemgetallen.",
+                lbl_max: "Maximum (N):", lbl_zoom: "Zoom (px):", lbl_start: "Start:",
+                btn_gen: "GENEREREN", btn_save: "OPSLAAN",
+                canvas_note: "Gebruik de knop OPSLAAN om te downloaden.",
+                history_title: "De Toevallige Ontdekking",
+                p1: "In 1963 ontdekte Ulam dit patroon uit verveling. Priemgetallen staan diagonaal.",
+                why_title: "Waarom 'Spiraal'?",
+                p_why_1: "De spiraal is de onzichtbare bouwmethode. Als we alle getallen zagen, zagen we de vierkante spiraal.",
+                p_why_2: "We wissen de lijn en laten alleen de Priemgetallen staan. Verrassend genoeg vormen ze diagonalen.",
+                p_why_summary: "Kortom: Het gaat om de stoelopstelling in het theater, niet waar mensen zitten.",
+                math_title: "De Wiskunde",
+                p3: "Diagonalen komen overeen met polynomen zoals die van Euler.",
+                p4: "Verhoog het maximum om de structuur te zien.",
+                legal: "Juridisch", privacy: "Privacy", cookies: "Cookies", contact: "Contact", coffee: "Koop koffie"
+            },
+            'ja': {
+                nav_main: "← メインハブ", nav_math: "← 数学ハブ",
+                title: "ウラムの螺旋", desc: "素数の分布の可視化。",
+                lbl_max: "最大値 (N):", lbl_zoom: "ズーム (px):", lbl_start: "開始:",
+                btn_gen: "生成", btn_save: "保存",
+                canvas_note: "画像をダウンロードするには保存ボタンを使用してください。",
+                history_title: "偶然の発見",
+                p1: "1963年、ウラムは退屈しのぎにこれを発見しました。素数は対角線上に並びます。",
+                why_title: "なぜ「螺旋」なのか？",
+                p_why_1: "螺旋は目に見えない構築方法（1、2、3...）です。すべての数字が見えれば、正方形の螺旋が見えるでしょう。",
+                p_why_2: "線を消して素数だけを残すと、驚くべきことにそれらは対角線を形成します。",
+                p_why_summary: "要するに：これは劇場の座席配置に関するもので、人がどこに座るかではありません。",
+                math_title: "数学的パターン",
+                p3: "対角線はオイラーのような多項式に対応しています。",
+                p4: "構造を見るために最大値を増やしてください。",
+                legal: "法的通知", privacy: "プライバシー", cookies: "クッキー", contact: "連絡先", coffee: "コーヒーを奢る"
+            }
         };
 
         let currentLang = 'es';
@@ -341,33 +477,41 @@
             currentLang = lang;
             const t = translations[lang] || translations['es'];
             
+            // Navegación
+            document.getElementById('nav-main').innerText = t.nav_main;
+            document.getElementById('nav-math').innerText = t.nav_math;
+
+            // UI Principal
             document.getElementById('txt-title').innerText = t.title;
-            if(t.desc) document.getElementById('txt-desc').innerText = t.desc;
-            
-            document.getElementById('lbl-max').innerText = t.lbl_max || "Máximo:";
-            document.getElementById('lbl-zoom').innerText = t.lbl_zoom || "Zoom:";
-            document.getElementById('lbl-start').innerText = t.lbl_start || "Inicio:";
+            document.getElementById('txt-desc').innerText = t.desc;
+            document.getElementById('lbl-max').innerText = t.lbl_max;
+            document.getElementById('lbl-zoom').innerText = t.lbl_zoom;
+            document.getElementById('lbl-start').innerText = t.lbl_start;
             document.getElementById('btn-gen').innerText = t.btn_gen;
             document.getElementById('btn-save').innerText = t.btn_save;
-            document.getElementById('txt-canvas-note').innerText = t.canvas_note || "";
+            document.getElementById('txt-canvas-note').innerText = t.canvas_note;
 
-            if(t.history_title) document.getElementById('info-h-history').innerText = t.history_title;
-            if(t.p1) document.getElementById('info-p1').innerText = t.p1;
+            // Textos Educativos
+            document.getElementById('info-h-history').innerText = t.history_title;
+            document.getElementById('info-p1').innerText = t.p1;
             
-            // Nueva sección explicativa
-            if(t.why_title) document.getElementById('info-h-why').innerText = t.why_title;
-            if(t.p_why) document.getElementById('info-p-why').innerText = t.p_why;
+            document.getElementById('info-h-why').innerText = t.why_title;
+            document.getElementById('info-p-why-1').innerText = t.p_why_1;
+            document.getElementById('info-p-why-2').innerText = t.p_why_2;
+            document.getElementById('info-p-why-summary').innerText = t.p_why_summary;
             
-            if(t.math_title) document.getElementById('info-h-math').innerText = t.math_title;
-            if(t.p3) document.getElementById('info-p3').innerText = t.p3;
-            if(t.p4) document.getElementById('info-p4').innerText = t.p4;
+            document.getElementById('info-h-math').innerText = t.math_title;
+            document.getElementById('info-p3').innerText = t.p3;
+            document.getElementById('info-p4').innerText = t.p4;
 
+            // Footer
             document.getElementById('link-legal').innerText = t.legal;
             document.getElementById('link-privacy').innerText = t.privacy;
             document.getElementById('link-cookies').innerText = t.cookies;
             document.getElementById('link-contact').innerText = t.contact;
             document.getElementById('btn-coffee').innerText = t.coffee;
 
+            // Botones Idioma
             document.querySelectorAll('.lang-switch button').forEach(b => b.classList.remove('active'));
             document.getElementById('btn-' + lang).classList.add('active');
         }
@@ -392,25 +536,21 @@
                 this.x = Math.random() * bgCanvas.width;
                 this.y = Math.random() * bgCanvas.height;
                 this.size = Math.random() * 12 + 8;
-                // Velocidad constante para movimiento perpetuo
                 this.speedX = (Math.random() * 1) - 0.5;
                 this.speedY = (Math.random() * 1) - 0.5;
-                
                 this.density = (Math.random() * 30) + 1;
                 const symbols = ['π', '∞', '∑', '∫', '√', '≈', '≠', '0', '1', 'e', 'x', 'y'];
                 this.text = symbols[Math.floor(Math.random() * symbols.length)];
             }
             draw() {
                 bgCtx.font = this.size + 'px monospace';
-                bgCtx.fillStyle = 'rgba(0, 255, 65, 0.15)'; // Opacidad sutil
+                bgCtx.fillStyle = 'rgba(0, 255, 65, 0.15)'; 
                 bgCtx.fillText(this.text, this.x, this.y);
             }
             update() {
-                // 1. Movimiento base
                 this.x += this.speedX;
                 this.y += this.speedY;
 
-                // 2. Interactividad Mouse (repulsión)
                 if (mouse.x != null) {
                     let dx = mouse.x - this.x;
                     let dy = mouse.y - this.y;
@@ -426,7 +566,6 @@
                     }
                 }
 
-                // 3. Resetear posición (Efecto infinito)
                 if (this.x > bgCanvas.width) this.x = 0;
                 if (this.x < 0) this.x = bgCanvas.width;
                 if (this.y > bgCanvas.height) this.y = 0;
