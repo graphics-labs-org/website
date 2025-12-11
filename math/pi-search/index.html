@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Pi (π) | Graphics Labs</title>
+    <meta name="description" content="Buscador de secuencias en Pi y visualización artística.">
+    <style>
+        /* --- ESTILOS BASE (Mismos que Ulam/Magic Square) --- */
+        :root {
+            --primary: #00ff41; /* Verde Matrix */
+            --primary-dim: rgba(0, 255, 65, 0.3);
+            --secondary: #bd00ff;
+            --highlight: #ffee00; /* Color para búsqueda encontrada */
+            --glass: rgba(20, 20, 20, 0.7);
+            --glass-text: rgba(30, 30, 30, 0.8);
+            --border: rgba(255, 255, 255, 0.1);
+            --text: #ffffff;
+            --muted: #aaaaaa;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', monospace, sans-serif; }
+        
+        body {
+            background-color: #050505;
+            color: var(--text);
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            user-select: none;
+        }
+
+        #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- CONTROLES --- */
+        .controls {
+            background: var(--glass);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin: 20px auto;
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .input-group { display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap; justify-content: center; width: 100%; }
+        
+        label { color: var(--muted); font-size: 0.8rem; margin-bottom: 5px; display: block; text-align: left;}
+
+        input[type="text"], input[type="number"] {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 10px;
+            border-radius: 5px;
+            width: 200px;
+            font-size: 1.1rem;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+        
+        input:focus { outline: none; box-shadow: 0 0 10px var(--primary-dim); }
+
+        button.action-btn {
+            background: var(--primary);
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+            text-transform: uppercase;
+            font-size: 1rem;
+            height: 45px;
+        }
+        button.action-btn:hover { box-shadow: 0 0 15px var(--primary); transform: scale(1.05); }
+        
+        button.secondary-btn {
+            background: transparent;
+            border: 1px solid var(--secondary);
+            color: var(--secondary);
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            height: 45px;
+        }
+        button.secondary-btn:hover { background: var(--secondary); color: #fff; box-shadow: 0 0 15px var(--secondary); }
+
+        /* --- VISUALIZADOR --- */
+        #canvas-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        #pi-canvas {
+            background: #000;
+            border: 1px solid var(--border);
+            border-radius: 50%; /* Circular aesthetics */
+            box-shadow: 0 0 30px rgba(0, 255, 65, 0.1);
+            cursor: crosshair;
+            margin-bottom: 15px;
+            max-width: 100%;
+        }
+
+        .result-box {
+            background: rgba(0, 255, 65, 0.1);
+            border: 1px solid var(--primary);
+            color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin-top: 10px;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+        
+        .highlight-text { color: var(--highlight); font-weight: bold; font-size: 1.2rem; }
+
+        /* --- INFO & ADS --- */
+        .info-section {
+            background: var(--glass-text);
+            padding: 40px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin: 40px auto;
+            max-width: 900px;
+            text-align: left;
+            line-height: 1.8;
+            color: #ddd;
+        }
+        .info-section h2 { color: var(--primary); margin-bottom: 20px; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-top: 40px; }
+        .info-section h2:first-child { margin-top: 0; }
+        .info-section p { margin-bottom: 20px; font-size: 1rem; text-align: justify; }
+
+        .ad-container {
+            width: 100%;
+            max-width: 728px;
+            margin: 30px auto;
+            min-height: 90px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px dashed rgba(255,255,255,0.1); 
+            border-radius: 8px;
+            background: rgba(0,0,0,0.2);
+        }
+        .ad-placeholder-text { color: var(--border); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; }
+
+        /* Nav & Footer */
+        nav { display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .nav-links { display: flex; gap: 15px; }
+        .nav-btn { text-decoration: none; color: var(--muted); font-size: 0.9rem; border: 1px solid var(--border); padding: 5px 10px; border-radius: 4px; transition: 0.3s; background: rgba(0,0,0,0.5); }
+        .nav-btn:hover { color: var(--primary); border-color: var(--primary); }
+        .logo { font-size: 1.2rem; font-weight: bold; color: var(--primary); text-decoration: none; letter-spacing: 2px; }
+        
+        .lang-switch button { background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: var(--muted); padding: 5px 10px; cursor: pointer; border-radius: 4px; margin-left: 2px;}
+        .lang-switch button.active { background: var(--primary); color: #000; }
+        
+        footer { margin-top: auto; background: rgba(0,0,0,0.9); backdrop-filter: blur(5px); border-top: 1px solid var(--border); padding: 30px 20px; text-align: center; font-size: 0.8rem; color: var(--muted); display: flex; flex-direction: column; gap: 15px; align-items: center; position: relative; z-index: 20; }
+        .legal-links { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin-bottom: 10px; }
+        .legal-links a { color: var(--muted); text-decoration: none; transition: 0.3s; border-bottom: 1px solid transparent; }
+        .legal-links a:hover { color: var(--primary); border-bottom-color: var(--primary); }
+
+        .coffee-btn { background: linear-gradient(45deg, #FFDD00, #FBB03B); color: #000; padding: 8px 15px; border-radius: 20px; text-decoration: none; font-weight: bold; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 5px; transition: transform 0.2s; }
+        .coffee-btn:hover { transform: scale(1.05); }
+
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="container">
+        <nav>
+            <div class="nav-links">
+                <a href="../../index.html" class="nav-btn" id="nav-main">← HUB PRINCIPAL</a>
+                <a href="../index.html" class="nav-btn" id="nav-math">← HUB MATH</a>
+            </div>
+            <div class="logo">GRAPHICS LABS</div>
+            <div class="lang-switch">
+                <button onclick="setLang('es')" id="btn-es" class="active">ES</button>
+                <button onclick="setLang('ca')" id="btn-ca">CA</button>
+                <button onclick="setLang('en')" id="btn-en">EN</button>
+                <button onclick="setLang('fr')" id="btn-fr">FR</button>
+                <button onclick="setLang('de')" id="btn-de">DE</button>
+                <button onclick="setLang('pt')" id="btn-pt">PT</button>
+                <button onclick="setLang('it')" id="btn-it">IT</button>
+                <button onclick="setLang('nl')" id="btn-nl">NL</button>
+                <button onclick="setLang('ja')" id="btn-ja">JP</button>
+            </div>
+        </nav>
+
+        <h1 id="txt-title">PROYECTO PI (π)</h1>
+        <p style="color:var(--muted); margin-bottom: 20px;" id="txt-desc">Buscador de patrones y visualización artística de la constante más famosa.</p>
+
+        <div class="controls">
+            <div class="input-group">
+                <div style="flex:1;">
+                    <label id="lbl-search">Buscar secuencia (ej: tu cumpleaños):</label>
+                    <input type="text" id="inp-search" placeholder="1415..." maxlength="10" onkeypress="handleEnter(event)">
+                </div>
+                <div>
+                    <label id="lbl-points">Puntos a dibujar:</label>
+                    <input type="number" id="inp-limit" value="2000" min="100" max="10000" step="100">
+                </div>
+            </div>
+            <div class="input-group">
+                <button class="action-btn" onclick="runSearch()" id="btn-search">BUSCAR & VISUALIZAR</button>
+                <button class="secondary-btn" onclick="resetArt()" id="btn-reset">↺ ART</button>
+                <button class="secondary-btn" onclick="saveImage()" id="btn-save">💾 PNG</button>
+            </div>
+        </div>
+
+        <div class="result-box" id="result-display">
+            <span id="txt-ready">Introduce números para buscar en los primeros 10.000 dígitos de Pi.</span>
+        </div>
+
+        <div id="canvas-container">
+            <canvas id="pi-canvas" width="800" height="800"></canvas>
+            <p style="color:var(--muted); font-size: 0.8rem; margin-top:5px;" id="txt-canvas-note">Cada línea conecta un dígito con el siguiente en el círculo numérico.</p>
+        </div>
+
+        <div class="info-section">
+            <h2 id="info-h-what">¿Qué es Pi?</h2>
+            <p id="info-p1">
+                Pi (π) es la relación entre la longitud de una circunferencia y su diámetro. Es un número <strong>irracional</strong>, lo que significa que tiene infinitos decimales sin ningún patrón repetitivo periódico.
+            </p>
+            
+            <h2 id="info-h-normal">La Normalidad de Pi</h2>
+            <p id="info-p2">
+                Se sospecha que Pi es un <strong>número normal</strong>. Esto significa que cualquier secuencia finita de números (como tu fecha de nacimiento, tu número de teléfono o el código binario de una imagen) aparece en algún lugar de sus decimales si buscas lo suficientemente lejos.
+            </p>
+
+            <h2 id="info-h-art">La Visualización (Cuerdas)</h2>
+            <p id="info-p3">
+                En este gráfico, hemos colocado los dígitos del 0 al 9 alrededor de un círculo. Trazamos una línea desde la posición del decimal $n$ hasta el decimal $n+1$. 
+            </p>
+            <p id="info-p4">
+                El resultado es una compleja "telaraña" matemática. Cuando buscas una secuencia (ej: "592"), el sistema resalta el camino específico que recorren esos números dentro del caos, mostrando el orden oculto dentro de la aleatoriedad.
+            </p>
+        </div>
+
+        <div class="ad-container"><span class="ad-placeholder-text">Ad Space</span></div>
+    </div>
+
+    <footer>
+        <div class="legal-links">
+            <a href="../../legal.html" id="link-legal">Aviso Legal</a>
+            <a href="../../privacy.html" id="link-privacy">Política de Privacidad</a>
+            <a href="../../cookies.html" id="link-cookies">Política de Cookies</a>
+            <a href="mailto:pbazan@gmail.com" id="link-contact">Contacto</a>
+        </div>
+        <span id="footer-rights">© 2025 Graphics Labs</span>
+        <a href="https://paypal.me/pbazan" target="_blank" class="coffee-btn">
+            ☕ <span id="btn-coffee">Invítame a un café</span>
+        </a>
+    </footer>
+
+    <script>
+        /* --- 1. SEGURIDAD --- */
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
+                e.preventDefault();
+            }
+        });
+
+        /* --- 2. LOS PRIMEROS 10.000 DIGITOS DE PI (Hardcoded for performance) --- */
+        // Esto evita tener que cargar ficheros externos o calcularlos en tiempo real (lento).
+        const PI_STRING = "141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067982148086513282306647093844609550582231725359408128481117450284102701938521105559644622948954930381964428810975665933446128475648233786783165271201909145648566923460348610454326648213393607260249141273724587006606315588174881520920962829254091715364367892590360011330530548820466521384146951941511609433057270365759591953092186117381932611793105118548074462379962749567351885752724891227938183011949129833673362440656643086021394946395224737190702179860943702770539217176293176752384674818467669405132000568127145263560827785771342757789609173637178721468440901224953430146549585371050792279689258923542019956112129021960864034418159813629774771309960518707211349999998372978049951059731732816096318595024459455346908302642522308253344685035261931188171010003137838752886587533208381420617177669147303598253490428755468731159562863882353787593751957781857780532171226806613001927876611195909216420198938095257201065485863278865936153381827968230301952035301852968995773622599413891249721775283479131515574857242454150695950829533116861727855889075098381754637464939319255060400927701671139009848824012858361603563707660104710181942955596198946767837449448255379774726847104047534646208046684259069491293313677028989152104752162056966024058038150193511253382430035587640247496473263914199272604269922796782354781636009341721641219924586315030286182974555706749838505494588586926995690927210797509302955321165344987202755960236480665499119881834797753566369807426542527862551818417574672890977772793800081647060016145249192173217214772350141441973568548161361157352552133475741849468438523323907394143334547762416862518983569485562099219222184272550254256887671790494601653466804988627232791786085784383827967976681454100953883786360950680064225125205117392984896084128488626945604241965285022210661186306744278622039194945047123713786960956364371917287467764657573962413890865832645995813390478027590099465764078951269468398352595709825822620522489407726719478268482601476990902640136394437455305068203496252451749399651431429809190659250937221696461515709858387410597885959772975498930161753928468138268683868942774155991855925245953959431049972524680845987273644695848653836736222626099124608051243884390451244136549762780797715691435997700129616089441694868555848406353422072225828488648158456028506016842739452267467678895252138522549954666727823986456596116354886230577456498035593634568174324112515076069479451096596094025228879710893145669136867228748940560101503308617928680920874760917824938589009714909675985261365549781893129784821682998948722658804857564014270477555132379641451523746234364542858444795265867821051141354735739523113427166102135969536231442952484937187110145765403590279934403742007310578539062198387447808478489683321445713868751943506430218453191048481005370614680674919278191197939952061419663428754440643745123718192179998391015919561814675142691239748940907186494231961567945208095146550225231603881930142093762137855956638937787083039069792077346722182562599661501421503068038447734549202605414665925201497442850732518666002132434088190710486331734649651453905796268561005508106658796998163574736384052571459102897064140110971206280439039759515677157700420337869936007230558763176359421873125147120532928191826186125867321579198414848829164470609575270695722091756711672291098169091528017350671274858322287183520935396572512108357915136988209144421006751033467110314126711136990865851639831501970165151168517143765761835155650884909989859982387345528331635507647918535893226185489632132933089857064204675259070915481416549859461637180270981994309924488957571282890592323326097299712084433573265489382391193259746366730583604142813883032038249037589852437441702913276561809377344403070746921120191302033038019762110110044929321516084244485963766983895228684783123552658213144957685726243344189303968642624341077322697802807318915441101044682325271620105265227211166039666557309254711055785376346682065310989652691862056476931257058635662018558100729360659876486117910453348850346113657686753249441668039626579787718556084552965412665408530614344431858676975145661406800700237877659134401712749470420562230538994561314071127000407854733269939081454664645880797270826683063432858785698305235808933065757406795457163775254202114955761581400250126228594130216471550979259230990796547376125517656751357517829666454779174501129961489030463994713296210734043751895735961458901938971311179042978285647503203198691514028708085990480109412147221317947647772622414254854540332157185306142288137585043063321751829798662237172159160771669254748738986654949450114654062843366393790039769265672146385306736096571209180763832716641627488880078692560290228472104031721186082041900042296617119637792133757511495950156604963186294726547364252308177036751590673502350728354056704038674351362222477158915049530984448933309634087807693259939780541934144737744184263129860809988868741326047215695162396586457302163159819319516735381297416772947867242292465436680098067692823828068996400482435403701416314965897940924323789690706977942236250822168895738379862300159377647165122893578601588161755782973523344604281512627203734314653197777416031990665541876397929334419521541341899485444734567383162499341913181480927777103863877343177207545654532207770921201905166096280490926360197598828161332316663652861932668633606273567630354477628035045077723554710585954870279081435624014517180624643626794561275318134078330336254232783944975382437205835311477119926063813346776879695970309833913077109870408591337464144282277263465947047458784778720192771528073176790770715721344473060570073349243693113835049316312840425121925651798069411352801314701304781643788518529092854520116583934196562134914341595625865865570552690496520985803385072242648293972858478316305777756068887644624824685792603953527734803048029005876075825104747091643961362676044925627420420832085661190625454337213153595845068772460290161876679524061634252257719542916299193064553779914037340432875262888963995879475729174642635745525407909145135711136941091193932519107602082520261879853188770584297259167781314969900901921169717372784768472686084900337702424291651300500516832336435038951702989392233451722013812806965011784408745196012122859937162313017114448464090389064495444006198690754851602632750529834918740786680881833851022833450850486082503930213321971551843063545500766828294930413776552793975175461395398468339363830474611996653858153842056853386218672527035558669911852017639896221385367856677344424608479054612735255861490334862590636240296604518719890097345405906181583236481655473832650798731";
+
+        /* --- 3. LOGICA VISUALIZACION --- */
+        const canvas = document.getElementById('pi-canvas');
+        const ctx = canvas.getContext('2d');
+        const resultsBox = document.getElementById('result-display');
+        
+        let foundIndices = [];
+        let animationId;
+        
+        function initCanvas() {
+            // Draw background circle and numbers
+            ctx.fillStyle = "#000";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            const radius = canvas.width / 2 - 40;
+
+            // Draw digits around circle
+            ctx.font = "bold 24px monospace";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            
+            for(let i=0; i<10; i++) {
+                const angle = (Math.PI * 2 * i) / 10 - Math.PI/2; // Start at top
+                const x = cx + (radius + 25) * Math.cos(angle);
+                const y = cy + (radius + 25) * Math.sin(angle);
+                
+                ctx.fillStyle = `hsl(${i * 36}, 100%, 50%)`; // Rainbow colors for digits
+                ctx.fillText(i.toString(), x, y);
+            }
+        }
+
+        function getPos(digit, radius, cx, cy) {
+            const angle = (Math.PI * 2 * digit) / 10 - Math.PI/2;
+            return {
+                x: cx + radius * Math.cos(angle),
+                y: cy + radius * Math.sin(angle)
+            };
+        }
+
+        function drawArt(highlightSequence = null) {
+            const limit = parseInt(document.getElementById('inp-limit').value);
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            const radius = canvas.width / 2 - 40;
+            
+            initCanvas(); // Clear and redraw base
+
+            // Draw Background Chords (faded)
+            ctx.lineWidth = 0.5;
+            
+            // Loop through digits
+            for(let i = 0; i < limit - 1; i++) {
+                const d1 = parseInt(PI_STRING[i]);
+                const d2 = parseInt(PI_STRING[i+1]);
+                
+                // Skip non-digits (like the decimal point in "3.")
+                if(isNaN(d1) || isNaN(d2)) continue; 
+
+                const p1 = getPos(d1, radius, cx, cy);
+                const p2 = getPos(d2, radius, cx, cy);
+
+                ctx.beginPath();
+                ctx.moveTo(p1.x, p1.y);
+                
+                // Curve slightly towards center for aesthetics
+                // Control point is closer to center
+                const cpX = (p1.x + p2.x) / 2 * 0.5 + cx * 0.5;
+                const cpY = (p1.y + p2.y) / 2 * 0.5 + cy * 0.5;
+
+                ctx.quadraticCurveTo(cpX, cpY, p2.x, p2.y);
+                
+                // Color based on source digit
+                if (highlightSequence) {
+                    ctx.strokeStyle = `rgba(0, 255, 65, 0.05)`; // Very dim if highlighting
+                } else {
+                    ctx.strokeStyle = `rgba(0, 255, 65, 0.3)`;
+                }
+                ctx.stroke();
+            }
+
+            // Draw Highlighted Sequence
+            if (highlightSequence && foundIndices.length > 0) {
+                const seq = highlightSequence;
+                const idx = foundIndices[0]; // Highlight first occurrence
+                
+                ctx.lineWidth = 3;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = "#ffee00";
+
+                for(let i=0; i < seq.length - 1; i++) {
+                     // Since highlightSequence is the search string, we draw connections 
+                     // corresponding to digits in Pi at the found index
+                     // But strictly, we want to visualize the path of the sequence ITSELF.
+                     
+                     const d1 = parseInt(seq[i]);
+                     const d2 = parseInt(seq[i+1]);
+                     
+                     const p1 = getPos(d1, radius, cx, cy);
+                     const p2 = getPos(d2, radius, cx, cy);
+                     
+                     ctx.beginPath();
+                     ctx.moveTo(p1.x, p1.y);
+                     const cpX = (p1.x + p2.x) / 2 * 0.5 + cx * 0.5;
+                     const cpY = (p1.y + p2.y) / 2 * 0.5 + cy * 0.5;
+                     ctx.quadraticCurveTo(cpX, cpY, p2.x, p2.y);
+                     
+                     ctx.strokeStyle = "#ffee00"; // Gold
+                     ctx.stroke();
+                }
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        function runSearch() {
+            const searchVal = document.getElementById('inp-search').value.replace(/[^0-9]/g, '');
+            if(!searchVal) return;
+
+            // Search in PI_STRING (remove "3." for index calculation simplicity)
+            // Actually, PI_STRING includes "3." so we search raw but handle index
+            
+            // For proper math searching, usually we skip "3." and start after decimal.
+            // Let's strip non-digits for search
+            const piDigitsOnly = PI_STRING.replace('.', '');
+            const idx = piDigitsOnly.indexOf(searchVal);
+
+            if(idx !== -1) {
+                // Determine translations
+                const t = translations[currentLang] || translations['es'];
+                
+                foundIndices = [idx];
+                const msgFound = t.found_msg || `Found at position ${idx} (decimal #${idx})`; // Fallback
+                
+                // Update text
+                // Check if currentLang has specific message
+                let message = "";
+                if(currentLang === 'es') message = `¡Encontrado! Posición ${idx} (decimal #${idx})`;
+                else if(currentLang === 'en') message = `Found! Position ${idx} (decimal #${idx})`;
+                else message = `Pos: ${idx}`;
+
+                resultsBox.innerHTML = `<span class="highlight-text">${message}</span>`;
+                
+                drawArt(searchVal);
+            } else {
+                let message = "";
+                if(currentLang === 'es') message = `No encontrado en los primeros 10.000 dígitos.`;
+                else if(currentLang === 'en') message = `Not found in the first 10,000 digits.`;
+                else message = "Not found / No encontrado";
+                
+                resultsBox.innerHTML = `<span style="color:#ff4444">${message}</span>`;
+                drawArt(null);
+            }
+        }
+
+        function resetArt() {
+            document.getElementById('inp-search').value = "";
+            resultsBox.innerText = "";
+            drawArt(null);
+        }
+
+        function handleEnter(e) {
+            if(e.key === 'Enter') runSearch();
+        }
+
+        function saveImage() {
+            const link = document.createElement('a');
+            link.download = 'pi_art_graphics_labs.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        /* --- 4. MULTI-IDIOMA --- */
+        const translations = {
+            'es': {
+                nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH",
+                title: "PROYECTO PI (π)", desc: "Buscador de patrones y visualización artística.",
+                lbl_search: "Buscar secuencia (ej: tu cumpleaños):", lbl_points: "Puntos a dibujar:",
+                btn_search: "BUSCAR & VISUALIZAR", btn_reset: "↺ ART", btn_save: "💾 PNG",
+                txt_ready: "Introduce números para buscar en los primeros 10.000 dígitos.",
+                canvas_note: "Cada línea conecta un dígito con el siguiente.",
+                h_what: "¿Qué es Pi?", p1: "Pi es la relación entre circunferencia y diámetro. Es irracional e infinito.",
+                h_normal: "La Normalidad de Pi", p2: "Se cree que Pi contiene todas las secuencias numéricas finitas posibles.",
+                h_art: "La Visualización", p3: "Conectamos los dígitos en un círculo creando una telaraña matemática.",
+                p4: "Al buscar, resaltamos el camino específico dentro del caos.",
+                legal: "Aviso Legal", privacy: "Política Privacidad", cookies: "Cookies", contact: "Contacto", coffee: "Invítame a un café"
+            },
+            'en': {
+                nav_main: "← MAIN HUB", nav_math: "← MATH HUB",
+                title: "PROJECT PI (π)", desc: "Pattern searcher and artistic visualization.",
+                lbl_search: "Search sequence (e.g. birthday):", lbl_points: "Points to draw:",
+                btn_search: "SEARCH & VISUALIZE", btn_reset: "↺ ART", btn_save: "💾 PNG",
+                txt_ready: "Enter numbers to search in the first 10,000 digits.",
+                canvas_note: "Each line connects a digit to the next one.",
+                h_what: "What is Pi?", p1: "Pi is the ratio of a circle's circumference to its diameter.",
+                h_normal: "Normality of Pi", p2: "It is believed Pi contains every possible finite number sequence.",
+                h_art: "The Visualization", p3: "We connect digits on a circle creating a math web.",
+                p4: "Searching highlights the specific path within the chaos.",
+                legal: "Legal Notice", privacy: "Privacy Policy", cookies: "Cookies", contact: "Contact", coffee: "Buy me a coffee"
+            },
+            'ca': {
+                nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH",
+                title: "PROJECTE PI (π)", desc: "Cercador de patrons i visualització artística.",
+                lbl_search: "Cerca seqüència (ex: aniversari):", lbl_points: "Punts a dibuixar:",
+                btn_search: "CERCAR & VISUALITZAR", btn_reset: "↺ ART", btn_save: "💾 PNG",
+                txt_ready: "Introdueix nombres per cercar als primers 10.000 dígits.",
+                canvas_note: "Cada línia connecta un dígit amb el següent.",
+                h_what: "Què és Pi?", p1: "Pi és la relació entre circumferència i diàmetre.",
+                h_normal: "La Normalitat de Pi", p2: "Es creu que Pi conté totes les seqüències possibles.",
+                h_art: "La Visualització", p3: "Connectem els dígits en un cercle creant una teranyina.",
+                p4: "En cercar, ressaltem el camí específic dins del caos.",
+                legal: "Avís Legal", privacy: "Política Privacitat", cookies: "Cookies", contact: "Contacte", coffee: "Convida'm a un cafè"
+            },
+            'fr': { nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH", title: "PROJET PI (π)", desc: "Chercheur de motifs.", lbl_search: "Chercher séquence:", lbl_points: "Points:", btn_search: "CHERCHER", btn_reset: "↺ ART", btn_save: "💾 PNG", txt_ready: "Entrez des nombres.", canvas_note: "Lignes connectant les chiffres.", h_what: "C'est quoi Pi?", p1: "Ratio circonférence/diamètre.", h_normal: "Normalité", p2: "Contient toutes les séquences.", h_art: "Visualisation", p3: "Connexions circulaires.", p4: "Chemin mis en évidence.", legal: "Mentions", privacy: "Confidentialité", cookies: "Cookies", contact: "Contact", coffee: "Café" },
+            'de': { nav_main: "← HAUPT-HUB", nav_math: "← MATH HUB", title: "PROJEKT PI (π)", desc: "Mustersuche.", lbl_search: "Sequenz suchen:", lbl_points: "Punkte:", btn_search: "SUCHEN", btn_reset: "↺ ART", btn_save: "💾 PNG", txt_ready: "Zahlen eingeben.", canvas_note: "Linien verbinden Ziffern.", h_what: "Was ist Pi?", p1: "Verhältnis Umfang/Durchmesser.", h_normal: "Normalität", p2: "Enthält alle Sequenzen.", h_art: "Visualisierung", p3: "Kreisverbindungen.", p4: "Pfad hervorgehoben.", legal: "Impressum", privacy: "Datenschutz", cookies: "Cookies", contact: "Kontakt", coffee: "Kaffee" },
+            'pt': { nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH", title: "PROJETO PI (π)", desc: "Buscador de padrões.", lbl_search: "Buscar sequência:", lbl_points: "Pontos:", btn_search: "BUSCAR", btn_reset: "↺ ART", btn_save: "💾 PNG", txt_ready: "Digite números.", canvas_note: "Linhas conectam dígitos.", h_what: "O que é Pi?", p1: "Razão circunferência/diâmetro.", h_normal: "Normalidade", p2: "Contém todas as sequências.", h_art: "Visualização", p3: "Conexões circulares.", p4: "Caminho destacado.", legal: "Aviso", privacy: "Privacidade", cookies: "Cookies", contact: "Contato", coffee: "Café" },
+            'it': { nav_main: "← HUB PRINCIPALE", nav_math: "← HUB MATH", title: "PROGETTO PI (π)", desc: "Ricerca schemi.", lbl_search: "Cerca sequenza:", lbl_points: "Punti:", btn_search: "CERCA", btn_reset: "↺ ART", btn_save: "💾 PNG", txt_ready: "Inserisci numeri.", canvas_note: "Linee collegano cifre.", h_what: "Cos'è Pi?", p1: "Rapporto circonferenza/diametro.", h_normal: "Normalità", p2: "Contiene tutte le sequenze.", h_art: "Visualizzazione", p3: "Connessioni circolari.", p4: "Percorso evidenziato.", legal: "Legale", privacy: "Privacy", cookies: "Cookies", contact: "Contatto", coffee: "Caffè" },
+            'nl': { nav_main: "← HOOFDHUB", nav_math: "← MATH HUB", title: "PROJECT PI (π)", desc: "Patroon zoeker.", lbl_search: "Zoek reeks:", lbl_points: "Punten:", btn_search: "ZOEKEN", btn_reset: "↺ ART", btn_save: "💾 PNG", txt_ready: "Voer getallen in.", canvas_note: "Lijnen verbinden cijfers.", h_what: "Wat is Pi?", p1: "Verhouding omtrek/diameter.", h_normal: "Normaliteit", p2: "Bevat alle reeksen.", h_art: "Visualisatie", p3: "Cirkel verbindingen.", p4: "Pad gemarkeerd.", legal: "Juridisch", privacy: "Privacy", cookies: "Cookies", contact: "Contact", coffee: "Koffie" },
+            'ja': { nav_main: "← メインハブ", nav_math: "← 数学ハブ", title: "プロジェクト π", desc: "パターン検索。", lbl_search: "検索:", lbl_points: "点:", btn_search: "検索", btn_reset: "↺ ART", btn_save: "保存", txt_ready: "数字を入力。", canvas_note: "数字をつなぐ線。", h_what: "πとは?", p1: "円周率。", h_normal: "正規性", p2: "すべての配列を含む。", h_art: "視覚化", p3: "円形の接続。", p4: "パスを強調。", legal: "法的", privacy: "プライバシー", cookies: "クッキー", contact: "連絡先", coffee: "コーヒー" }
+        };
+
+        let currentLang = 'es';
+
+        function setLang(lang) {
+            localStorage.setItem('gl_lang', lang);
+            currentLang = lang;
+            const t = translations[lang] || translations['es'];
+            
+            document.getElementById('nav-main').innerText = t.nav_main;
+            document.getElementById('nav-math').innerText = t.nav_math;
+            document.getElementById('txt-title').innerText = t.title;
+            document.getElementById('txt-desc').innerText = t.desc;
+            document.getElementById('lbl-search').innerText = t.lbl_search;
+            document.getElementById('lbl-points').innerText = t.lbl_points;
+            document.getElementById('btn-search').innerText = t.btn_search;
+            document.getElementById('btn-reset').innerText = t.btn_reset;
+            document.getElementById('btn-save').innerText = t.btn_save;
+            document.getElementById('txt-ready').innerText = t.txt_ready;
+            document.getElementById('txt-canvas-note').innerText = t.canvas_note;
+
+            document.getElementById('info-h-what').innerText = t.h_what;
+            document.getElementById('info-p1').innerText = t.p1;
+            document.getElementById('info-h-normal').innerText = t.h_normal;
+            document.getElementById('info-p2').innerText = t.p2;
+            document.getElementById('info-h-art').innerText = t.h_art;
+            document.getElementById('info-p3').innerText = t.p3;
+            document.getElementById('info-p4').innerText = t.p4;
+
+            document.getElementById('link-legal').innerText = t.legal;
+            document.getElementById('link-privacy').innerText = t.privacy;
+            document.getElementById('link-cookies').innerText = t.cookies;
+            document.getElementById('link-contact').innerText = t.contact;
+            document.getElementById('btn-coffee').innerText = t.coffee;
+
+            document.querySelectorAll('.lang-switch button').forEach(b => b.classList.remove('active'));
+            document.getElementById('btn-' + lang).classList.add('active');
+        }
+
+        /* --- 5. FONDO ANIMADO --- */
+        const bgCanvas = document.getElementById('bg-canvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        let particlesArray = [];
+        
+        function resizeBg() {
+            bgCanvas.width = window.innerWidth;
+            bgCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', () => { resizeBg(); initParticles(); });
+        resizeBg();
+
+        const mouse = { x: null, y: null, radius: 150 };
+        window.addEventListener('mousemove', (e) => { mouse.x = e.x; mouse.y = e.y; });
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * bgCanvas.width;
+                this.y = Math.random() * bgCanvas.height;
+                this.size = Math.random() * 12 + 8;
+                this.speedX = (Math.random() * 1) - 0.5;
+                this.speedY = (Math.random() * 1) - 0.5;
+                const symbols = ['π', '3', '1', '4', '1', '5', '9', '2', '6', '5', '3'];
+                this.text = symbols[Math.floor(Math.random() * symbols.length)];
+            }
+            draw() {
+                bgCtx.font = this.size + 'px monospace';
+                bgCtx.fillStyle = 'rgba(0, 255, 65, 0.15)'; 
+                bgCtx.fillText(this.text, this.x, this.y);
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+
+                if (mouse.x != null) {
+                    let dx = mouse.x - this.x;
+                    let dy = mouse.y - this.y;
+                    let dist = Math.sqrt(dx*dx + dy*dy);
+                    if (dist < mouse.radius) {
+                        const forceDirectionX = dx / dist;
+                        const forceDirectionY = dy / dist;
+                        const force = (mouse.radius - dist) / mouse.radius;
+                        this.x -= forceDirectionX * force * 5;
+                        this.y -= forceDirectionY * force * 5;
+                    }
+                }
+
+                if (this.x > bgCanvas.width) this.x = 0;
+                if (this.x < 0) this.x = bgCanvas.width;
+                if (this.y > bgCanvas.height) this.y = 0;
+                if (this.y < 0) this.y = bgCanvas.height;
+                this.draw();
+            }
+        }
+
+        function initParticles() {
+            particlesArray = [];
+            let n = (bgCanvas.height * bgCanvas.width) / 9000;
+            for (let i = 0; i < n; i++) particlesArray.push(new Particle());
+        }
+        
+        function animateParticles() {
+            bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+            for (let i = 0; i < particlesArray.length; i++) particlesArray[i].update();
+            requestAnimationFrame(animateParticles);
+        }
+        initParticles();
+        animateParticles();
+
+        // INIT
+        const savedLang = localStorage.getItem('gl_lang') || 'es';
+        setLang(savedLang);
+        setTimeout(() => drawArt(null), 100);
+
+    </script>
+</body>
+</html>
