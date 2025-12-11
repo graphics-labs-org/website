@@ -8,7 +8,7 @@
         :root {
             --primary: #00f3ff;
             --secondary: #bd00ff;
-            --highlight: #ffee00; /* Amarillo eléctrico para el rastro */
+            --highlight: #ffee00;
             --glass: rgba(20, 20, 20, 0.7);
             --border: rgba(255, 255, 255, 0.1);
             --text: #ffffff;
@@ -124,6 +124,24 @@
             min-height: 1.5em;
             text-shadow: 0 0 5px rgba(189, 0, 255, 0.4);
             font-weight: bold;
+            transition: 0.3s;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        
+        .formula-box.interactive {
+            cursor: pointer;
+            border: 1px dashed rgba(189, 0, 255, 0.3);
+        }
+        .formula-box.interactive:hover {
+            background: rgba(189, 0, 255, 0.1);
+            border-color: var(--secondary);
+        }
+        .formula-box.interactive::after {
+            content: '👆';
+            font-size: 0.8em;
+            margin-left: 10px;
+            opacity: 0.5;
         }
 
         .hint-text {
@@ -176,7 +194,6 @@
             color: #fff;
         }
 
-        /* HIGHLIGHT: El rastro mágico */
         .cell.active-trace {
             background: var(--highlight) !important;
             color: #000 !important;
@@ -187,7 +204,6 @@
             border-color: #fff !important;
         }
 
-        /* Highlight de la celda CLICADA */
         .cell.selected-origin {
             background: #fff !important;
             color: #000 !important;
@@ -205,6 +221,7 @@
         }
 
         .sagrada-highlight { border-color: var(--secondary) !important; color: var(--secondary) !important; font-weight: bold; }
+        .sum-highlight { background: var(--highlight) !important; color: #000 !important; box-shadow: 0 0 15px var(--highlight); transform: scale(1.05); z-index: 20; font-weight: bold; border-color: #fff !important; }
 
         /* Nav & Footer */
         nav { display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between; align-items: center; margin-bottom: 20px; }
@@ -278,6 +295,7 @@
             <div class="logo">GRAPHICS LABS</div>
             <div class="lang-switch">
                 <button onclick="setLang('es')" id="btn-es" class="active">ES</button>
+                <button onclick="setLang('ca')" id="btn-ca">CA</button>
                 <button onclick="setLang('en')" id="btn-en">EN</button>
                 <button onclick="setLang('fr')" id="btn-fr">FR</button>
                 <button onclick="setLang('de')" id="btn-de">DE</button>
@@ -303,7 +321,7 @@
             <button class="sagrada-btn" onclick="generateSagrada()" id="btn-sagrada">ver SAGRADA FAMILIA (4x4)</button>
         </div>
 
-        <div class="formula-box" id="formula-display"></div>
+        <div class="formula-box" id="formula-display" onclick="highlightSums()"></div>
         <div class="hint-text" id="txt-hint">Haz clic en un número para ver sus conexiones.</div>
 
         <div id="magic-container">
@@ -320,9 +338,10 @@
             <a href="../../legal.html" id="link-legal">Aviso Legal</a>
             <a href="../../privacy.html" id="link-privacy">Política de Privacidad</a>
             <a href="../../cookies.html" id="link-cookies">Política de Cookies</a>
+            <a href="mailto:pbazan@gmail.com" id="link-contact">Contacto</a>
         </div>
         <span id="footer-rights">© 2025 Graphics Labs</span>
-        <a href="https://paypal.me/TU_USUARIO_PAYPAL" target="_blank" class="coffee-btn">
+        <a href="https://paypal.me/pbazan" target="_blank" class="coffee-btn">
             ☕ <span id="btn-coffee">Invítame a un café</span>
         </a>
     </footer>
@@ -343,7 +362,19 @@
                 sagrada_note: "Nota: Cuadrado de Subirachs (Suma 33, Edad de Cristo).",
                 hint: "Haz clic en un número para ver sus conexiones.",
                 download: "Descargar TXT",
-                legal: "Aviso Legal", privacy: "Política de Privacidad", cookies: "Política de Cookies", coffee: "Invítame a un café"
+                legal: "Aviso Legal", privacy: "Política de Privacidad", cookies: "Política de Cookies", contact: "Contacto", coffee: "Invítame a un café"
+            },
+            'ca': {
+                title: "QUADRAT MÀGIC",
+                desc: "Generador universal (parells i senars). El caos es converteix en ordre.",
+                lbl_size: "Mida (N):",
+                btn_gen: "GENERAR",
+                btn_sagrada: "veure SAGRADA FAMÍLIA (4x4)",
+                formula: "Constant Màgica: ",
+                sagrada_note: "Nota: Quadrat de Subirachs (Suma 33, Edat de Crist).",
+                hint: "Fes clic en un número per veure les seves connexions.",
+                download: "Descarregar TXT",
+                legal: "Avís Legal", privacy: "Política de Privacitat", cookies: "Política de Cookies", contact: "Contacte", coffee: "Convidam a un cafè"
             },
             'en': {
                 title: "MAGIC SQUARE",
@@ -355,7 +386,7 @@
                 sagrada_note: "Note: Subirachs Square (Sums 33, Age of Christ).",
                 hint: "Click on a number to see its connections.",
                 download: "Download TXT",
-                legal: "Legal Notice", privacy: "Privacy Policy", cookies: "Cookies Policy", coffee: "Buy me a coffee"
+                legal: "Legal Notice", privacy: "Privacy Policy", cookies: "Cookies Policy", contact: "Contact", coffee: "Buy me a coffee"
             },
             'fr': {
                 title: "CARRÉ MAGIQUE",
@@ -367,7 +398,7 @@
                 sagrada_note: "Note: Carré de Subirachs (Somme 33, Âge du Christ).",
                 hint: "Cliquez sur un nombre pour voir ses connexions.",
                 download: "Télécharger TXT",
-                legal: "Mentions Légales", privacy: "Politique de Confidentialité", cookies: "Politique de Cookies", coffee: "Offrez-moi un café"
+                legal: "Mentions Légales", privacy: "Politique de Confidentialité", cookies: "Politique de Cookies", contact: "Contact", coffee: "Offrez-moi un café"
             },
             'de': {
                 title: "MAGISCHES QUADRAT",
@@ -379,7 +410,7 @@
                 sagrada_note: "Hinweis: Subirachs Quadrat (Summe 33, Alter Christi).",
                 hint: "Klicken Sie auf eine Zahl, um ihre Verbindungen zu sehen.",
                 download: "TXT Herunterladen",
-                legal: "Impressum", privacy: "Datenschutz", cookies: "Cookie-Richtlinie", coffee: "Kauf mir einen Kaffee"
+                legal: "Impressum", privacy: "Datenschutz", cookies: "Cookie-Richtlinie", contact: "Kontakt", coffee: "Kauf mir einen Kaffee"
             },
             'pt': {
                 title: "QUADRADO MÁGICO",
@@ -391,7 +422,7 @@
                 sagrada_note: "Nota: Quadrado de Subirachs (Soma 33, Idade de Cristo).",
                 hint: "Clique em um número para ver suas conexões.",
                 download: "Baixar TXT",
-                legal: "Aviso Legal", privacy: "Política de Privacidade", cookies: "Política de Cookies", coffee: "Pague-me um café"
+                legal: "Aviso Legal", privacy: "Política de Privacidade", cookies: "Política de Cookies", contact: "Contato", coffee: "Pague-me um café"
             },
             'it': {
                 title: "QUADRATO MAGICO",
@@ -403,7 +434,7 @@
                 sagrada_note: "Nota: Quadrato di Subirachs (Somma 33, Età di Cristo).",
                 hint: "Clicca su un numero per vedere le sue connessioni.",
                 download: "Scarica TXT",
-                legal: "Avviso Legale", privacy: "Privacy Policy", cookies: "Cookie Policy", coffee: "Offrimi un caffè"
+                legal: "Avviso Legale", privacy: "Privacy Policy", cookies: "Cookie Policy", contact: "Contatto", coffee: "Offrimi un caffè"
             },
             'nl': {
                 title: "MAGISCH VIERKANT",
@@ -415,7 +446,7 @@
                 sagrada_note: "Opmerking: Subirachs Vierkant (Som 33, Leeftijd van Christus).",
                 hint: "Klik op een getal om de verbindingen te zien.",
                 download: "Download TXT",
-                legal: "Juridische kennisgeving", privacy: "Privacybeleid", cookies: "Cookiebeleid", coffee: "Koop een koffie voor me"
+                legal: "Juridische kennisgeving", privacy: "Privacybeleid", cookies: "Cookiebeleid", contact: "Contact", coffee: "Koop een koffie voor me"
             },
             'ja': {
                 title: "魔方陣",
@@ -427,7 +458,7 @@
                 sagrada_note: "注：スビラクスの方陣（合計33、キリストの年齢）。",
                 hint: "番号をクリックして接続を確認します。",
                 download: "TXTをダウンロード",
-                legal: "法的通知", privacy: "プライバシーポリシー", cookies: "クッキーポリシー", coffee: "コーヒーを奢る"
+                legal: "法的通知", privacy: "プライバシーポリシー", cookies: "クッキーポリシー", contact: "接触", coffee: "コーヒーを奢る"
             }
         };
 
@@ -448,6 +479,7 @@
             document.getElementById('link-legal').innerText = t.legal;
             document.getElementById('link-privacy').innerText = t.privacy;
             document.getElementById('link-cookies').innerText = t.cookies;
+            document.getElementById('link-contact').innerText = t.contact;
             document.getElementById('btn-coffee').innerText = t.coffee;
             
             document.querySelectorAll('.lang-switch button').forEach(b => b.classList.remove('active'));
@@ -476,6 +508,11 @@
             const magicConstant = (n * (n*n + 1)) / 2;
             document.getElementById('formula-display').innerText = translations[currentLang].formula + magicConstant;
             
+            // Toggle de formula interactiva
+            const fBox = document.getElementById('formula-display');
+            if(n <= 10) fBox.classList.add('interactive');
+            else fBox.classList.remove('interactive');
+
             if (n % 2 !== 0) currentMatrix = generateOdd(n);
             else if (n % 4 === 0) currentMatrix = generateDoublyEven(n);
             else currentMatrix = generateSinglyEven(n);
@@ -493,6 +530,10 @@
                 [13, 2, 3, 15]
             ];
             document.getElementById('formula-display').innerText = translations[currentLang].formula + "33 (" + translations[currentLang].sagrada_note + ")";
+            
+            const fBox = document.getElementById('formula-display');
+            fBox.classList.add('interactive');
+
             drawGrid(currentMatrix, 4, true);
             document.getElementById('btn-download').style.display = 'flex';
         }
@@ -500,7 +541,7 @@
         /* --- LOGICA DEL RASTRO (TRACE) --- */
         function traceLines(r, c) {
             const n = currentMatrix.length;
-            if(n > 20) return; // Se desactiva para tamaños grandes
+            if(n > 20) return; 
 
             const cells = document.querySelectorAll('.cell');
             const originIndex = r * n + c;
@@ -534,20 +575,38 @@
                 if(i !== r) cells[i*n + c].classList.add('active-trace');
             }
 
-            // Marcar Diagonal Principal (si aplica)
+            // Marcar Diagonal Principal
             if(r === c) {
                 for(let i=0; i<n; i++) {
                     if(i !== r) cells[i*n + i].classList.add('active-trace');
                 }
             }
 
-            // Marcar Anti-Diagonal (si aplica)
+            // Marcar Anti-Diagonal
             if(r + c === n - 1) {
                 for(let i=0; i<n; i++) {
                     let j = (n - 1) - i;
                     if(i !== r) cells[i*n + j].classList.add('active-trace');
                 }
             }
+        }
+
+        /* --- HIGHLIGHT DE SUMAS (Al hacer click en formula) --- */
+        function highlightSums() {
+            const n = currentMatrix.length;
+            if(n > 10) return;
+
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach(c => c.classList.remove('sum-highlight'));
+
+            setTimeout(() => {
+                for(let i=0; i<n; i++) {
+                    for(let j=0; j<n; j++) cells[i*n + j].classList.add('sum-highlight');
+                }
+                setTimeout(() => {
+                    cells.forEach(c => c.classList.remove('sum-highlight'));
+                }, 3000);
+            }, 50);
         }
 
         /* --- ALGORITMOS MATEMÁTICOS --- */
@@ -629,7 +688,7 @@
 
             // Mostrar/Ocultar hint
             const hint = document.getElementById('txt-hint');
-            if(size > 20) hint.style.display = 'none'; // Se oculta si es > 20
+            if(size > 20) hint.style.display = 'none';
             else hint.style.display = 'block';
 
             for (let i = 0; i < size; i++) {
