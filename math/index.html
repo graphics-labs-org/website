@@ -6,7 +6,7 @@
     <title>Math Department | Graphics Labs</title>
     <style>
         :root {
-            --primary: #00f3ff;
+            --primary: #00f341; /* <--- CAMBIO: Verde Matrix */
             --secondary: #bd00ff;
             --glass: rgba(255, 255, 255, 0.05);
             --border: rgba(255, 255, 255, 0.1);
@@ -438,10 +438,11 @@
                 this.x = x; this.y = y; this.dx = dx; this.dy = dy; this.size = size;
                 this.text = symbols[Math.floor(Math.random() * symbols.length)];
             }
+
             draw() { 
-                ctx.font = this.size + 'px serif'; // Serif para estilo matemático clásico
-                ctx.fillStyle = 'rgba(0, 243, 255, 0.3)'; // Cyan muy sutil
-                ctx.fillText(this.text, this.x, this.y);
+               ctx.font = this.size + 'px serif';
+               ctx.fillStyle = 'rgba(0, 255, 65, 0.4)'; // <--- CAMBIO: Verde con transparencia
+               ctx.fillText(this.text, this.x, this.y);
             }
             update() {
                 if(this.x > canvas.width || this.x < 0) this.dx = -this.dx;
