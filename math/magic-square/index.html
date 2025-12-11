@@ -167,11 +167,10 @@
             color: #ccc;
             border-radius: 4px;
             transition: 0.2s;
-            cursor: pointer; /* Indicar interactividad */
+            cursor: pointer;
             position: relative;
         }
         
-        /* Hover suave */
         .cell:hover { 
             background: rgba(0, 243, 255, 0.2);
             color: #fff;
@@ -188,7 +187,7 @@
             border-color: #fff !important;
         }
 
-        /* Highlight de la celda CLICADA (Diferente a las otras) */
+        /* Highlight de la celda CLICADA */
         .cell.selected-origin {
             background: #fff !important;
             color: #000 !important;
@@ -501,19 +500,29 @@
         /* --- LOGICA DEL RASTRO (TRACE) --- */
         function traceLines(r, c) {
             const n = currentMatrix.length;
-            if(n > 30) return; // Desactivar para grids gigantes
+            if(n > 20) return; // Se desactiva para tamaños grandes
 
             const cells = document.querySelectorAll('.cell');
-            
-            // Limpiar anteriores
+            const originIndex = r * n + c;
+            const clickedCell = cells[originIndex];
+
+            // TOGGLE: Si ya estaba seleccionado, limpiamos y salimos
+            if (clickedCell.classList.contains('selected-origin')) {
+                cells.forEach(cell => {
+                    cell.classList.remove('active-trace');
+                    cell.classList.remove('selected-origin');
+                });
+                return;
+            }
+
+            // Si no estaba, limpiamos anteriores y dibujamos nuevo
             cells.forEach(cell => {
                 cell.classList.remove('active-trace');
                 cell.classList.remove('selected-origin');
             });
 
             // Marcar origen
-            const originIndex = r * n + c;
-            if(cells[originIndex]) cells[originIndex].classList.add('selected-origin');
+            clickedCell.classList.add('selected-origin');
 
             // Marcar Fila
             for(let j=0; j<n; j++) {
@@ -620,7 +629,7 @@
 
             // Mostrar/Ocultar hint
             const hint = document.getElementById('txt-hint');
-            if(size > 30) hint.style.display = 'none';
+            if(size > 20) hint.style.display = 'none'; // Se oculta si es > 20
             else hint.style.display = 'block';
 
             for (let i = 0; i < size; i++) {
@@ -636,7 +645,7 @@
                     div.style.fontSize = fontSize;
                     div.innerText = val;
                     
-                    // EVENTO DE CLIC PARA RASTRO
+                    // EVENTO DE CLIC PARA RASTRO (Solo si no es denso)
                     if(!isDense) {
                         div.onclick = function() { traceLines(i, j); };
                     }
