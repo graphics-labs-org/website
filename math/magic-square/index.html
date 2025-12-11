@@ -8,7 +8,7 @@
         :root {
             --primary: #00f3ff;
             --secondary: #bd00ff;
-            --glass: rgba(255, 255, 255, 0.05);
+            --glass: rgba(20, 20, 20, 0.6); /* Más oscuro para legibilidad */
             --border: rgba(255, 255, 255, 0.1);
             --text: #ffffff;
             --muted: #888;
@@ -26,10 +26,16 @@
             user-select: none;
         }
 
-        #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+        #bg-canvas { 
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100%; height: 100%; 
+            z-index: 0; /* Al fondo absoluto */
+        }
 
         .container {
             position: relative;
+            z-index: 10; /* Por encima del canvas */
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
@@ -42,7 +48,7 @@
         /* --- CONTROLES --- */
         .controls {
             background: var(--glass);
-            padding: 20px;
+            padding: 25px;
             border-radius: 12px;
             border: 1px solid var(--border);
             margin: 20px auto;
@@ -52,7 +58,8 @@
             flex-direction: column;
             gap: 15px;
             align-items: center;
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(10px); /* Efecto borroso potente para separar del fondo */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
         .input-group { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; }
@@ -92,6 +99,21 @@
             font-size: 0.9rem;
         }
         button.sagrada-btn:hover { background: var(--secondary); color: #fff; box-shadow: 0 0 15px var(--secondary); }
+        
+        button.download-btn {
+            background: rgba(255,255,255,0.1);
+            color: var(--text);
+            border: 1px solid var(--muted);
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        button.download-btn:hover { background: rgba(255,255,255,0.2); border-color: #fff; }
 
         .formula-box {
             font-family: 'Courier New', monospace;
@@ -100,26 +122,34 @@
             margin: 10px 0;
             min-height: 1.5em;
             text-shadow: 0 0 5px rgba(189, 0, 255, 0.4);
+            position: relative;
+            z-index: 10;
         }
 
         /* --- GRID MÁGICO --- */
         #magic-container {
             width: 100%;
-            overflow: auto; /* Scroll si es gigante */
+            overflow: auto;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            align-items: center;
             padding: 10px;
             margin-bottom: 20px;
+            position: relative;
+            z-index: 10;
         }
 
         #magic-grid {
             display: grid;
             gap: 2px;
             margin: 0 auto;
+            background: rgba(0,0,0,0.3); /* Fondo oscuro detrás del grid */
+            padding: 10px;
+            border-radius: 8px;
         }
 
         .cell {
-            background: rgba(0, 243, 255, 0.05);
+            background: rgba(0, 243, 255, 0.08); /* Un poco más opaco */
             border: 1px solid rgba(0, 243, 255, 0.2);
             display: flex;
             align-items: center;
@@ -127,21 +157,19 @@
             color: #fff;
             border-radius: 2px;
             transition: 0.2s;
-            user-select: text; /* Permitir copiar números */
+            user-select: text;
         }
         
-        /* Estilos para grids pequeños (bonitos) */
         .cell.fancy:hover { 
             background: var(--primary); 
             color: #000; 
             transform: scale(1.1); 
             box-shadow: 0 0 10px var(--primary); 
-            z-index: 2; 
+            z-index: 15; 
         }
 
-        /* Estilos para grids GIGANTES (>20x20) */
         .cell.dense {
-            background: transparent;
+            background: #111;
             border: none;
             font-family: monospace;
             color: var(--primary);
@@ -161,17 +189,51 @@
             padding: 5px 10px; 
             border-radius: 4px; 
             transition: 0.3s;
+            background: rgba(0,0,0,0.5);
         }
         .nav-btn:hover { color: var(--primary); border-color: var(--primary); }
 
         .logo { font-size: 1.2rem; font-weight: bold; color: var(--primary); text-decoration: none; letter-spacing: 2px; }
         
-        .lang-switch button { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 5px 10px; cursor: pointer; border-radius: 4px; margin-left: 2px;}
+        .lang-switch button { background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: var(--muted); padding: 5px 10px; cursor: pointer; border-radius: 4px; margin-left: 2px;}
         .lang-switch button.active { background: var(--primary); color: #000; }
         
-        footer { margin-top: auto; padding: 20px; text-align: center; border-top: 1px solid var(--border); background: rgba(0,0,0,0.8); color: var(--muted); font-size: 0.8rem; }
+        /* FOOTER COMPLETO */
+        footer {
+            margin-top: auto;
+            background: rgba(0,0,0,0.9); /* Muy opaco para tapar números */
+            backdrop-filter: blur(5px);
+            border-top: 1px solid var(--border);
+            padding: 30px 20px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--muted);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+            position: relative;
+            z-index: 20;
+        }
 
-        .error { color: #ff3366; font-size: 0.9rem; margin-top: 10px; display: none; }
+        .legal-links { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin-bottom: 10px; }
+        .legal-links a { color: var(--muted); text-decoration: none; transition: 0.3s; border-bottom: 1px solid transparent; }
+        .legal-links a:hover { color: var(--primary); border-bottom-color: var(--primary); }
+
+        .coffee-btn {
+            background: linear-gradient(45deg, #FFDD00, #FBB03B);
+            color: #000;
+            padding: 8px 15px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: transform 0.2s;
+        }
+        .coffee-btn:hover { transform: scale(1.05); }
 
     </style>
 </head>
@@ -183,7 +245,7 @@
         <nav>
             <div class="nav-links">
                 <a href="../../index.html" class="nav-btn">← HUB PRINCIPAL</a>
-                <a href="../index.html" class="nav-btn">← HUB MATH</a>
+                <a href="#" class="nav-btn" style="opacity:0.5; cursor: default;">← HUB MATH</a>
             </div>
             <div class="logo">GRAPHICS LABS</div>
             <div class="lang-switch">
@@ -213,21 +275,36 @@
             <button class="sagrada-btn" onclick="generateSagrada()" id="btn-sagrada">ver SAGRADA FAMILIA (4x4)</button>
         </div>
 
-        <div class="formula-box" id="formula-display">
-            </div>
+        <div class="formula-box" id="formula-display"></div>
 
         <div id="magic-container">
             <div id="magic-grid"></div>
+            <button onclick="downloadASCII()" class="download-btn" id="btn-download" style="display:none;">
+                💾 <span id="txt-download">Descargar TXT</span>
+            </button>
         </div>
 
     </div>
 
     <footer>
+        <div class="legal-links">
+            <a href="../../legal.html" id="link-legal">Aviso Legal</a>
+            <a href="../../privacy.html" id="link-privacy">Política de Privacidad</a>
+            <a href="../../cookies.html" id="link-cookies">Política de Cookies</a>
+        </div>
+        
         <span id="footer-rights">© 2025 Graphics Labs</span>
+        
+        <a href="https://paypal.me/TU_USUARIO_PAYPAL" target="_blank" class="coffee-btn">
+            ☕ <span id="btn-coffee">Invítame a un café</span>
+        </a>
     </footer>
 
     <script>
-        /* --- 1. IDIOMAS (8 Lenguas) --- */
+        /* --- VARIABLE GLOBAL PARA DESCARGA --- */
+        let currentMatrix = [];
+
+        /* --- 1. IDIOMAS --- */
         const translations = {
             'es': {
                 title: "CUADRADO MÁGICO",
@@ -236,7 +313,9 @@
                 btn_gen: "GENERAR",
                 btn_sagrada: "ver SAGRADA FAMILIA (4x4)",
                 formula: "Constante Mágica: ",
-                sagrada_note: "Nota: Cuadrado de Subirachs (Suma 33, Edad de Cristo)."
+                sagrada_note: "Nota: Cuadrado de Subirachs (Suma 33, Edad de Cristo).",
+                download: "Descargar TXT",
+                legal: "Aviso Legal", privacy: "Política de Privacidad", cookies: "Política de Cookies", coffee: "Invítame a un café"
             },
             'en': {
                 title: "MAGIC SQUARE",
@@ -245,7 +324,9 @@
                 btn_gen: "GENERATE",
                 btn_sagrada: "view SAGRADA FAMILIA (4x4)",
                 formula: "Magic Constant: ",
-                sagrada_note: "Note: Subirachs Square (Sums 33, Age of Christ)."
+                sagrada_note: "Note: Subirachs Square (Sums 33, Age of Christ).",
+                download: "Download TXT",
+                legal: "Legal Notice", privacy: "Privacy Policy", cookies: "Cookies Policy", coffee: "Buy me a coffee"
             },
             'fr': {
                 title: "CARRÉ MAGIQUE",
@@ -254,7 +335,9 @@
                 btn_gen: "GÉNÉRER",
                 btn_sagrada: "voir SAGRADA FAMILIA (4x4)",
                 formula: "Constante Magique: ",
-                sagrada_note: "Note: Carré de Subirachs (Somme 33, Âge du Christ)."
+                sagrada_note: "Note: Carré de Subirachs (Somme 33, Âge du Christ).",
+                download: "Télécharger TXT",
+                legal: "Mentions Légales", privacy: "Politique de Confidentialité", cookies: "Politique de Cookies", coffee: "Offrez-moi un café"
             },
             'de': {
                 title: "MAGISCHES QUADRAT",
@@ -263,7 +346,9 @@
                 btn_gen: "ERZEUGEN",
                 btn_sagrada: "siehe SAGRADA FAMILIA (4x4)",
                 formula: "Magische Konstante: ",
-                sagrada_note: "Hinweis: Subirachs Quadrat (Summe 33, Alter Christi)."
+                sagrada_note: "Hinweis: Subirachs Quadrat (Summe 33, Alter Christi).",
+                download: "TXT Herunterladen",
+                legal: "Impressum", privacy: "Datenschutz", cookies: "Cookie-Richtlinie", coffee: "Kauf mir einen Kaffee"
             },
             'pt': {
                 title: "QUADRADO MÁGICO",
@@ -272,7 +357,9 @@
                 btn_gen: "GERAR",
                 btn_sagrada: "ver SAGRADA FAMILIA (4x4)",
                 formula: "Constante Mágica: ",
-                sagrada_note: "Nota: Quadrado de Subirachs (Soma 33, Idade de Cristo)."
+                sagrada_note: "Nota: Quadrado de Subirachs (Soma 33, Idade de Cristo).",
+                download: "Baixar TXT",
+                legal: "Aviso Legal", privacy: "Política de Privacidade", cookies: "Política de Cookies", coffee: "Pague-me um café"
             },
             'it': {
                 title: "QUADRATO MAGICO",
@@ -281,7 +368,9 @@
                 btn_gen: "GENERARE",
                 btn_sagrada: "vedi SAGRADA FAMILIA (4x4)",
                 formula: "Costante Magica: ",
-                sagrada_note: "Nota: Quadrato di Subirachs (Somma 33, Età di Cristo)."
+                sagrada_note: "Nota: Quadrato di Subirachs (Somma 33, Età di Cristo).",
+                download: "Scarica TXT",
+                legal: "Avviso Legale", privacy: "Privacy Policy", cookies: "Cookie Policy", coffee: "Offrimi un caffè"
             },
             'nl': {
                 title: "MAGISCH VIERKANT",
@@ -290,7 +379,9 @@
                 btn_gen: "GENEREREN",
                 btn_sagrada: "zie SAGRADA FAMILIA (4x4)",
                 formula: "Magische Constante: ",
-                sagrada_note: "Opmerking: Subirachs Vierkant (Som 33, Leeftijd van Christus)."
+                sagrada_note: "Opmerking: Subirachs Vierkant (Som 33, Leeftijd van Christus).",
+                download: "Download TXT",
+                legal: "Juridische kennisgeving", privacy: "Privacybeleid", cookies: "Cookiebeleid", coffee: "Koop een koffie voor me"
             },
             'ja': {
                 title: "魔方陣",
@@ -299,7 +390,9 @@
                 btn_gen: "生成する",
                 btn_sagrada: "サグラダ・ファミリア (4x4)",
                 formula: "魔法定数: ",
-                sagrada_note: "注：スビラクスの方陣（合計33、キリストの年齢）。"
+                sagrada_note: "注：スビラクスの方陣（合計33、キリストの年齢）。",
+                download: "TXTをダウンロード",
+                legal: "法的通知", privacy: "プライバシーポリシー", cookies: "クッキーポリシー", coffee: "コーヒーを奢る"
             }
         };
 
@@ -313,11 +406,17 @@
             document.getElementById('lbl-size').innerText = t.lbl_size;
             document.getElementById('btn-gen').innerText = t.btn_gen;
             document.getElementById('btn-sagrada').innerText = t.btn_sagrada;
+            document.getElementById('txt-download').innerText = t.download;
+            
+            // Footer
+            document.getElementById('link-legal').innerText = t.legal;
+            document.getElementById('link-privacy').innerText = t.privacy;
+            document.getElementById('link-cookies').innerText = t.cookies;
+            document.getElementById('btn-coffee').innerText = t.coffee;
             
             document.querySelectorAll('.lang-switch button').forEach(b => b.classList.remove('active'));
             document.getElementById('btn-' + lang).classList.add('active');
             
-            // Refrescar formula si existe
             const formulaBox = document.getElementById('formula-display');
             if(formulaBox.innerText.includes(':')) {
                 const val = formulaBox.innerText.split(': ')[1];
@@ -325,120 +424,78 @@
             }
         }
 
-        /* --- 2. LÓGICA MATEMÁTICA COMPLEJA --- */
+        /* --- 2. LÓGICA MATEMÁTICA --- */
 
         function generateUserSquare() {
             let n = parseInt(document.getElementById('size-input').value);
             if(n < 3) n = 3; 
-            if(n > 100) n = 100; // Límite de seguridad
+            if(n > 100) n = 100;
             document.getElementById('size-input').value = n;
 
-            // Formula: M = n(n^2 + 1) / 2
             const magicConstant = (n * (n*n + 1)) / 2;
             document.getElementById('formula-display').innerText = translations[currentLang].formula + magicConstant;
 
-            let matrix;
-
             if (n % 2 !== 0) {
-                // Caso 1: IMPAR (Método Siamés)
-                matrix = generateOdd(n);
+                currentMatrix = generateOdd(n);
             } else if (n % 4 === 0) {
-                // Caso 2: DOBLEMENTE PAR (n = 4, 8, 12...)
-                matrix = generateDoublyEven(n);
+                currentMatrix = generateDoublyEven(n);
             } else {
-                // Caso 3: PAR SIMPLE (n = 6, 10, 14...) - Método Strachey (El más difícil)
-                matrix = generateSinglyEven(n);
+                currentMatrix = generateSinglyEven(n);
             }
 
-            drawGrid(matrix, n);
+            drawGrid(currentMatrix, n);
+            document.getElementById('btn-download').style.display = 'flex';
         }
 
-        // Algoritmo para Impares (Siamese Method)
         function generateOdd(n) {
             let square = Array.from({ length: n }, () => Array(n).fill(0));
-            let i = 0;
-            let j = Math.floor(n / 2);
+            let i = 0, j = Math.floor(n / 2);
             for (let num = 1; num <= n * n; num++) {
                 square[i][j] = num;
                 let nextI = (i - 1 + n) % n;
                 let nextJ = (j + 1) % n;
-                if (square[nextI][nextJ] !== 0) {
-                    i = (i + 1) % n;
-                } else {
-                    i = nextI;
-                    j = nextJ;
-                }
+                if (square[nextI][nextJ] !== 0) i = (i + 1) % n;
+                else { i = nextI; j = nextJ; }
             }
             return square;
         }
 
-        // Algoritmo para Doblemente Pares (4, 8, 12...)
         function generateDoublyEven(n) {
             let square = Array.from({ length: n }, () => Array(n).fill(0));
-            let i, j;
+            for (let i = 0; i < n; i++) 
+                for (let j = 0; j < n; j++) square[i][j] = (n * i) + j + 1;
             
-            // Llenar en orden secuencial 1 a n^2
-            for (i = 0; i < n; i++) {
-                for (j = 0; j < n; j++) {
-                    square[i][j] = (n * i) + j + 1;
-                }
-            }
-            
-            // Cambiar valores en esquinas y centro según reglas de simetría
-            // Regla: Cambiar si (i % 4 == j % 4) o (i % 4 + j % 4 == 3)
-            for (i = 0; i < n; i++) {
-                for (j = 0; j < n; j++) {
+            for (let i = 0; i < n; i++) {
+                for (let j = 0; j < n; j++) {
                     let inCorner = (i % 4 === 0 || i % 4 === 3) && (j % 4 === 0 || j % 4 === 3);
                     let inCenter = (i % 4 === 1 || i % 4 === 2) && (j % 4 === 1 || j % 4 === 2);
-                    
-                    if (inCorner || inCenter) {
-                        square[i][j] = (n * n + 1) - square[i][j];
-                    }
+                    if (inCorner || inCenter) square[i][j] = (n * n + 1) - square[i][j];
                 }
             }
             return square;
         }
 
-        // Algoritmo para Pares Simples (6, 10, 14...) - Método Strachey
         function generateSinglyEven(n) {
             let halfN = n / 2;
-            let subGrid = generateOdd(halfN); // Usamos el método impar para los subcuadrantes
+            let subGrid = generateOdd(halfN);
             let grid = Array.from({ length: n }, () => Array(n).fill(0));
-
-            // Cuadrantes: A (Arriba-Izq), B (Abajo-Der), C (Arriba-Der), D (Abajo-Izq)
-            // Strachey asigna: A=Base, B=Base+n^2/4, C=Base+2*n^2/4, D=Base+3*n^2/4
-            // Orden standard: A C D B (Top-L, Top-R, Bot-L, Bot-R) ? No, Strachey usa:
-            // A=TopLeft, B=BottomRight, C=TopRight, D=BottomLeft
-            // Valores: A(1..k), D(k+1..2k), B(2k+1..3k), C(3k+1..4k) donde k = (n/2)^2
-            
             let k = halfN * halfN;
             
             for (let i = 0; i < halfN; i++) {
                 for (let j = 0; j < halfN; j++) {
-                    grid[i][j] = subGrid[i][j];             // A (Top-Left)
-                    grid[i + halfN][j + halfN] = subGrid[i][j] + k; // B (Bottom-Right)
-                    grid[i][j + halfN] = subGrid[i][j] + 2 * k; // C (Top-Right)
-                    grid[i + halfN][j] = subGrid[i][j] + 3 * k; // D (Bottom-Left)
+                    grid[i][j] = subGrid[i][j];             
+                    grid[i + halfN][j + halfN] = subGrid[i][j] + k; 
+                    grid[i][j + halfN] = subGrid[i][j] + 2 * k; 
+                    grid[i + halfN][j] = subGrid[i][j] + 3 * k; 
                 }
             }
-
-            // Intercambio de columnas (Swap rules)
             let swapCols = Math.floor(n / 4);
-            
             for (let i = 0; i < halfN; i++) {
                 for (let j = 0; j < swapCols; j++) {
-                    // Swap Left side A and D
-                    if (i === Math.floor(halfN / 2)) {
-                        // Fila central del subcuadrante: swap desde columna 1
-                        swap(grid, i, j + 1, i + halfN, j + 1);
-                    } else {
-                        // Otras filas: swap normal
-                        swap(grid, i, j, i + halfN, j);
-                    }
+                    if (i === Math.floor(halfN / 2)) swap(grid, i, j + 1, i + halfN, j + 1);
+                    else swap(grid, i, j, i + halfN, j);
                 }
             }
-            
-            // Swap Right side C and B (last m-1 columns)
             let m = swapCols - 1;
             if (m > 0) {
                 for (let i = 0; i < halfN; i++) {
@@ -448,7 +505,6 @@
                     }
                 }
             }
-
             return grid;
         }
 
@@ -459,65 +515,83 @@
         }
 
         function generateSagrada() {
-            const sagrada = [
+            currentMatrix = [
                 [1, 14, 14, 4],
                 [11, 7, 6, 9],
                 [8, 10, 10, 5],
                 [13, 2, 3, 15]
             ];
             document.getElementById('formula-display').innerText = translations[currentLang].formula + "33 (" + translations[currentLang].sagrada_note + ")";
-            drawGrid(sagrada, 4, true);
+            drawGrid(currentMatrix, 4, true);
+            document.getElementById('btn-download').style.display = 'flex';
         }
 
         function drawGrid(matrix, size, isSpecial = false) {
             const container = document.getElementById('magic-grid');
             container.innerHTML = '';
             
-            // AJUSTE DE TAMAÑO PARA GRIDS GIGANTES
             let cellSize, fontSize;
             let isDense = false;
-
-            if (size <= 10) {
-                cellSize = '50px'; fontSize = '1.2rem';
-            } else if (size <= 20) {
-                cellSize = '30px'; fontSize = '0.9rem';
-            } else if (size <= 50) {
-                cellSize = '20px'; fontSize = '0.7rem'; isDense = true;
-            } else {
-                cellSize = '12px'; fontSize = '0.5rem'; isDense = true;
-            }
+            if (size <= 10) { cellSize = '50px'; fontSize = '1.2rem'; }
+            else if (size <= 20) { cellSize = '30px'; fontSize = '0.9rem'; }
+            else if (size <= 50) { cellSize = '20px'; fontSize = '0.7rem'; isDense = true; }
+            else { cellSize = '12px'; fontSize = '0.5rem'; isDense = true; }
             
             container.style.gridTemplateColumns = `repeat(${size}, ${cellSize})`;
-            
-            // Retardo de animación basado en tamaño (si es enorme, sin delay)
             let useDelay = size < 15;
 
             for (let i = 0; i < size; i++) {
                 for (let j = 0; j < size; j++) {
                     let val = matrix[i][j];
                     let div = document.createElement('div');
-                    
                     div.className = isDense ? 'cell dense' : 'cell fancy';
                     if (isSpecial && (val === 10 || val === 14)) div.classList.add('sagrada-highlight');
-                    
                     div.style.width = cellSize;
-                    div.style.height = cellSize; // Forzar cuadrado
+                    div.style.height = cellSize;
                     div.style.fontSize = fontSize;
                     div.innerText = val;
                     
                     if (useDelay) {
                         div.style.opacity = '0';
                         div.style.animation = `fadeIn 0.3s forwards ${ (i*size + j) * 0.01 }s`;
-                    } else {
-                        div.style.opacity = '1'; // Mostrar de golpe si son muchos
-                    }
+                    } else div.style.opacity = '1';
                     
                     container.appendChild(div);
                 }
             }
         }
 
-        /* --- PARTICULAS DE FONDO (Números) --- */
+        /* --- 3. FUNCIÓN DE DESCARGA ASCII --- */
+        function downloadASCII() {
+            if(!currentMatrix || currentMatrix.length === 0) return;
+            
+            const n = currentMatrix.length;
+            // Calcular el ancho de la columna basado en el número más grande (n*n)
+            const maxNum = n*n;
+            const padSize = maxNum.toString().length + 1; // +1 espacio extra
+            
+            let content = `GRAPHICS LABS - MAGIC SQUARE (N=${n})\n`;
+            content += `Magic Constant: ${document.getElementById('formula-display').innerText.split(': ')[1]}\n`;
+            content += "=".repeat(n * padSize) + "\n\n";
+
+            for(let row of currentMatrix) {
+                let line = "";
+                for(let num of row) {
+                    line += num.toString().padStart(padSize, ' ');
+                }
+                content += line + "\n";
+            }
+
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `magic_square_${n}x${n}.txt`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        /* --- 4. FONDO NUMÉRICO (DETRÁS DE TODO) --- */
         const canvas = document.getElementById('bg-canvas');
         const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth;
@@ -529,48 +603,41 @@
         class Particle {
             constructor(x, y, dx, dy, size) {
                 this.x = x; this.y = y; this.dx = dx; this.dy = dy; this.size = size;
-                this.number = Math.floor(Math.random() * 10); // Numero 0-9
+                this.number = Math.floor(Math.random() * 10);
             }
             draw() { 
                 ctx.font = this.size + 'px monospace';
-                ctx.fillStyle = '#00f3ff';
+                ctx.fillStyle = 'rgba(0, 243, 255, 0.4)'; // Color tenue
                 ctx.fillText(this.number, this.x, this.y);
             }
             update() {
                 if(this.x>canvas.width||this.x<0) this.dx=-this.dx;
                 if(this.y>canvas.height||this.y<0) this.dy=-this.dy;
-                
                 let dx = mouse.x - this.x;
                 let dy = mouse.y - this.y;
-                let distance = Math.sqrt(dx*dx + dy*dy);
-                if(distance < mouse.radius + 50){
+                let dist = Math.sqrt(dx*dx + dy*dy);
+                if(dist < mouse.radius + 50){
                     if(mouse.x<this.x && this.x<canvas.width-50) this.x+=2;
                     if(mouse.x>this.x && this.x>50) this.x-=2;
                     if(mouse.y<this.y && this.y<canvas.height-50) this.y+=2;
                     if(mouse.y>this.y && this.y>50) this.y-=2;
                 }
-                
                 this.x+=this.dx*0.5; this.y+=this.dy*0.5;
                 this.draw();
             }
         }
-
         function init(){
             particlesArray=[];
             let n=(canvas.height*canvas.width)/6000;
             for(let i=0; i<n; i++){
-                let size=(Math.random()*15)+10; // Tamaño fuente
+                let size=(Math.random()*15)+10;
                 particlesArray.push(new Particle(Math.random()*innerWidth, Math.random()*innerHeight, (Math.random()*1)-0.5, (Math.random()*1)-0.5, size));
             }
         }
         function animate(){
             requestAnimationFrame(animate); 
             ctx.clearRect(0,0,innerWidth,innerHeight);
-            for(let i=0; i<particlesArray.length; i++){
-                particlesArray[i].update();
-                // Conexiones (opcional, lo quito para que se lean mejor los números)
-                /* for(let j=i; j<particlesArray.length; j++){ ... } */
-            }
+            for(let i=0; i<particlesArray.length; i++){ particlesArray[i].update(); }
         }
         window.addEventListener('resize', ()=>{canvas.width=innerWidth;canvas.height=innerHeight;init();});
         init(); animate();
@@ -579,7 +646,6 @@
         styleSheet.innerText = `@keyframes fadeIn { to { opacity: 1; } }`;
         document.head.appendChild(styleSheet);
         
-        // Iniciar
         generateUserSquare();
     </script>
 </body>
