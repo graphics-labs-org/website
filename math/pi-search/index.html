@@ -11,7 +11,7 @@
             --primary: #00ff41; /* Verde Matrix */
             --primary-dim: rgba(0, 255, 65, 0.3);
             --secondary: #bd00ff;
-            --highlight: #ffee00; /* Color para búsqueda encontrada */
+            --highlight: #ffee00;
             --glass: rgba(20, 20, 20, 0.7);
             --glass-text: rgba(30, 30, 30, 0.8);
             --border: rgba(255, 255, 255, 0.1);
@@ -126,7 +126,7 @@
         #pi-canvas {
             background: #000;
             border: 1px solid var(--border);
-            border-radius: 50%; /* Circular aesthetics */
+            border-radius: 50%;
             box-shadow: 0 0 30px rgba(0, 255, 65, 0.1);
             cursor: crosshair;
             margin-bottom: 15px;
@@ -168,6 +168,32 @@
         .info-section h2:first-child { margin-top: 0; }
         .info-section p { margin-bottom: 20px; font-size: 1rem; text-align: justify; }
 
+        .dl-section {
+            margin-top: 30px;
+            border-top: 1px dashed var(--border);
+            padding-top: 20px;
+            text-align: center;
+        }
+
+        .btn-txt-dl {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--muted);
+            text-decoration: none;
+            padding: 10px 20px;
+            border: 1px solid var(--muted);
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            transition: 0.3s;
+        }
+        .btn-txt-dl:hover {
+            background: var(--primary);
+            color: #000;
+            border-color: var(--primary);
+            box-shadow: 0 0 10px var(--primary);
+        }
+
         .ad-container {
             width: 100%;
             max-width: 728px;
@@ -191,7 +217,6 @@
         
         .lang-switch button { background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: var(--muted); padding: 5px 10px; cursor: pointer; border-radius: 4px; margin-left: 2px;}
         
-        /* CORRECCIÓN 1: Estilo Active forzado */
         .lang-switch button.active { 
             background-color: var(--primary) !important; 
             color: #000 !important; 
@@ -265,23 +290,29 @@
         <div class="info-section">
             <h2 id="info-h-how">Cómo funciona este Experimento</h2>
             <p id="info-p-how">
-                Este laboratorio ha cargado en memoria los primeros <strong>10.000 decimales</strong> del número Pi. Cuando utilizas el buscador, el sistema rastrea esa inmensa cadena numérica intentando encontrar tu secuencia exacta. Si la encuentra, apaga el "ruido" de fondo y <strong>ilumina exclusivamente el camino</strong> que forman tus números al conectarse entre sí dentro del círculo, revelando la geometría oculta de tu fecha o número favorito.
+                Este laboratorio ha cargado en memoria los primeros 10.000 decimales del número Pi. Cuando utilizas el buscador, el sistema rastrea esa inmensa cadena numérica intentando encontrar tu secuencia exacta. Si la encuentra, apaga el "ruido" de fondo e ilumina exclusivamente el camino que forman tus números al conectarse entre sí dentro del círculo, revelando la geometría oculta de tu fecha o número favorito.
             </p>
 
             <h2 id="info-h-what">¿Qué es Pi?</h2>
             <p id="info-p1">
-                Pi (π) es la relación entre la longitud de una circunferencia y su diámetro. Es un número <strong>irracional</strong>, lo que significa que tiene infinitos decimales sin ningún patrón repetitivo periódico conocido.
+                Pi (π) es la relación entre la longitud de una circunferencia y su diámetro. Es un número irracional, lo que significa que tiene infinitos decimales sin ningún patrón repetitivo periódico conocido.
             </p>
             
             <h2 id="info-h-normal">La Normalidad de Pi</h2>
             <p id="info-p2">
-                Se sospecha que Pi es un <strong>número normal</strong>. Esto significa que cualquier secuencia finita de números (como tu fecha de nacimiento, tu número de teléfono o el código binario de una imagen completa) aparece matemáticamente en algún lugar de sus decimales si buscas lo suficientemente lejos.
+                Se sospecha que Pi es un número normal. Esto significa que cualquier secuencia finita de números (como tu fecha de nacimiento, tu número de teléfono o el código binario de una imagen completa) aparece matemáticamente en algún lugar de sus decimales si buscas lo suficientemente lejos.
             </p>
 
             <h2 id="info-h-art">La Visualización (Cuerdas)</h2>
             <p id="info-p3">
-                En este gráfico, hemos colocado los dígitos del 0 al 9 alrededor de un círculo. Trazamos una línea desde la posición del decimal $n$ hasta el decimal $n+1$. El resultado es una compleja "telaraña" matemática.
+                En este gráfico, hemos colocado los dígitos del 0 al 9 alrededor de un círculo. Trazamos una línea desde la posición del decimal n hasta el decimal n+1. El resultado es una compleja "telaraña" matemática.
             </p>
+
+            <div class="dl-section">
+                <a href="PI.txt" download="PI_1M.txt" class="btn-txt-dl" id="btn-txt-dl">
+                    ⬇ Descargar 1M de Dígitos (.txt)
+                </a>
+            </div>
         </div>
 
         <div class="ad-container"><span class="ad-placeholder-text">Ad Space</span></div>
@@ -300,7 +331,7 @@
         </a>
     </footer>
 
- <script>
+    <script>
         /* --- 1. SEGURIDAD --- */
         document.addEventListener('keydown', function(e) {
             if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
@@ -452,6 +483,7 @@
                 title: "PROYECTO PI (π)", desc: "Buscador de patrones y visualización artística.",
                 lbl_search: "Buscar secuencia (ej: tu cumpleaños):", lbl_points: "Puntos a dibujar:",
                 btn_search: "BUSCAR & VISUALIZAR", btn_reset: "LIMPIAR", btn_save: "💾 PNG",
+                btn_dl: "⬇ Descargar 1M de Dígitos (.txt)",
                 txt_ready: "Introduce números para buscar en los primeros 10.000 dígitos.",
                 msg_found: "¡Encontrado! Posición {pos}", msg_not_found: "No encontrado en los primeros 10.000 dígitos.",
                 ph_search: "1415...", canvas_note: "Cada línea conecta un dígito con el siguiente.",
@@ -468,6 +500,7 @@
                 title: "PROJECT PI (π)", desc: "Pattern searcher and artistic visualization.",
                 lbl_search: "Search sequence (e.g. birthday):", lbl_points: "Points to draw:",
                 btn_search: "SEARCH & VISUALIZE", btn_reset: "RESET", btn_save: "💾 PNG",
+                btn_dl: "⬇ Download 1M Digits (.txt)",
                 txt_ready: "Enter numbers to search in the first 10,000 digits.",
                 msg_found: "Found! Position {pos}", msg_not_found: "Not found in the first 10,000 digits.",
                 ph_search: "1415...", canvas_note: "Each line connects a digit to the next one.",
@@ -484,6 +517,7 @@
                 title: "PROJECTE PI (π)", desc: "Cercador de patrons i visualització artística.",
                 lbl_search: "Cerca seqüència (ex: aniversari):", lbl_points: "Punts a dibuixar:",
                 btn_search: "CERCAR & VISUALITZAR", btn_reset: "NETEJAR", btn_save: "💾 PNG",
+                btn_dl: "⬇ Descarregar 1M de Dígits (.txt)",
                 txt_ready: "Introdueix nombres per cercar als primers 10.000 dígits.",
                 msg_found: "Trobat! Posició {pos}", msg_not_found: "No trobat als primers 10.000 dígits.",
                 ph_search: "1415...", canvas_note: "Cada línia connecta un dígit amb el següent.",
@@ -500,6 +534,7 @@
                 title: "PROJET PI (π)", desc: "Chercheur de motifs et visualisation artistique.",
                 lbl_search: "Chercher séquence (ex: anniversaire):", lbl_points: "Points à dessiner:",
                 btn_search: "CHERCHER & VISUALISER", btn_reset: "RÉINITIALISER", btn_save: "💾 PNG",
+                btn_dl: "⬇ Télécharger 1M de Décimales (.txt)",
                 txt_ready: "Entrez des nombres à chercher dans les 10 000 premiers chiffres.",
                 msg_found: "Trouvé ! Position {pos}", msg_not_found: "Non trouvé dans les 10 000 premiers chiffres.",
                 ph_search: "1415...", canvas_note: "Chaque ligne connecte un chiffre au suivant sur le cercle.",
@@ -516,6 +551,7 @@
                 title: "PROJEKT PI (π)", desc: "Mustersuche und künstlerische Visualisierung.",
                 lbl_search: "Sequenz suchen (z.B. Geburtstag):", lbl_points: "Punkte zeichnen:",
                 btn_search: "SUCHEN & ANZEIGEN", btn_reset: "ZURÜCKSETZEN", btn_save: "💾 PNG",
+                btn_dl: "⬇ 1M Ziffern herunterladen (.txt)",
                 txt_ready: "Geben Sie Zahlen ein, um in den ersten 10.000 Ziffern zu suchen.",
                 msg_found: "Gefunden! Position {pos}", msg_not_found: "In den ersten 10.000 Ziffern nicht gefunden.",
                 ph_search: "1415...", canvas_note: "Jede Linie verbindet eine Ziffer mit der nächsten.",
@@ -532,6 +568,7 @@
                 title: "PROJETO PI (π)", desc: "Buscador de padrões e visualização artística.",
                 lbl_search: "Buscar sequência (ex: aniversário):", lbl_points: "Pontos a desenhar:",
                 btn_search: "BUSCAR & VISUALIZAR", btn_reset: "LIMPAR", btn_save: "💾 PNG",
+                btn_dl: "⬇ Baixar 1M de Dígitos (.txt)",
                 txt_ready: "Digite números para buscar nos primeiros 10.000 dígitos.",
                 msg_found: "Encontrado! Posição {pos}", msg_not_found: "Não encontrado nos primeiros 10.000 dígitos.",
                 ph_search: "1415...", canvas_note: "Cada linha conecta um dígito ao próximo no círculo.",
@@ -548,6 +585,7 @@
                 title: "PROGETTO PI (π)", desc: "Ricerca di schemi e visualizzazione artistica.",
                 lbl_search: "Cerca sequenza (es: compleanno):", lbl_points: "Punti da disegnare:",
                 btn_search: "CERCA & VISUALIZZA", btn_reset: "RESET", btn_save: "💾 PNG",
+                btn_dl: "⬇ Scarica 1M di Cifre (.txt)",
                 txt_ready: "Inserisci numeri da cercare nelle prime 10.000 cifre.",
                 msg_found: "Trovato! Posizione {pos}", msg_not_found: "Non trovato nelle prime 10.000 cifre.",
                 ph_search: "1415...", canvas_note: "Ogni linea collega una cifra alla successiva.",
@@ -564,6 +602,7 @@
                 title: "PROJECT PI (π)", desc: "Patroon zoeker en artistieke visualisatie.",
                 lbl_search: "Zoek reeks (bijv. verjaardag):", lbl_points: "Punten te tekenen:",
                 btn_search: "ZOEKEN & VISUALISEREN", btn_reset: "RESET", btn_save: "💾 PNG",
+                btn_dl: "⬇ Download 1M Cijfers (.txt)",
                 txt_ready: "Voer getallen in om te zoeken in de eerste 10.000 cijfers.",
                 msg_found: "Gevonden! Positie {pos}", msg_not_found: "Niet gevonden in de eerste 10.000 cijfers.",
                 ph_search: "1415...", canvas_note: "Elke lijn verbindt een cijfer met het volgende.",
@@ -580,6 +619,7 @@
                 title: "プロジェクト π (パイ)", desc: "パターン検索と芸術的な視覚化。",
                 lbl_search: "シーケンス検索 (例: 誕生日):", lbl_points: "描画する点:",
                 btn_search: "検索して視覚化", btn_reset: "リセット", btn_save: "💾 PNG保存",
+                btn_dl: "⬇ 100万桁をダウンロード (.txt)",
                 txt_ready: "最初の10,000桁の中から数字を検索します。",
                 msg_found: "発見！ 位置 {pos}", msg_not_found: "最初の10,000桁には見つかりませんでした。",
                 ph_search: "1415...", canvas_note: "各線は、ある数字とその次の数字をつなぎます。",
@@ -600,7 +640,6 @@
             currentLang = lang;
             const t = translations[lang] || translations['es'];
             
-            // Textos Generales
             document.getElementById('nav-main').innerText = t.nav_main;
             document.getElementById('nav-math').innerText = t.nav_math;
             document.getElementById('txt-title').innerText = t.title;
@@ -610,6 +649,7 @@
             document.getElementById('btn-search').innerText = t.btn_search;
             document.getElementById('btn-reset').innerText = t.btn_reset;
             document.getElementById('btn-save').innerText = t.btn_save;
+            document.getElementById('btn-txt-dl').innerText = t.btn_dl;
             
             // Textos dinámicos y placeholders
             document.getElementById('inp-search').placeholder = t.ph_search;
@@ -622,7 +662,6 @@
 
             document.getElementById('txt-canvas-note').innerText = t.canvas_note;
 
-            // Información
             document.getElementById('info-h-how').innerText = t.h_how;
             document.getElementById('info-p-how').innerText = t.p_how;
             document.getElementById('info-h-what').innerText = t.h_what;
@@ -632,18 +671,15 @@
             document.getElementById('info-h-art').innerText = t.h_art;
             document.getElementById('info-p3').innerText = t.p3;
 
-            // Footer
             document.getElementById('link-legal').innerText = t.legal;
             document.getElementById('link-privacy').innerText = t.privacy;
             document.getElementById('link-cookies').innerText = t.cookies;
             document.getElementById('link-contact').innerText = t.contact;
             document.getElementById('btn-coffee').innerText = t.coffee;
             
-            // Footer credits & Ad
             document.getElementById('footer-rights').innerText = t.rights;
             document.querySelector('.ad-placeholder-text').innerText = t.ad_text;
 
-            // Gestión de Botones Activos (Corrección visual)
             document.querySelectorAll('.lang-switch button').forEach(b => {
                 b.classList.remove('active');
                 if(b.id === 'btn-' + lang) b.classList.add('active');
@@ -687,7 +723,7 @@
                 if (mouse.x != null) {
                     let dx = mouse.x - this.x;
                     let dy = mouse.y - this.y;
-                    let dist = Math.sqrt(dx*dx + dy*dy);
+                    let distance = Math.sqrt(dx*dx + dy*dy);
                     if (dist < mouse.radius) {
                         const forceDirectionX = dx / dist;
                         const forceDirectionY = dy / dist;
@@ -725,5 +761,3 @@
         setTimeout(() => drawArt(null), 100);
 
     </script>
-</body>
-</html>
