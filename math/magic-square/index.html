@@ -6,7 +6,7 @@
     <title>Magic Square Lab | Graphics Labs</title>
     <style>
         :root {
-            --primary: #00f3ff;
+            --primary: #00ff41;  /* <--- CAMBIO: Verde Matrix */
             --secondary: #bd00ff;
             --highlight: #ffee00;
             --glass: rgba(20, 20, 20, 0.7);
@@ -933,9 +933,10 @@
                 this.x = x; this.y = y; this.dx = dx; this.dy = dy; this.size = size;
                 this.number = Math.floor(Math.random() * 10);
             }
+
             draw() { 
                 ctx.font = this.size + 'px monospace';
-                ctx.fillStyle = 'rgba(0, 243, 255, 0.4)';
+                ctx.fillStyle = 'rgba(0, 255, 65, 0.4)'; // <--- CAMBIO: Verde
                 ctx.fillText(this.number, this.x, this.y);
             }
             update() {
