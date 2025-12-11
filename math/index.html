@@ -6,7 +6,7 @@
     <title>Math Department | Graphics Labs</title>
     <style>
         :root {
-            --primary: #00f341; /* <--- CAMBIO: Verde Matrix */
+            --primary: #00f341; /* Verde Matrix */
             --secondary: #bd00ff;
             --glass: rgba(255, 255, 255, 0.05);
             --border: rgba(255, 255, 255, 0.1);
@@ -234,7 +234,7 @@
                     <h3 id="card2-title">Espirales de Ulam</h3>
                     <p id="card2-desc">Visualización de números primos en espirales. Descubre los patrones que emergen del infinito.</p>
                 </div>
-                <a href="#" class="btn-lab disabled prx">PRÓXIMAMENTE</a>
+                <a href="ulam-spiral/index.html" class="btn-lab" id="btn-enter-ulam">ENTRAR AL LAB</a>
             </div>
 
             <div class="card">
@@ -391,7 +391,7 @@
         };
 
         function setLang(lang) {
-            localStorage.setItem('gl_lang', lang); // <--- AÑADE ESTO
+            localStorage.setItem('gl_lang', lang); 
             const t = translations[lang];
             
             document.getElementById('txt-title').innerText = t.title;
@@ -405,7 +405,10 @@
             document.getElementById('card3-title').innerText = t.card3_title;
             document.getElementById('card3-desc').innerText = t.card3_desc;
             
-            document.getElementById('btn-enter').innerText = t.btn_enter;
+            // Buttons
+            document.getElementById('btn-enter').innerText = t.btn_enter; // Magic Square
+            document.getElementById('btn-enter-ulam').innerText = t.btn_enter; // Ulam Spiral (NUEVO)
+            
             const prxElements = document.querySelectorAll('.prx');
             prxElements.forEach(el => el.innerText = t.prx);
             
@@ -420,7 +423,7 @@
             document.getElementById('btn-' + lang).classList.add('active');
         }
 
-        /* --- FONDO ANIMADO (Símbolos Matemáticos) --- */
+        /* --- FONDO ANIMADO --- */
         const canvas = document.getElementById('bg-canvas');
         const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth;
@@ -430,7 +433,6 @@
         
         window.addEventListener('mousemove', function(e) { mouse.x = e.x; mouse.y = e.y; });
         
-        // Símbolos matemáticos para el fondo
         const symbols = ['0', '1', 'π', '∞', '∑', '√', '∫', '≠', '≈', 'ϕ', 'e', 'x'];
 
         class Particle {
@@ -441,7 +443,7 @@
 
             draw() { 
                ctx.font = this.size + 'px serif';
-               ctx.fillStyle = 'rgba(0, 255, 65, 0.4)'; // <--- CAMBIO: Verde con transparencia
+               ctx.fillStyle = 'rgba(0, 255, 65, 0.4)';
                ctx.fillText(this.text, this.x, this.y);
             }
             update() {
@@ -467,7 +469,6 @@
 
         function init(){
             particlesArray = [];
-            // Menor densidad para no saturar con símbolos
             let n = (canvas.height * canvas.width) / 8000;
             for(let i=0; i<n; i++){
                 let size = (Math.random() * 20) + 10;
