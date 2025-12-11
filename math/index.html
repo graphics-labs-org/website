@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Department | Graphics Labs</title>
+    <style>
+        :root {
+            --primary: #00f3ff;
+            --secondary: #bd00ff;
+            --glass: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.1);
+            --text: #ffffff;
+            --muted: #888;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', monospace, sans-serif; }
+        
+        body {
+            background-color: #050505;
+            color: var(--text);
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            user-select: none;
+        }
+
+        #bg-canvas { 
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100%; height: 100%; 
+            z-index: -1; 
+        }
+
+        .container {
+            position: relative;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+            flex: 1;
+        }
+
+        /* --- NAV --- */
+        nav {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        @media(min-width: 768px) {
+            nav { flex-direction: row; justify-content: space-between; }
+        }
+
+        .nav-left { display: flex; gap: 15px; align-items: center; }
+        
+        .back-btn {
+            text-decoration: none;
+            color: var(--muted);
+            border: 1px solid var(--border);
+            padding: 5px 15px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            transition: 0.3s;
+        }
+        .back-btn:hover { color: var(--primary); border-color: var(--primary); }
+        
+        .logo { font-size: 1.5rem; font-weight: bold; letter-spacing: 2px; color: var(--primary); text-shadow: 0 0 10px rgba(0, 243, 255, 0.3); }
+        
+        .lang-switch { display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; }
+        .lang-switch button {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border);
+            color: var(--muted);
+            padding: 5px 10px;
+            cursor: pointer;
+            transition: 0.3s;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        .lang-switch button:hover, .lang-switch button.active {
+            background: var(--primary); color: #000; border-color: var(--primary); font-weight: bold;
+        }
+
+        /* --- HEADER --- */
+        h1 { font-size: 3rem; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 5px; }
+        .subtitle { color: var(--muted); margin-bottom: 50px; font-size: 1.1rem; }
+
+        /* --- GRID --- */
+        .labs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .card {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            padding: 30px;
+            border-radius: 12px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-align: left;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 243, 255, 0.05);
+            border-color: rgba(0, 243, 255, 0.3);
+        }
+
+        .card h3 { color: var(--primary); margin-bottom: 10px; font-size: 1.4rem; }
+        .card p { color: #ccc; font-size: 0.95rem; line-height: 1.5; margin-bottom: 25px; }
+        
+        .btn-lab {
+            display: inline-block;
+            text-decoration: none;
+            color: var(--text);
+            border: 1px solid var(--secondary);
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            transition: 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+        .btn-lab:hover { background: var(--secondary); box-shadow: 0 0 15px var(--secondary); }
+        
+        .btn-lab.disabled {
+            border-color: var(--muted);
+            color: var(--muted);
+            cursor: default;
+        }
+        .btn-lab.disabled:hover { background: transparent; box-shadow: none; }
+
+        /* --- ADSENSE --- */
+        .ad-container {
+            width: 100%;
+            max-width: 728px;
+            margin: 20px auto;
+            min-height: 90px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px dashed rgba(255,255,255,0.1); 
+            border-radius: 8px;
+            background: rgba(0,0,0,0.2);
+        }
+        .ad-placeholder-text { color: var(--border); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; }
+
+        /* --- FOOTER --- */
+        footer {
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+            border-top: 1px solid var(--border);
+            padding: 30px 20px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--muted);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .legal-links { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
+        .legal-links a { color: var(--muted); text-decoration: none; transition: 0.3s; border-bottom: 1px solid transparent; }
+        .legal-links a:hover { color: var(--primary); border-bottom-color: var(--primary); }
+
+        .coffee-btn {
+            background: linear-gradient(45deg, #FFDD00, #FBB03B);
+            color: #000;
+            padding: 8px 15px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: transform 0.2s;
+        }
+        .coffee-btn:hover { transform: scale(1.05); }
+
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="container">
+        <nav>
+            <div class="nav-left">
+                <a href="../index.html" class="back-btn">← HUB PRINCIPAL</a>
+                <div class="logo">MATH LABS</div>
+            </div>
+            <div class="lang-switch">
+                <button onclick="setLang('es')" id="btn-es" class="active">ES</button>
+                <button onclick="setLang('ca')" id="btn-ca">CA</button>
+                <button onclick="setLang('en')" id="btn-en">EN</button>
+                <button onclick="setLang('fr')" id="btn-fr">FR</button>
+                <button onclick="setLang('de')" id="btn-de">DE</button>
+                <button onclick="setLang('pt')" id="btn-pt">PT</button>
+                <button onclick="setLang('it')" id="btn-it">IT</button>
+                <button onclick="setLang('nl')" id="btn-nl">NL</button>
+                <button onclick="setLang('ja')" id="btn-ja">JP</button>
+            </div>
+        </nav>
+
+        <h1 id="txt-title">DEPARTAMENTO DE MATEMÁTICAS</h1>
+        <p class="subtitle" id="txt-subtitle">Explorando la belleza oculta de los números y los patrones lógicos.</p>
+
+        <div class="labs-grid">
+            
+            <div class="card">
+                <div>
+                    <h3 id="card1-title">Cuadrados Mágicos</h3>
+                    <p id="card1-desc">Generador de matrices donde el caos se vuelve orden. Algoritmos Siamés, Strachey y simetrías para pares e impares.</p>
+                </div>
+                <a href="magic-square/index.html" class="btn-lab" id="btn-enter">ENTRAR AL LAB</a>
+            </div>
+
+            <div class="card">
+                <div>
+                    <h3 id="card2-title">Espirales de Ulam</h3>
+                    <p id="card2-desc">Visualización de números primos en espirales. Descubre los patrones que emergen del infinito.</p>
+                </div>
+                <a href="#" class="btn-lab disabled prx">PRÓXIMAMENTE</a>
+            </div>
+
+            <div class="card">
+                <div>
+                    <h3 id="card3-title">El Número Pi (π)</h3>
+                    <p id="card3-desc">Buscador de secuencias dentro de los decimales de Pi y visualización artística de su aleatoriedad.</p>
+                </div>
+                <a href="#" class="btn-lab disabled prx">PRÓXIMAMENTE</a>
+            </div>
+
+        </div>
+
+        <div class="ad-container">
+            <span class="ad-placeholder-text">Ad Space</span>
+        </div>
+
+    </div>
+
+    <footer>
+        <div class="legal-links">
+            <a href="../legal.html" id="link-legal">Aviso Legal</a>
+            <a href="../privacy.html" id="link-privacy">Política de Privacidad</a>
+            <a href="../cookies.html" id="link-cookies">Política de Cookies</a>
+            <a href="mailto:pbazan@gmail.com" id="link-contact">Contacto</a>
+        </div>
+        
+        <span id="footer-rights">© 2025 Graphics Labs</span>
+        
+        <a href="https://paypal.me/pbazan" target="_blank" class="coffee-btn">
+            ☕ <span id="btn-coffee">Invítame a un café</span>
+        </a>
+    </footer>
+
+    <script>
+        /* --- 1. IDIOMAS (9 Lenguas incluyendo Catalán) --- */
+        const translations = {
+            'es': {
+                title: "DEPARTAMENTO DE MATEMÁTICAS",
+                subtitle: "Explorando la belleza oculta de los números y los patrones lógicos.",
+                card1_title: "Cuadrados Mágicos",
+                card1_desc: "Generador de matrices donde el caos se vuelve orden. Algoritmos Siamés, Strachey y simetrías.",
+                card2_title: "Espirales de Ulam",
+                card2_desc: "Visualización de números primos en espirales. Descubre los patrones que emergen del infinito.",
+                card3_title: "El Número Pi (π)",
+                card3_desc: "Buscador de secuencias dentro de los decimales de Pi y visualización artística.",
+                btn_enter: "ENTRAR AL LAB",
+                prx: "PRÓXIMAMENTE",
+                legal: "Aviso Legal", privacy: "Política de Privacidad", cookies: "Política de Cookies", contact: "Contacto", coffee: "Invítame a un café"
+            },
+            'ca': {
+                title: "DEPARTAMENT DE MATEMÀTIQUES",
+                subtitle: "Explorant la bellesa oculta dels nombres i els patrons lògics.",
+                card1_title: "Quadrats Màgics",
+                card1_desc: "Generador de matrius on el caos esdevé ordre. Algorismes Siamès, Strachey i simetries.",
+                card2_title: "Espirals d'Ulam",
+                card2_desc: "Visualització de nombres primers en espirals. Descobreix els patrons que emergeixen de l'infinit.",
+                card3_title: "El Nombre Pi (π)",
+                card3_desc: "Cercador de seqüències dins dels decimals de Pi i visualització artística.",
+                btn_enter: "ENTRAR AL LAB",
+                prx: "PRÒXIMAMENT",
+                legal: "Avís Legal", privacy: "Política de Privacitat", cookies: "Política de Cookies", contact: "Contacte", coffee: "Convidam a un cafè"
+            },
+            'en': {
+                title: "DEPARTMENT OF MATHEMATICS",
+                subtitle: "Exploring the hidden beauty of numbers and logical patterns.",
+                card1_title: "Magic Squares",
+                card1_desc: "Matrix generator where chaos becomes order. Siamese, Strachey algorithms and symmetries.",
+                card2_title: "Ulam Spirals",
+                card2_desc: "Visualization of prime numbers in spirals. Discover patterns emerging from infinity.",
+                card3_title: "The Number Pi (π)",
+                card3_desc: "Search sequences within Pi decimals and artistic visualization of randomness.",
+                btn_enter: "ENTER LAB",
+                prx: "COMING SOON",
+                legal: "Legal Notice", privacy: "Privacy Policy", cookies: "Cookies Policy", contact: "Contact", coffee: "Buy me a coffee"
+            },
+            'fr': {
+                title: "DÉPARTEMENT DE MATHÉMATIQUES",
+                subtitle: "Explorer la beauté cachée des nombres et des motifs logiques.",
+                card1_title: "Carrés Magiques",
+                card1_desc: "Générateur de matrices où le chaos devient ordre. Algorithmes Siamois, Strachey et symétries.",
+                card2_title: "Spirales d'Ulam",
+                card2_desc: "Visualisation des nombres premiers en spirales. Découvrez les motifs émergeant de l'infini.",
+                card3_title: "Le Nombre Pi (π)",
+                card3_desc: "Recherche de séquences dans les décimales de Pi et visualisation artistique.",
+                btn_enter: "ENTRER",
+                prx: "BIENTÔT",
+                legal: "Mentions Légales", privacy: "Politique de Confidentialité", cookies: "Politique de Cookies", contact: "Contact", coffee: "Offrez-moi un café"
+            },
+            'de': {
+                title: "MATHEMATIK-ABTEILUNG",
+                subtitle: "Erforschung der verborgenen Schönheit von Zahlen und logischen Mustern.",
+                card1_title: "Magische Quadrate",
+                card1_desc: "Matrixgenerator, wo Chaos zu Ordnung wird. Siamese, Strachey Algorithmen und Symmetrien.",
+                card2_title: "Ulam-Spiralen",
+                card2_desc: "Visualisierung von Primzahlen in Spiralen. Entdecken Sie Muster aus der Unendlichkeit.",
+                card3_title: "Die Zahl Pi (π)",
+                card3_desc: "Suche nach Sequenzen innerhalb von Pi-Dezimalstellen und künstlerische Visualisierung.",
+                btn_enter: "EINTRETEN",
+                prx: "DEMNÄCHST",
+                legal: "Impressum", privacy: "Datenschutz", cookies: "Cookie-Richtlinie", contact: "Kontakt", coffee: "Kauf mir einen Kaffee"
+            },
+            'pt': {
+                title: "DEPARTAMENTO DE MATEMÁTICA",
+                subtitle: "Explorando a beleza oculta dos números e padrões lógicos.",
+                card1_title: "Quadrados Mágicos",
+                card1_desc: "Gerador de matrizes onde o caos se torna ordem. Algoritmos Siamês, Strachey e simetrias.",
+                card2_title: "Espirais de Ulam",
+                card2_desc: "Visualização de números primos em espirais. Descubra padrões emergindo do infinito.",
+                card3_title: "O Número Pi (π)",
+                card3_desc: "Busca de sequências nos decimais de Pi e visualização artística.",
+                btn_enter: "ENTRAR",
+                prx: "EM BREVE",
+                legal: "Aviso Legal", privacy: "Política de Privacidade", cookies: "Política de Cookies", contact: "Contato", coffee: "Pague-me um café"
+            },
+            'it': {
+                title: "DIPARTIMENTO DI MATEMATICA",
+                subtitle: "Esplorando la bellezza nascosta dei numeri e dei modelli logici.",
+                card1_title: "Quadrati Magici",
+                card1_desc: "Generatore di matrici dove il caos diventa ordine. Algoritmi Siamesi, Strachey e simmetrie.",
+                card2_title: "Spirali di Ulam",
+                card2_desc: "Visualizzazione dei numeri primi in spirali. Scopri i modelli che emergono dall'infinito.",
+                card3_title: "Il Numero Pi (π)",
+                card3_desc: "Ricerca di sequenze nei decimali di Pi e visualizzazione artistica.",
+                btn_enter: "ENTRARE",
+                prx: "PROSSIMAMENTE",
+                legal: "Avviso Legale", privacy: "Privacy Policy", cookies: "Cookie Policy", contact: "Contatto", coffee: "Offrimi un caffè"
+            },
+            'nl': {
+                title: "DEPARTEMENT WISKUNDE",
+                subtitle: "Het verkennen van de verborgen schoonheid van getallen en logische patronen.",
+                card1_title: "Magische Vierkanten",
+                card1_desc: "Matrixgenerator waar chaos orde wordt. Siamese, Strachey algoritmen en symmetrieën.",
+                card2_title: "Ulam Spiralen",
+                card2_desc: "Visualisatie van priemgetallen in spiralen. Ontdek patronen die uit het oneindige ontstaan.",
+                card3_title: "Het Getal Pi (π)",
+                card3_desc: "Zoek sequenties binnen Pi-decimalen en artistieke visualisatie.",
+                btn_enter: "GA NAAR LAB",
+                prx: "BINNENKORT",
+                legal: "Juridische kennisgeving", privacy: "Privacybeleid", cookies: "Cookiebeleid", contact: "Contact", coffee: "Koop een koffie voor me"
+            },
+            'ja': {
+                title: "数学部",
+                subtitle: "数と論理的パターンの隠された美しさを探求する。",
+                card1_title: "魔方陣",
+                card1_desc: "カオスが秩序になる行列ジェネレーター。シャム、ストレイチーのアルゴリズムと対称性。",
+                card2_title: "ウラムの螺旋",
+                card2_desc: "螺旋状の素数の視覚化。無限から現れるパターンを発見する。",
+                card3_title: "円周率 (π)",
+                card3_desc: "円周率の小数部内のシーケンス検索と芸術的視覚化。",
+                btn_enter: "ラボに入る",
+                prx: "近日公開",
+                legal: "法的通知", privacy: "プライバシーポリシー", cookies: "クッキーポリシー", contact: "接触", coffee: "コーヒーを奢る"
+            }
+        };
+
+        function setLang(lang) {
+            const t = translations[lang];
+            
+            document.getElementById('txt-title').innerText = t.title;
+            document.getElementById('txt-subtitle').innerText = t.subtitle;
+            
+            // Cards
+            document.getElementById('card1-title').innerText = t.card1_title;
+            document.getElementById('card1-desc').innerText = t.card1_desc;
+            document.getElementById('card2-title').innerText = t.card2_title;
+            document.getElementById('card2-desc').innerText = t.card2_desc;
+            document.getElementById('card3-title').innerText = t.card3_title;
+            document.getElementById('card3-desc').innerText = t.card3_desc;
+            
+            document.getElementById('btn-enter').innerText = t.btn_enter;
+            const prxElements = document.querySelectorAll('.prx');
+            prxElements.forEach(el => el.innerText = t.prx);
+            
+            // Footer
+            document.getElementById('link-legal').innerText = t.legal;
+            document.getElementById('link-privacy').innerText = t.privacy;
+            document.getElementById('link-cookies').innerText = t.cookies;
+            document.getElementById('link-contact').innerText = t.contact;
+            document.getElementById('btn-coffee').innerText = t.coffee;
+
+            document.querySelectorAll('.lang-switch button').forEach(b => b.classList.remove('active'));
+            document.getElementById('btn-' + lang).classList.add('active');
+        }
+
+        /* --- FONDO ANIMADO (Símbolos Matemáticos) --- */
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        let particlesArray;
+        let mouse = { x: null, y: null, radius: (canvas.height/100) * (canvas.width/100) };
+        
+        window.addEventListener('mousemove', function(e) { mouse.x = e.x; mouse.y = e.y; });
+        
+        // Símbolos matemáticos para el fondo
+        const symbols = ['0', '1', 'π', '∞', '∑', '√', '∫', '≠', '≈', 'ϕ', 'e', 'x'];
+
+        class Particle {
+            constructor(x, y, dx, dy, size) {
+                this.x = x; this.y = y; this.dx = dx; this.dy = dy; this.size = size;
+                this.text = symbols[Math.floor(Math.random() * symbols.length)];
+            }
+            draw() { 
+                ctx.font = this.size + 'px serif'; // Serif para estilo matemático clásico
+                ctx.fillStyle = 'rgba(0, 243, 255, 0.3)'; // Cyan muy sutil
+                ctx.fillText(this.text, this.x, this.y);
+            }
+            update() {
+                if(this.x > canvas.width || this.x < 0) this.dx = -this.dx;
+                if(this.y > canvas.height || this.y < 0) this.dy = -this.dy;
+                
+                let dx = mouse.x - this.x;
+                let dy = mouse.y - this.y;
+                let dist = Math.sqrt(dx*dx + dy*dy);
+                
+                if(dist < mouse.radius + 50){
+                    if(mouse.x < this.x && this.x < canvas.width - 50) this.x += 2;
+                    if(mouse.x > this.x && this.x > 50) this.x -= 2;
+                    if(mouse.y < this.y && this.y < canvas.height - 50) this.y += 2;
+                    if(mouse.y > this.y && this.y > 50) this.y -= 2;
+                }
+                
+                this.x += this.dx * 0.4;
+                this.y += this.dy * 0.4;
+                this.draw();
+            }
+        }
+
+        function init(){
+            particlesArray = [];
+            // Menor densidad para no saturar con símbolos
+            let n = (canvas.height * canvas.width) / 8000;
+            for(let i=0; i<n; i++){
+                let size = (Math.random() * 20) + 10;
+                particlesArray.push(new Particle(
+                    Math.random() * innerWidth, 
+                    Math.random() * innerHeight, 
+                    (Math.random() * 1) - 0.5, 
+                    (Math.random() * 1) - 0.5, 
+                    size
+                ));
+            }
+        }
+
+        function animate(){
+            requestAnimationFrame(animate); 
+            ctx.clearRect(0, 0, innerWidth, innerHeight);
+            for(let i=0; i<particlesArray.length; i++){ particlesArray[i].update(); }
+        }
+
+        window.addEventListener('resize', ()=>{ canvas.width = innerWidth; canvas.height = innerHeight; init(); });
+        init(); animate();
+    </script>
+</body>
+</html>
