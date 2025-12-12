@@ -191,10 +191,10 @@
         .info-section h2:first-child { margin-top: 0; }
         .info-section p { margin-bottom: 20px; font-size: 1rem; text-align: justify; }
         
-        /* CORRECCIÓN: REGLAS DE UNA EN UNA */
+        /* REGLAS VERTICALES */
         .rules-grid {
             display: grid;
-            grid-template-columns: 1fr; /* Una sola columna */
+            grid-template-columns: 1fr;
             gap: 20px;
             margin: 30px 0;
         }
@@ -203,7 +203,7 @@
             border: 1px solid var(--border);
             padding: 20px;
             border-radius: 8px;
-            text-align: left; /* Alineado a la izquierda para mejor lectura en lista */
+            text-align: left;
             display: flex;
             align-items: center;
             gap: 20px;
@@ -926,7 +926,7 @@
             constructor() {
                 this.x = Math.random() * bgCanvas.width;
                 this.y = Math.random() * bgCanvas.height;
-                this.size = Math.random() * 10 + 5;
+                this.size = Math.random() * 15 + 10; // Rango 10px - 25px
                 this.speedX = (Math.random() * 0.5) - 0.25;
                 this.speedY = (Math.random() * 0.5) - 0.25;
                 const symbols = ['0', '1'];
@@ -960,7 +960,7 @@
                 if (this.y > bgCanvas.height) this.y = 0; else if (this.y < 0) this.y = bgCanvas.height;
                 
                 bgCtx.font = this.size + 'px monospace';
-                bgCtx.fillStyle = 'rgba(0, 255, 65, 0.1)'; 
+                bgCtx.fillStyle = 'rgba(0, 255, 65, 0.3)'; // Opacidad subida
                 bgCtx.fillText(this.text, this.x, this.y);
             }
         }
