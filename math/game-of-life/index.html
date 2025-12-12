@@ -81,7 +81,7 @@
             background: var(--secondary); color: #fff; box-shadow: 0 0 10px var(--secondary);
         }
 
-        /* Sliders y Selects MEJORADOS */
+        /* Sliders y Selects MEJORADOS (FIX VISIBILIDAD) */
         .input-group { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 0.9rem; }
         
         select {
@@ -90,24 +90,49 @@
         }
         select:hover { border-color: var(--primary); }
 
+        /* Estilos agresivos para el Slider para garantizar visibilidad */
         input[type="range"] {
-            -webkit-appearance: none; background: transparent; width: 120px; /* Un poco más ancho */
+            -webkit-appearance: none; 
+            background: transparent; 
+            width: 140px;
+            height: 25px; /* Altura suficiente para el thumb */
+            margin: 0;
         }
-        
-        /* Pista del slider más visible */
+        input[type="range"]:focus { outline: none; }
+
+        /* La pista (Track) */
         input[type="range"]::-webkit-slider-runnable-track {
-            width: 100%; height: 6px; cursor: pointer; 
-            background: rgba(255, 255, 255, 0.2); /* Más visible */
-            border: 1px solid rgba(255, 255, 255, 0.1); /* Borde sutil */
-            border-radius: 5px;
+            width: 100%; 
+            height: 8px; /* Más grueso */
+            cursor: pointer; 
+            background: #222; /* Fondo oscuro sólido */
+            border: 1px solid var(--primary); /* Borde verde neón */
+            border-radius: 4px;
         }
         
-        /* Thumb (el botón que se mueve) */
+        /* El botón (Thumb) */
         input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%;
-            background: var(--primary); cursor: pointer; margin-top: -6px; /* Centrado vertical */
-            box-shadow: 0 0 8px var(--primary); border: 2px solid #000;
+            -webkit-appearance: none; 
+            height: 18px; 
+            width: 18px; 
+            border-radius: 50%;
+            background: var(--primary); 
+            border: 2px solid #fff; /* Borde blanco para contraste interno */
+            cursor: pointer; 
+            margin-top: -6px; /* Centrar verticalmente respecto al track (8px height) */
+            box-shadow: 0 0 10px var(--primary);
         }
+
+        /* Firefox specific fixes */
+        input[type="range"]::-moz-range-track {
+            width: 100%; height: 8px; cursor: pointer; background: #222; 
+            border: 1px solid var(--primary); border-radius: 4px;
+        }
+        input[type="range"]::-moz-range-thumb {
+            height: 18px; width: 18px; border: 2px solid #fff; border-radius: 50%; 
+            background: var(--primary); cursor: pointer;
+        }
+
 
         /* --- VISUALIZADOR --- */
         #canvas-container {
@@ -134,22 +159,23 @@
             display: grid;
             grid-template-columns: 1fr 1.5fr 1fr; /* 3 columnas: Gen, Patrón (más ancho), Población */
             width: 100%;
-            max-width: 800px;
+            max-width: 850px;
             margin-top: 15px;
             border-top: 1px solid var(--border);
             padding-top: 10px;
+            gap: 10px;
         }
 
         .status-item {
             color: var(--highlight);
             font-family: 'Courier New', monospace;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             letter-spacing: 1px;
             text-align: center;
+            white-space: nowrap; /* Evita roturas de línea */
         }
         
-        /* En pantallas muy pequeñas, apilar */
-        @media (max-width: 600px) {
+        @media (max-width: 700px) {
             .status-container { grid-template-columns: 1fr; gap: 5px; }
         }
 
@@ -266,9 +292,9 @@
             </div>
 
             <div class="status-container">
-                <div class="status-item" id="stat-gen-display">GEN: 0</div>
+                <div class="status-item" id="stat-gen-display">GEN: 00000</div>
                 <div class="status-item" id="stat-pat-display">PATRÓN: CUSTOM</div>
-                <div class="status-item" id="stat-pop-display">POBLACIÓN: 0</div>
+                <div class="status-item" id="stat-pop-display">POBLACIÓN: 00000</div>
             </div>
         </div>
 
@@ -549,11 +575,7 @@
                 if(grid[i][j] === 0) {
                     grid[i][j] = 1;
                     population++;
-                    
-                    // --- CORRECCIÓN SOLICITADA ---
-                    // Al pintar, cambiamos el nombre a "PERSONALIZADO" (o su traducción)
                     currentPatternName = "CUSTOM"; 
-                    
                     updateStatus();
                     draw();
                 }
@@ -620,19 +642,23 @@
             }
         }
 
-        // --- FUNCIÓN ACTUALIZADA PARA GRID ---
+        // --- FUNCIÓN ACTUALIZADA (FIX JITTER) ---
         function updateStatus() {
             const t = translations[currentLang] || translations['es'];
             const patLabel = t.stat_pat || "PATRÓN";
             
-            // Si el patrón es CUSTOM o RANDOM, usamos la traducción
             let displayName = currentPatternName;
             if (currentPatternName === "CUSTOM") displayName = t.pat_custom;
             if (currentPatternName === "RANDOM") displayName = t.pat_random;
 
-            displayGen.innerText = `${t.stat_gen}: ${generation}`;
+            // FIX: Rellenar con ceros para mantener la longitud de la cadena constante (0009 vs 9)
+            // Esto elimina el "jitter" o baile del texto en la interfaz.
+            const genStr = generation.toString().padStart(5, '0');
+            const popStr = population.toString().padStart(5, '0');
+
+            displayGen.innerText = `${t.stat_gen}: ${genStr}`;
             displayPat.innerText = `${patLabel}: ${displayName}`;
-            displayPop.innerText = `${t.stat_pop}: ${population}`;
+            displayPop.innerText = `${t.stat_pop}: ${popStr}`;
         }
 
 
