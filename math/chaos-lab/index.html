@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Chaos | Graphics Labs</title>
+    <meta name="description" content="Simulación del Atractor de Lorenz y Teoría del Caos.">
+    <style>
+        /* --- ESTILOS BASE --- */
+        :root {
+            --primary: #00ff41; 
+            --primary-dim: rgba(0, 255, 65, 0.3);
+            --secondary: #bd00ff;
+            --highlight: #ffee00;
+            --glass: rgba(20, 20, 20, 0.7);
+            --glass-text: rgba(30, 30, 30, 0.8);
+            --border: rgba(255, 255, 255, 0.1);
+            --text: #ffffff;
+            --muted: #aaaaaa;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', monospace, sans-serif; }
+        
+        body {
+            background-color: #050505;
+            color: var(--text);
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            user-select: none;
+        }
+
+        #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- CONTROLES --- */
+        .controls {
+            background: var(--glass);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin: 20px auto;
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .slider-row {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .slider-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            min-width: 150px;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            outline: none;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--primary);
+            transition: 0.2s;
+        }
+        input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+        .value-display { font-family: 'Courier New', monospace; color: var(--highlight); font-weight: bold; font-size: 0.9rem; }
+
+        .buttons-row { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; margin-top: 10px; }
+
+        button.action-btn {
+            background: var(--primary); color: #000; border: none; padding: 10px 20px; border-radius: 5px;
+            cursor: pointer; font-weight: bold; transition: 0.3s; text-transform: uppercase; font-size: 0.9rem;
+        }
+        button.action-btn:hover { box-shadow: 0 0 15px var(--primary); transform: scale(1.05); }
+        
+        button.secondary-btn {
+            background: transparent; border: 1px solid var(--secondary); color: var(--secondary);
+            padding: 8px 15px; border-radius: 5px; cursor: pointer; transition: 0.3s; font-size: 0.9rem;
+            display: flex; align-items: center; gap: 5px;
+        }
+        button.secondary-btn:hover { background: var(--secondary); color: #fff; box-shadow: 0 0 15px var(--secondary); }
+
+        /* --- VISUALIZADOR --- */
+        #canvas-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        #chaos-canvas {
+            background: #000;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            box-shadow: 0 0 30px rgba(0, 255, 65, 0.1);
+            cursor: move; /* Indica que se puede rotar */
+            max-width: 100%;
+        }
+
+        /* --- INFO --- */
+        .info-section {
+            background: var(--glass-text);
+            padding: 40px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin: 40px auto;
+            max-width: 900px;
+            text-align: left;
+            line-height: 1.8;
+            color: #ddd;
+        }
+        .info-section h2 { color: var(--primary); margin-bottom: 20px; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-top: 40px; }
+        .info-section h2:first-child { margin-top: 0; }
+        .info-section p { margin-bottom: 20px; font-size: 1rem; text-align: justify; }
+
+        .dl-section { margin-top: 30px; border-top: 1px dashed var(--border); padding-top: 20px; text-align: center; }
+        .btn-txt-dl {
+            display: inline-block; background: rgba(255, 255, 255, 0.1); color: var(--muted); text-decoration: none;
+            padding: 15px 25px; border: 1px solid var(--muted); border-radius: 4px; font-family: var(--font-mono);
+            font-size: 0.9rem; transition: 0.3s; cursor: pointer;
+        }
+        .btn-txt-dl:hover { background: var(--primary); color: #000; border-color: var(--primary); box-shadow: 0 0 10px var(--primary); }
+
+        .ad-container {
+            width: 100%; max-width: 728px; margin: 30px auto; min-height: 90px;
+            display: flex; justify-content: center; align-items: center;
+            border: 1px dashed rgba(255,255,255,0.1); border-radius: 8px; background: rgba(0,0,0,0.2);
+        }
+        .ad-placeholder-text { color: var(--border); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; }
+
+        /* Nav & Footer */
+        nav { display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .nav-links { display: flex; gap: 15px; }
+        .nav-btn { text-decoration: none; color: var(--muted); font-size: 0.9rem; border: 1px solid var(--border); padding: 5px 10px; border-radius: 4px; transition: 0.3s; background: rgba(0,0,0,0.5); }
+        .nav-btn:hover { color: var(--primary); border-color: var(--primary); }
+        .logo { font-size: 1.2rem; font-weight: bold; color: var(--primary); text-decoration: none; letter-spacing: 2px; }
+        .lang-switch button { background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: var(--muted); padding: 5px 10px; cursor: pointer; border-radius: 4px; margin-left: 2px;}
+        .lang-switch button.active { background-color: var(--primary) !important; color: #000 !important; border-color: var(--primary) !important; font-weight: bold; }
+        footer { margin-top: auto; background: rgba(0,0,0,0.9); backdrop-filter: blur(5px); border-top: 1px solid var(--border); padding: 30px 20px; text-align: center; font-size: 0.8rem; color: var(--muted); display: flex; flex-direction: column; gap: 15px; align-items: center; position: relative; z-index: 20; }
+        .legal-links { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin-bottom: 10px; }
+        .legal-links a { color: var(--muted); text-decoration: none; transition: 0.3s; border-bottom: 1px solid transparent; }
+        .legal-links a:hover { color: var(--primary); border-bottom-color: var(--primary); }
+        .coffee-btn { background: linear-gradient(45deg, #FFDD00, #FBB03B); color: #000; padding: 8px 15px; border-radius: 20px; text-decoration: none; font-weight: bold; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 5px; transition: transform 0.2s; }
+        .coffee-btn:hover { transform: scale(1.05); }
+
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="container">
+        <nav>
+            <div class="nav-links">
+                <a href="../../index.html" class="nav-btn" id="nav-main">← HUB PRINCIPAL</a>
+                <a href="../index.html" class="nav-btn" id="nav-math">← HUB MATH</a>
+            </div>
+            <div class="logo">GRAPHICS LABS</div>
+            <div class="lang-switch">
+                <button onclick="setLang('es')" id="btn-es" class="active">ES</button>
+                <button onclick="setLang('ca')" id="btn-ca">CA</button>
+                <button onclick="setLang('en')" id="btn-en">EN</button>
+                <button onclick="setLang('fr')" id="btn-fr">FR</button>
+                <button onclick="setLang('de')" id="btn-de">DE</button>
+                <button onclick="setLang('pt')" id="btn-pt">PT</button>
+                <button onclick="setLang('it')" id="btn-it">IT</button>
+                <button onclick="setLang('nl')" id="btn-nl">NL</button>
+                <button onclick="setLang('ja')" id="btn-ja">JP</button>
+            </div>
+        </nav>
+
+        <h1 id="txt-title">PROYECTO CAOS</h1>
+        <p style="color:var(--muted); margin-bottom: 20px;" id="txt-desc">Simulación del Atractor de Lorenz y el Efecto Mariposa.</p>
+
+        <div class="controls">
+            
+            <div class="slider-row">
+                <div class="slider-group">
+                    <label>Sigma (σ)</label>
+                    <input type="range" id="sl-sigma" min="1" max="30" step="0.1" value="10">
+                    <div class="value-display" id="val-sigma">10.0</div>
+                </div>
+                <div class="slider-group">
+                    <label>Rho (ρ)</label>
+                    <input type="range" id="sl-rho" min="1" max="50" step="0.1" value="28">
+                    <div class="value-display" id="val-rho">28.0</div>
+                </div>
+                <div class="slider-group">
+                    <label>Beta (β)</label>
+                    <input type="range" id="sl-beta" min="0.1" max="5" step="0.1" value="2.6">
+                    <div class="value-display" id="val-beta">2.6</div>
+                </div>
+            </div>
+
+            <div class="slider-group" style="width:100%">
+                <label id="lbl-speed">Velocidad de Simulación:</label>
+                <input type="range" id="sl-speed" min="1" max="10" step="1" value="3">
+            </div>
+
+            <div class="buttons-row">
+                <button class="action-btn" onclick="restartSim()" id="btn-restart">REINICIAR</button>
+                <button class="secondary-btn" onclick="saveImage()" id="btn-save">💾 IMG</button>
+            </div>
+        </div>
+
+        <div id="canvas-container">
+            <canvas id="chaos-canvas" width="800" height="600"></canvas>
+            <p style="color:var(--muted); font-size: 0.8rem; margin-top:5px;" id="txt-note">Arrastra el ratón sobre el canvas para rotar la vista 3D.</p>
+        </div>
+
+        <div class="info-section">
+            <h2 id="info-h-chaos">La Matemática del Caos</h2>
+            <p id="info-p-chaos">
+                El Atractor de Lorenz es un conjunto de ecuaciones diferenciales desarrollado originalmente para modelar la convección atmosférica. Edward Lorenz descubrió que pequeños cambios en las condiciones iniciales (como redondear un decimal) producían resultados totalmente diferentes.
+            </p>
+
+            <h2 id="info-h-butterfly">El Efecto Mariposa</h2>
+            <p id="info-p-butterfly">
+                Esta sensibilidad extrema dio origen al término "Efecto Mariposa": la idea de que el aleteo de una mariposa en Brasil podría provocar un tornado en Texas. La forma que ves dibujándose arriba se conoce como "Atractor Extraño". Nunca se repite a sí mismo y está confinado en un volumen finito, pero tiene una longitud infinita.
+            </p>
+            
+            <div class="dl-section">
+                <h3 style="color:var(--primary); margin-bottom:15px;" id="h-dl-data">Descarga de Datos (Cálculo)</h3>
+                <p id="p-dl-data" style="font-size:0.9rem;">
+                    Descarga las coordenadas (X, Y, Z) generadas por la simulación en formato CSV para utilizarlas en software matemático externo (Excel, Matlab, Python).
+                </p>
+                <button onclick="downloadData()" class="btn-txt-dl" id="btn-dl-data">
+                    ⬇ Descargar Coordenadas (.csv)
+                </button>
+            </div>
+        </div>
+
+        <div class="ad-container"><span class="ad-placeholder-text">Ad Space</span></div>
+    </div>
+
+    <footer>
+        <div class="legal-links">
+            <a href="../../legal.html" id="link-legal">Aviso Legal</a>
+            <a href="../../privacy.html" id="link-privacy">Política de Privacidad</a>
+            <a href="../../cookies.html" id="link-cookies">Política de Cookies</a>
+            <a href="mailto:pbazan@gmail.com" id="link-contact">Contacto</a>
+        </div>
+        <span id="footer-rights">© 2025 Graphics Labs</span>
+        <a href="https://paypal.me/pbazan" target="_blank" class="coffee-btn">
+            ☕ <span id="btn-coffee">Invítame a un café</span>
+        </a>
+    </footer>
+
+    <script>
+        /* --- 1. CONFIGURACIÓN --- */
+        const canvas = document.getElementById('chaos-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let x = 0.1, y = 0, z = 0;
+        let sigma = 10;
+        let rho = 28;
+        let beta = 8/3;
+        
+        let points = [];
+        let angleX = 0; // Rotación vista
+        let angleY = 0;
+        
+        // Elementos UI
+        const slSigma = document.getElementById('sl-sigma');
+        const slRho = document.getElementById('sl-rho');
+        const slBeta = document.getElementById('sl-beta');
+        const slSpeed = document.getElementById('sl-speed');
+        
+        // Event listeners para sliders
+        slSigma.oninput = () => { sigma = parseFloat(slSigma.value); document.getElementById('val-sigma').innerText = sigma.toFixed(1); restartSim(false); };
+        slRho.oninput = () => { rho = parseFloat(slRho.value); document.getElementById('val-rho').innerText = rho.toFixed(1); restartSim(false); };
+        slBeta.oninput = () => { beta = parseFloat(slBeta.value); document.getElementById('val-beta').innerText = beta.toFixed(1); restartSim(false); };
+
+        /* --- 2. LÓGICA DE SIMULACIÓN --- */
+        function calculate() {
+            // Euler integration
+            let dt = 0.01;
+            
+            // Repetimos el cálculo varias veces por frame según la velocidad
+            const steps = parseInt(slSpeed.value) * 2;
+            
+            for(let i=0; i<steps; i++) {
+                let dx = (sigma * (y - x)) * dt;
+                let dy = (x * (rho - z) - y) * dt;
+                let dz = (x * y - beta * z) * dt;
+                
+                x = x + dx;
+                y = y + dy;
+                z = z + dz;
+                
+                points.push({x, y, z});
+                
+                // Limitar memoria (efecto estela matrix)
+                if(points.length > 3000) {
+                    points.shift();
+                }
+            }
+        }
+
+        /* --- 3. DIBUJADO (PROYECCIÓN 3D) --- */
+        function draw() {
+            // Fondo semi-transparente para efecto "trail"
+            ctx.fillStyle = "rgba(0, 0, 0, 1)"; 
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            calculate();
+
+            ctx.lineWidth = 1.5;
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2 + 50; // Bajamos un poco el centro
+            const scale = 12;
+
+            if (points.length < 2) {
+                requestAnimationFrame(draw);
+                return;
+            }
+
+            ctx.beginPath();
+            
+            for (let i = 0; i < points.length - 1; i++) {
+                let p = points[i];
+                let nextP = points[i+1];
+
+                // Rotación 3D simple
+                let rotX = p.x * Math.cos(angleY) - p.z * Math.sin(angleY);
+                let rotZ = p.x * Math.sin(angleY) + p.z * Math.cos(angleY);
+                let rotY = p.y * Math.cos(angleX) - rotZ * Math.sin(angleX);
+                
+                let nRotX = nextP.x * Math.cos(angleY) - nextP.z * Math.sin(angleY);
+                let nRotZ = nextP.x * Math.sin(angleY) + nextP.z * Math.cos(angleY);
+                let nRotY = nextP.y * Math.cos(angleX) - nRotZ * Math.sin(angleX);
+
+                // Proyección 2D
+                let px = cx + rotX * scale;
+                let py = cy - rotY * scale; // Invertir Y para canvas
+                
+                let npx = cx + nRotX * scale;
+                let npy = cy - nRotY * scale;
+
+                // Color dinámico (Gradiente Verde a Morado según índice)
+                // i/points.length va de 0 a 1
+                let ratio = i / points.length;
+                
+                // Mezcla de colores:
+                // Inicio (Verde): 0, 255, 65
+                // Fin (Morado): 189, 0, 255
+                let rVal = 0 + ratio * (189 - 0);
+                let gVal = 255 + ratio * (0 - 255);
+                let bVal = 65 + ratio * (255 - 65);
+                
+                ctx.strokeStyle = `rgb(${rVal},${gVal},${bVal})`;
+                
+                // Dibujamos segmento a segmento para mantener el color
+                ctx.beginPath();
+                ctx.moveTo(px, py);
+                ctx.lineTo(npx, npy);
+                ctx.stroke();
+            }
+
+            requestAnimationFrame(draw);
+        }
+
+        /* --- 4. INTERACTIVIDAD --- */
+        let isDragging = false;
+        let lastMouseX = 0, lastMouseY = 0;
+
+        canvas.addEventListener('mousedown', e => { isDragging = true; lastMouseX = e.offsetX; lastMouseY = e.offsetY; });
+        window.addEventListener('mouseup', () => isDragging = false);
+        canvas.addEventListener('mousemove', e => {
+            if(isDragging) {
+                const dx = e.offsetX - lastMouseX;
+                const dy = e.offsetY - lastMouseY;
+                angleY += dx * 0.01;
+                angleX += dy * 0.01;
+                lastMouseX = e.offsetX;
+                lastMouseY = e.offsetY;
+            }
+        });
+
+        function restartSim(clear = true) {
+            x = 0.1; y = 0; z = 0;
+            if(clear) points = [];
+        }
+
+        function saveImage() {
+            const link = document.createElement('a');
+            link.download = 'chaos_lorenz_attractor.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        function downloadData() {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Step,X,Y,Z\n";
+            
+            // Descargamos los últimos 1000 puntos para no colgar el navegador
+            const limit = Math.min(points.length, 5000);
+            for(let i = 0; i < limit; i++){
+                let row = `${i},${points[i].x.toFixed(4)},${points[i].y.toFixed(4)},${points[i].z.toFixed(4)}`;
+                csvContent += row + "\r\n";
+            }
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "lorenz_data.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        /* --- 5. MULTI-IDIOMA --- */
+        const translations = {
+            'es': {
+                nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH",
+                title: "PROYECTO CAOS", desc: "Simulación del Atractor de Lorenz y el Efecto Mariposa.",
+                lbl_speed: "Velocidad de Simulación:", btn_restart: "REINICIAR", btn_save: "💾 IMG",
+                txt_note: "Arrastra el ratón sobre el canvas para rotar la vista 3D.",
+                h_chaos: "La Matemática del Caos",
+                p_chaos: "El Atractor de Lorenz es un conjunto de ecuaciones diferenciales desarrollado para modelar la convección atmosférica. Edward Lorenz descubrió que pequeños cambios en las condiciones iniciales (como redondear un decimal) producían resultados totalmente diferentes.",
+                h_butterfly: "El Efecto Mariposa",
+                p_butterfly: "Esta sensibilidad extrema dio origen al término 'Efecto Mariposa'. La forma que ves dibujándose arriba se conoce como 'Atractor Extraño'. Nunca se repite a sí mismo y está confinado en un volumen finito, pero tiene una longitud infinita.",
+                h_dl_data: "Descarga de Datos (Cálculo)",
+                p_dl_data: "Descarga las coordenadas (X, Y, Z) generadas por la simulación en formato CSV para utilizarlas en software matemático externo.",
+                btn_dl_data: "⬇ Descargar Coordenadas (.csv)",
+                legal: "Aviso Legal", privacy: "Privacidad", cookies: "Cookies", contact: "Contacto", coffee: "Invítame a un café", rights: "© 2025 Graphics Labs"
+            },
+            'en': {
+                nav_main: "← MAIN HUB", nav_math: "← MATH HUB",
+                title: "PROJECT CHAOS", desc: "Lorenz Attractor Simulation and the Butterfly Effect.",
+                lbl_speed: "Simulation Speed:", btn_restart: "RESTART", btn_save: "💾 IMG",
+                txt_note: "Drag mouse over canvas to rotate the 3D view.",
+                h_chaos: "The Mathematics of Chaos",
+                p_chaos: "The Lorenz Attractor is a set of differential equations originally developed to model atmospheric convection. Edward Lorenz discovered that tiny changes in initial conditions (like rounding a decimal) produced vastly different results.",
+                h_butterfly: "The Butterfly Effect",
+                p_butterfly: "This extreme sensitivity gave rise to the term 'Butterfly Effect'. The shape you see drawing above is known as a 'Strange Attractor'. It never repeats itself and is confined within a finite volume, yet has infinite length.",
+                h_dl_data: "Data Download (Calculus)",
+                p_dl_data: "Download the (X, Y, Z) coordinates generated by the simulation in CSV format for use in external mathematical software.",
+                btn_dl_data: "⬇ Download Coordinates (.csv)",
+                legal: "Legal Notice", privacy: "Privacy Policy", cookies: "Cookies", contact: "Contact", coffee: "Buy me a coffee", rights: "© 2025 Graphics Labs"
+            },
+            'ca': {
+                nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH",
+                title: "PROJECTE CAOS", desc: "Simulació de l'Atractor de Lorenz i l'Efecte Papallona.",
+                lbl_speed: "Velocitat de Simulació:", btn_restart: "REINICIAR", btn_save: "💾 IMG",
+                txt_note: "Arrossega el ratolí sobre el canvas per rotar la vista 3D.",
+                h_chaos: "La Matemàtica del Caos",
+                p_chaos: "L'Atractor de Lorenz és un conjunt d'equacions diferencials desenvolupat per modelar la convecció atmosfèrica. Edward Lorenz va descobrir que petits canvis en les condicions inicials produïen resultats totalment diferents.",
+                h_butterfly: "L'Efecte Papallona",
+                p_butterfly: "Aquesta sensibilitat extrema va donar origen al terme 'Efecte Papallona'. La forma que veus dibuixant-se a dalt es coneix com 'Atractor Estrany'. Mai es repeteix a si mateix i està confinat en un volum finit, però té una longitud infinita.",
+                h_dl_data: "Descàrrega de Dades (Càlcul)",
+                p_dl_data: "Descarrega les coordenades (X, Y, Z) generades per la simulació en format CSV per utilitzar-les en programari matemàtic extern.",
+                btn_dl_data: "⬇ Descarregar Coordenades (.csv)",
+                legal: "Avís Legal", privacy: "Privacitat", cookies: "Cookies", contact: "Contacte", coffee: "Convida'm a un cafè", rights: "© 2025 Graphics Labs"
+            },
+            'fr': {
+                nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH",
+                title: "PROJET CHAOS", desc: "Simulation de l'Attracteur de Lorenz et Effet Papillon.",
+                lbl_speed: "Vitesse de Simulation:", btn_restart: "REDÉMARRER", btn_save: "💾 IMG",
+                txt_note: "Faites glisser la souris sur le canevas pour faire pivoter la vue 3D.",
+                h_chaos: "Les Mathématiques du Chaos",
+                p_chaos: "L'attracteur de Lorenz est un ensemble d'équations différentielles développé pour modéliser la convection atmosphérique. Edward Lorenz a découvert que de minuscules changements produisaient des résultats totalement différents.",
+                h_butterfly: "L'Effet Papillon",
+                p_butterfly: "Cette sensibilité extrême a donné naissance au terme 'Effet Papillon'. La forme que vous voyez ci-dessus est connue sous le nom d'Attracteur Étrange. Il ne se répète jamais et est confiné dans un volume fini, mais a une longueur infinie.",
+                h_dl_data: "Téléchargement de Données",
+                p_dl_data: "Téléchargez les coordonnées (X, Y, Z) générées par la simulation au format CSV pour les utiliser dans un logiciel mathématique externe.",
+                btn_dl_data: "⬇ Télécharger Coordonnées (.csv)",
+                legal: "Mentions Légales", privacy: "Confidentialité", cookies: "Cookies", contact: "Contact", coffee: "Offrez-moi un café", rights: "© 2025 Graphics Labs"
+            },
+            'de': {
+                nav_main: "← HAUPT-HUB", nav_math: "← MATH HUB",
+                title: "PROJEKT CHAOS", desc: "Lorenz-Attraktor-Simulation und der Schmetterlingseffekt.",
+                lbl_speed: "Simulationsgeschwindigkeit:", btn_restart: "NEUSTART", btn_save: "💾 IMG",
+                txt_note: "Ziehen Sie die Maus über die Leinwand, um die 3D-Ansicht zu drehen.",
+                h_chaos: "Die Mathematik des Chaos",
+                p_chaos: "Der Lorenz-Attraktor ist ein Satz von Differentialgleichungen. Edward Lorenz entdeckte, dass winzige Änderungen der Anfangsbedingungen (wie das Runden einer Dezimalstelle) völlig unterschiedliche Ergebnisse lieferten.",
+                h_butterfly: "Der Schmetterlingseffekt",
+                p_butterfly: "Diese extreme Empfindlichkeit führte zum Begriff 'Schmetterlingseffekt'. Die Form oben ist als 'Seltsamer Attraktor' bekannt. Er wiederholt sich nie und ist in einem endlichen Volumen begrenzt, hat aber eine unendliche Länge.",
+                h_dl_data: "Daten-Download",
+                p_dl_data: "Laden Sie die (X, Y, Z) Koordinaten im CSV-Format herunter, um sie in externer mathematischer Software zu verwenden.",
+                btn_dl_data: "⬇ Koordinaten herunterladen (.csv)",
+                legal: "Impressum", privacy: "Datenschutz", cookies: "Cookies", contact: "Kontakt", coffee: "Kauf mir einen Kaffee", rights: "© 2025 Graphics Labs"
+            },
+            'pt': {
+                nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH",
+                title: "PROJETO CAOS", desc: "Simulação do Atrator de Lorenz e o Efeito Borboleta.",
+                lbl_speed: "Velocidade da Simulação:", btn_restart: "REINICIAR", btn_save: "💾 IMG",
+                txt_note: "Arraste o mouse sobre o canvas para girar a visualização 3D.",
+                h_chaos: "A Matemática do Caos",
+                p_chaos: "O Atrator de Lorenz é um conjunto de equações diferenciais. Edward Lorenz descobriu que pequenas mudanças nas condições iniciais produziam resultados totalmente diferentes.",
+                h_butterfly: "O Efeito Borboleta",
+                p_butterfly: "Essa sensibilidade extrema deu origem ao termo 'Efeito Borboleta'. A forma que você vê desenhando acima é conhecida como 'Atrator Estranho'. Nunca se repete e está confinado em um volume finito, mas tem comprimento infinito.",
+                h_dl_data: "Download de Dados",
+                p_dl_data: "Baixe as coordenadas (X, Y, Z) geradas pela simulação em formato CSV para uso em software matemático externo.",
+                btn_dl_data: "⬇ Baixar Coordenadas (.csv)",
+                legal: "Aviso Legal", privacy: "Privacidade", cookies: "Cookies", contact: "Contato", coffee: "Pagar um café", rights: "© 2025 Graphics Labs"
+            },
+            'it': {
+                nav_main: "← HUB PRINCIPALE", nav_math: "← HUB MATH",
+                title: "PROGETTO CAOS", desc: "Simulazione dell'Attrattore di Lorenz ed Effetto Farfalla.",
+                lbl_speed: "Velocità di Simulazione:", btn_restart: "RIAVVIA", btn_save: "💾 IMG",
+                txt_note: "Trascina il mouse sulla tela per ruotare la vista 3D.",
+                h_chaos: "La Matematica del Caos",
+                p_chaos: "L'Attrattore di Lorenz è un insieme di equazioni differenziali. Edward Lorenz scoprì che piccoli cambiamenti nelle condizioni iniziali producevano risultati totalmente diversi.",
+                h_butterfly: "L'Effetto Farfalla",
+                p_butterfly: "Questa estrema sensibilità ha dato origine al termine 'Effetto Farfalla'. La forma che vedi sopra è nota come 'Attrattore Strano'. Non si ripete mai ed è confinato in un volume finito, ma ha una lunghezza infinita.",
+                h_dl_data: "Download Dati",
+                p_dl_data: "Scarica le coordinate (X, Y, Z) generate dalla simulazione in formato CSV per utilizzarle in software matematici esterni.",
+                btn_dl_data: "⬇ Scarica Coordinate (.csv)",
+                legal: "Note Legali", privacy: "Privacy", cookies: "Cookies", contact: "Contatto", coffee: "Offrimi un caffè", rights: "© 2025 Graphics Labs"
+            },
+            'nl': {
+                nav_main: "← HOOFDHUB", nav_math: "← MATH HUB",
+                title: "PROJECT CHAOS", desc: "Lorenz Attractor Simulatie en het Vlinder Effect.",
+                lbl_speed: "Simulatiesnelheid:", btn_restart: "HERSTARTEN", btn_save: "💾 IMG",
+                txt_note: "Sleep de muis over het canvas om de 3D-weergave te draaien.",
+                h_chaos: "De Wiskunde van Chaos",
+                p_chaos: "De Lorenz-attractor is een set differentiaalvergelijkingen. Edward Lorenz ontdekte dat kleine veranderingen in de beginvoorwaarden totaal verschillende resultaten opleverden.",
+                h_butterfly: "Het Vlindereffect",
+                p_butterfly: "Deze extreme gevoeligheid gaf aanleiding tot de term 'Vlindereffect'. De vorm die je hierboven ziet, staat bekend als een 'Vreemde Attractor'. Hij herhaalt zichzelf nooit en is beperkt tot een eindig volume.",
+                h_dl_data: "Gegevens Downloaden",
+                p_dl_data: "Download de (X, Y, Z) coördinaten gegenereerd door de simulatie in CSV-formaat.",
+                btn_dl_data: "⬇ Download Coördinaten (.csv)",
+                legal: "Juridisch", privacy: "Privacy", cookies: "Cookies", contact: "Contact", coffee: "Koop koffie", rights: "© 2025 Graphics Labs"
+            },
+            'ja': {
+                nav_main: "← メインハブ", nav_math: "← 数学ハブ",
+                title: "プロジェクト・カオス", desc: "ローレンツ・アトラクタのシミュレーションとバタフライ効果。",
+                lbl_speed: "シミュレーション速度:", btn_restart: "再起動", btn_save: "💾 画像保存",
+                txt_note: "キャンバス上でマウスをドラッグして3Dビューを回転させます。",
+                h_chaos: "カオスの数学",
+                p_chaos: "ローレンツ・アトラクタは、大気対流をモデル化するために開発された微分方程式のセットです。エドワード・ローレンツは、初期条件のわずかな変化が全く異なる結果を生み出すことを発見しました。",
+                h_butterfly: "バタフライ効果",
+                p_butterfly: "この極端な感度は「バタフライ効果」という言葉を生み出しました。上に描かれている形は「ストレンジ・アトラクタ」として知られています。それは決して繰り返されず、有限の体積内に閉じ込められていますが、無限の長さを持っています。",
+                h_dl_data: "データダウンロード",
+                p_dl_data: "外部の数学ソフトウェアで使用するために、シミュレーションによって生成された（X、Y、Z）座標をCSV形式でダウンロードします。",
+                btn_dl_data: "⬇ 座標をDL (.csv)",
+                legal: "法的通知", privacy: "プライバシー", cookies: "クッキー", contact: "連絡先", coffee: "コーヒーを奢る", rights: "© 2025 Graphics Labs"
+            }
+        };
+
+        let currentLang = 'es';
+        function setLang(lang) {
+            localStorage.setItem('gl_lang', lang);
+            currentLang = lang;
+            const t = translations[lang] || translations['es'];
+            
+            document.getElementById('nav-main').innerText = t.nav_main;
+            document.getElementById('nav-math').innerText = t.nav_math;
+            document.getElementById('txt-title').innerText = t.title;
+            document.getElementById('txt-desc').innerText = t.desc;
+            
+            document.getElementById('lbl-speed').innerText = t.lbl_speed;
+            document.getElementById('btn-restart').innerText = t.btn_restart;
+            document.getElementById('btn-save').innerText = t.btn_save;
+            document.getElementById('txt-note').innerText = t.txt_note;
+
+            document.getElementById('info-h-chaos').innerText = t.h_chaos;
+            document.getElementById('info-p-chaos').innerText = t.p_chaos;
+            document.getElementById('info-h-butterfly').innerText = t.h_butterfly;
+            document.getElementById('info-p-butterfly').innerText = t.p_butterfly;
+            
+            document.getElementById('h-dl-data').innerText = t.h_dl_data;
+            document.getElementById('p-dl-data').innerText = t.p_dl_data;
+            document.getElementById('btn-dl-data').innerText = t.btn_dl_data;
+
+            document.getElementById('link-legal').innerText = t.legal;
+            document.getElementById('link-privacy').innerText = t.privacy;
+            document.getElementById('link-cookies').innerText = t.cookies;
+            document.getElementById('link-contact').innerText = t.contact;
+            document.getElementById('btn-coffee').innerText = t.coffee;
+            document.getElementById('footer-rights').innerText = t.rights;
+
+            document.querySelectorAll('.lang-switch button').forEach(b => {
+                b.classList.remove('active');
+                if(b.id === 'btn-' + lang) b.classList.add('active');
+            });
+        }
+
+        /* --- FONDO ANIMADO --- */
+        const bgCanvas = document.getElementById('bg-canvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        let particlesArray = [];
+        
+        function resizeBg() { bgCanvas.width = window.innerWidth; bgCanvas.height = window.innerHeight; }
+        window.addEventListener('resize', () => { resizeBg(); initParticles(); });
+        resizeBg();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * bgCanvas.width;
+                this.y = Math.random() * bgCanvas.height;
+                this.size = Math.random() * 12 + 8;
+                this.speedX = (Math.random() * 1) - 0.5;
+                this.speedY = (Math.random() * 1) - 0.5;
+                // Símbolos de cálculo y caos
+                const symbols = ['∫', 'dx', 'dy', 'dt', 'σ', 'ρ', 'β', '∆', '∞'];
+                this.text = symbols[Math.floor(Math.random() * symbols.length)];
+            }
+            draw() {
+                bgCtx.font = this.size + 'px monospace';
+                bgCtx.fillStyle = 'rgba(0, 255, 65, 0.1)'; 
+                bgCtx.fillText(this.text, this.x, this.y);
+            }
+            update() {
+                this.x += this.speedX; this.y += this.speedY;
+                if (this.x > bgCanvas.width) this.x = 0; if (this.x < 0) this.x = bgCanvas.width;
+                if (this.y > bgCanvas.height) this.y = 0; if (this.y < 0) this.y = bgCanvas.height;
+                this.draw();
+            }
+        }
+
+        function initParticles() {
+            particlesArray = [];
+            let n = (bgCanvas.height * bgCanvas.width) / 9000;
+            for (let i = 0; i < n; i++) particlesArray.push(new Particle());
+        }
+        function animateParticles() {
+            bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+            for (let i = 0; i < particlesArray.length; i++) particlesArray[i].update();
+            requestAnimationFrame(animateParticles);
+        }
+        initParticles(); animateParticles();
+
+        // INIT
+        const savedLang = localStorage.getItem('gl_lang') || 'es';
+        setLang(savedLang);
+        requestAnimationFrame(draw);
+
+    </script>
+</body>
+</html>
