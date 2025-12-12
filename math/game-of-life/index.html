@@ -77,12 +77,11 @@
         }
         button.secondary-btn:hover { background: var(--secondary); color: #fff; box-shadow: 0 0 15px var(--secondary); }
         
-        /* Botón activo para modo color */
         button.secondary-btn.active-mode {
             background: var(--secondary); color: #fff; box-shadow: 0 0 10px var(--secondary);
         }
 
-        /* Sliders y Selects */
+        /* Sliders y Selects MEJORADOS */
         .input-group { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 0.9rem; }
         
         select {
@@ -92,14 +91,22 @@
         select:hover { border-color: var(--primary); }
 
         input[type="range"] {
-            -webkit-appearance: none; background: transparent; width: 100px;
+            -webkit-appearance: none; background: transparent; width: 120px; /* Un poco más ancho */
         }
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none; height: 15px; width: 15px; border-radius: 50%;
-            background: var(--primary); cursor: pointer; margin-top: -5px; box-shadow: 0 0 5px var(--primary);
-        }
+        
+        /* Pista del slider más visible */
         input[type="range"]::-webkit-slider-runnable-track {
-            width: 100%; height: 5px; cursor: pointer; background: var(--border); border-radius: 5px;
+            width: 100%; height: 6px; cursor: pointer; 
+            background: rgba(255, 255, 255, 0.2); /* Más visible */
+            border: 1px solid rgba(255, 255, 255, 0.1); /* Borde sutil */
+            border-radius: 5px;
+        }
+        
+        /* Thumb (el botón que se mueve) */
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%;
+            background: var(--primary); cursor: pointer; margin-top: -6px; /* Centrado vertical */
+            box-shadow: 0 0 8px var(--primary); border: 2px solid #000;
         }
 
         /* --- VISUALIZADOR --- */
@@ -122,13 +129,28 @@
             image-rendering: pixelated; 
         }
 
-        .status-text {
+        /* --- BARRA DE ESTADO (GRID PARA EVITAR SALTOS) --- */
+        .status-container {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr 1fr; /* 3 columnas: Gen, Patrón (más ancho), Población */
+            width: 100%;
+            max-width: 800px;
+            margin-top: 15px;
+            border-top: 1px solid var(--border);
+            padding-top: 10px;
+        }
+
+        .status-item {
             color: var(--highlight);
             font-family: 'Courier New', monospace;
-            margin-top: 10px;
-            height: 20px;
             font-size: 0.85rem;
             letter-spacing: 1px;
+            text-align: center;
+        }
+        
+        /* En pantallas muy pequeñas, apilar */
+        @media (max-width: 600px) {
+            .status-container { grid-template-columns: 1fr; gap: 5px; }
         }
 
         /* --- INFO --- */
@@ -243,7 +265,11 @@
                 </div>
             </div>
 
-            <div class="status-text" id="status-display">GEN: 0 | POBLACIÓN: 0 | PATRÓN: CUSTOM</div>
+            <div class="status-container">
+                <div class="status-item" id="stat-gen-display">GEN: 0</div>
+                <div class="status-item" id="stat-pat-display">PATRÓN: CUSTOM</div>
+                <div class="status-item" id="stat-pop-display">POBLACIÓN: 0</div>
+            </div>
         </div>
 
         <div id="canvas-container">
@@ -311,7 +337,11 @@
         /* --- 1. CONFIGURACIÓN DEL JUEGO --- */
         const canvas = document.getElementById('life-canvas');
         const ctx = canvas.getContext('2d');
-        const statusDisplay = document.getElementById('status-display');
+        
+        // Elementos de estado por separado
+        const displayGen = document.getElementById('stat-gen-display');
+        const displayPat = document.getElementById('stat-pat-display');
+        const displayPop = document.getElementById('stat-pop-display');
         
         let resolution = 10; 
         let cols, rows;
@@ -323,11 +353,9 @@
         let speed = 30;
         let lastFrameTime = 0;
         
-        // Nuevas variables para las mejoras
         let isColorMode = false;
         let currentPatternName = "CUSTOM";
 
-        // Ajustar tamaño del canvas
         function resizeCanvas() {
             const maxWidth = Math.min(window.innerWidth - 40, 800);
             const height = 500;
@@ -406,24 +434,20 @@
             ctx.stroke();
 
             // Células
-            ctx.shadowBlur = isColorMode ? 15 : 10; // Más brillo en modo color
+            ctx.shadowBlur = isColorMode ? 15 : 10; 
 
             for (let i = 0; i < cols; i++) {
                 for (let j = 0; j < rows; j++) {
                     if (grid[i][j] == 1) {
-                        
                         if (isColorMode) {
-                            // Color dinámico basado en posición y generación (Efecto Arcoiris)
                             const hue = (generation * 2 + (i * 3) + (j * 3)) % 360;
                             const color = `hsl(${hue}, 100%, 50%)`;
                             ctx.fillStyle = color;
                             ctx.shadowColor = color;
                         } else {
-                            // Clásico Matrix
                             ctx.fillStyle = '#00f341'; 
                             ctx.shadowColor = '#00f341';
                         }
-
                         ctx.fillRect(i * resolution + 1, j * resolution + 1, resolution - 1, resolution - 1);
                     }
                 }
@@ -525,7 +549,11 @@
                 if(grid[i][j] === 0) {
                     grid[i][j] = 1;
                     population++;
-                    currentPatternName = "CUSTOM"; // Si dibuja, ya es custom
+                    
+                    // --- CORRECCIÓN SOLICITADA ---
+                    // Al pintar, cambiamos el nombre a "PERSONALIZADO" (o su traducción)
+                    currentPatternName = "CUSTOM"; 
+                    
                     updateStatus();
                     draw();
                 }
@@ -545,7 +573,6 @@
         function loadPattern(type, name) {
             if(type === 'none') return;
             
-            // Limpiar pero mantener dimensiones
             grid = make2DArray(cols, rows);
             generation = 0;
             population = 0;
@@ -583,7 +610,7 @@
             
             draw();
             updateStatus();
-            document.getElementById('pattern-select').value = 'none'; // Reset UX
+            document.getElementById('pattern-select').value = 'none'; 
         }
 
         function safeSet(x, y) {
@@ -593,10 +620,19 @@
             }
         }
 
+        // --- FUNCIÓN ACTUALIZADA PARA GRID ---
         function updateStatus() {
             const t = translations[currentLang] || translations['es'];
             const patLabel = t.stat_pat || "PATRÓN";
-            statusDisplay.innerText = `${t.stat_gen}: ${generation} | ${t.stat_pop}: ${population} | ${patLabel}: ${currentPatternName}`;
+            
+            // Si el patrón es CUSTOM o RANDOM, usamos la traducción
+            let displayName = currentPatternName;
+            if (currentPatternName === "CUSTOM") displayName = t.pat_custom;
+            if (currentPatternName === "RANDOM") displayName = t.pat_random;
+
+            displayGen.innerText = `${t.stat_gen}: ${generation}`;
+            displayPat.innerText = `${patLabel}: ${displayName}`;
+            displayPop.innerText = `${t.stat_pop}: ${population}`;
         }
 
 
@@ -610,6 +646,7 @@
                 lbl_speed: "Velocidad:", lbl_pattern: "Cargar Patrón:", opt_select: "- Seleccionar -",
                 txt_note: "Haz clic o arrastra el mouse sobre la rejilla para dar vida a las células.",
                 stat_gen: "GEN", stat_pop: "POBLACIÓN", stat_pat: "PATRÓN",
+                pat_custom: "PERSONALIZADO", pat_random: "ALEATORIO",
                 h_what: "¿Qué es el Juego de la Vida?",
                 p_what: "Diseñado por John Conway en 1970, es un 'juego de cero jugadores'. Tú determinas el estado inicial y observas cómo reglas simples crean complejidad infinita.",
                 h_rules: "Las 4 Reglas Sagradas",
@@ -630,6 +667,7 @@
                 lbl_speed: "Speed:", lbl_pattern: "Load Pattern:", opt_select: "- Select -",
                 txt_note: "Click or drag on the grid to bring cells to life.",
                 stat_gen: "GEN", stat_pop: "POPULATION", stat_pat: "PATTERN",
+                pat_custom: "CUSTOM", pat_random: "RANDOM",
                 h_what: "What is the Game of Life?",
                 p_what: "Designed by John Conway in 1970, it is a 'zero-player game'. You set the initial state and watch how simple rules create infinite complexity.",
                 h_rules: "The 4 Sacred Rules",
@@ -650,6 +688,7 @@
                 lbl_speed: "Velocitat:", lbl_pattern: "Carregar Patró:", opt_select: "- Seleccionar -",
                 txt_note: "Fes clic o arrossega el ratolí sobre la graella per donar vida a les cèl·lules.",
                 stat_gen: "GEN", stat_pop: "POBLACIÓ", stat_pat: "PATRÓ",
+                pat_custom: "PERSONALITZAT", pat_random: "ALEATORI",
                 h_what: "Què és el Joc de la Vida?",
                 p_what: "Dissenyat per John Conway el 1970, és un 'joc de zero jugadors'. Tu determines l'estat inicial i observes com regles simples creen complexitat infinita.",
                 h_rules: "Les 4 Regles Sagrades",
@@ -670,6 +709,7 @@
                 lbl_speed: "Vitesse :", lbl_pattern: "Charger Motif :", opt_select: "- Sélectionner -",
                 txt_note: "Cliquez ou glissez sur la grille pour donner vie aux cellules.",
                 stat_gen: "GÉN", stat_pop: "POPULATION", stat_pat: "MOTIF",
+                pat_custom: "PERSONNALISÉ", pat_random: "ALÉATOIRE",
                 h_what: "Qu'est-ce que le Jeu de la Vie ?",
                 p_what: "Conçu par John Conway en 1970, c'est un 'jeu à zéro joueur'. Vous définissez l'état initial et observez comment des règles simples créent une complexité infinie.",
                 h_rules: "Les 4 Règles Sacrées",
@@ -690,6 +730,7 @@
                 lbl_speed: "Geschw.:", lbl_pattern: "Muster laden:", opt_select: "- Wählen -",
                 txt_note: "Klicken oder ziehen Sie auf dem Raster, um Zellen zum Leben zu erwecken.",
                 stat_gen: "GEN", stat_pop: "POPULATION", stat_pat: "MUSTER",
+                pat_custom: "BENUTZER", pat_random: "ZUFALL",
                 h_what: "Was ist das Spiel des Lebens?",
                 p_what: "Entworfen von John Conway im Jahr 1970. Du bestimmst den Anfangszustand und beobachtest, wie einfache Regeln unendliche Komplexität erzeugen.",
                 h_rules: "Die 4 Heiligen Regeln",
@@ -710,6 +751,7 @@
                 lbl_speed: "Velocidade:", lbl_pattern: "Carregar Padrão:", opt_select: "- Selecionar -",
                 txt_note: "Clique ou arraste na grade para dar vida às células.",
                 stat_gen: "GER", stat_pop: "POPULAÇÃO", stat_pat: "PADRÃO",
+                pat_custom: "PERSONALIZADO", pat_random: "ALEATÓRIO",
                 h_what: "O que é o Jogo da Vida?",
                 p_what: "Projetado por John Conway em 1970. Você define o estado inicial e observa como regras simples criam complexidade infinita.",
                 h_rules: "As 4 Regras Sagradas",
@@ -730,6 +772,7 @@
                 lbl_speed: "Velocità:", lbl_pattern: "Carica Pattern:", opt_select: "- Seleziona -",
                 txt_note: "Clicca o trascina sulla griglia per dare vita alle cellule.",
                 stat_gen: "GEN", stat_pop: "POPOLAZIONE", stat_pat: "PATTERN",
+                pat_custom: "PERSONALIZZATO", pat_random: "CASUALE",
                 h_what: "Cos'è il Gioco della Vita?",
                 p_what: "Progettato da John Conway nel 1970. Tu determini lo stato iniziale e osservi come regole semplici creano complessità infinita.",
                 h_rules: "Le 4 Regole Sacre",
@@ -750,6 +793,7 @@
                 lbl_speed: "Snelheid:", lbl_pattern: "Patroon Laden:", opt_select: "- Selecteer -",
                 txt_note: "Klik of sleep op het rooster om cellen tot leven te wekken.",
                 stat_gen: "GEN", stat_pop: "BEVOLKING", stat_pat: "PATROON",
+                pat_custom: "AANGEPAST", pat_random: "WILLEKEURIG",
                 h_what: "Wat is de Game of Life?",
                 p_what: "Ontworpen door John Conway in 1970. Je bepaalt de beginstatus en ziet hoe eenvoudige regels oneindige complexiteit creëren.",
                 h_rules: "De 4 Heilige Regels",
@@ -770,6 +814,7 @@
                 lbl_speed: "速度:", lbl_pattern: "パターン読込:", opt_select: "- 選択 -",
                 txt_note: "グリッドをクリックまたはドラッグして細胞に命を吹き込みます。",
                 stat_gen: "世代", stat_pop: "人口", stat_pat: "パターン",
+                pat_custom: "カスタム", pat_random: "ランダム",
                 h_what: "ライフゲームとは？",
                 p_what: "1970年にジョン・コンウェイによって設計されました。初期状態を決定し、単純なルールが無限の複雑さを生み出す様子を観察します。",
                 h_rules: "4つの聖なるルール",
@@ -793,7 +838,6 @@
             currentLang = lang;
             const t = translations[lang] || translations['es'];
             
-            // Text updates
             document.getElementById('nav-main').innerText = t.nav_main;
             document.getElementById('nav-math').innerText = t.nav_math;
             document.getElementById('txt-title').innerText = t.title;
@@ -823,20 +867,18 @@
             document.getElementById('info-h-math').innerText = t.h_math;
             document.getElementById('info-p-math').innerText = t.p_math;
 
-            // Footer
             document.getElementById('link-legal').innerText = t.legal;
             document.getElementById('link-privacy').innerText = t.privacy;
             document.getElementById('link-cookies').innerText = t.cookies;
             document.getElementById('link-contact').innerText = t.contact;
             document.getElementById('btn-coffee').innerText = t.coffee;
 
-            // Buttons Highlight
             document.querySelectorAll('.lang-switch button').forEach(b => {
                 b.classList.remove('active');
                 if(b.id === 'btn-' + lang) b.classList.add('active');
             });
 
-            updateStatus(); // Refresh stats text
+            updateStatus(); 
         }
 
         /* --- 7. BACKGROUND ANIMATION --- */
