@@ -133,7 +133,7 @@
             border: 1px solid var(--border);
             border-radius: 4px;
             box-shadow: 0 0 30px rgba(0, 255, 65, 0.1);
-            cursor: move; /* Indica que se puede rotar */
+            cursor: move; 
             max-width: 100%;
         }
 
@@ -152,6 +152,23 @@
         .info-section h2 { color: var(--primary); margin-bottom: 20px; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-top: 40px; }
         .info-section h2:first-child { margin-top: 0; }
         .info-section p { margin-bottom: 20px; font-size: 1rem; text-align: justify; }
+        
+        .info-section ul { list-style-type: none; margin-bottom: 20px; padding-left: 10px; }
+        .info-section li { margin-bottom: 10px; border-left: 2px solid var(--primary-dim); padding-left: 15px; }
+        .info-section strong { color: var(--text); }
+
+        /* Estilo para las ecuaciones */
+        .math-box {
+            background: rgba(0,0,0,0.5);
+            border-left: 4px solid var(--primary);
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            color: var(--primary);
+            font-size: 1.1rem;
+            line-height: 1.6;
+            text-align: center;
+        }
 
         .dl-section { margin-top: 30px; border-top: 1px dashed var(--border); padding-top: 20px; text-align: center; }
         .btn-txt-dl {
@@ -249,20 +266,44 @@
         </div>
 
         <div class="info-section">
-            <h2 id="info-h-chaos">La Matemática del Caos</h2>
-            <p id="info-p-chaos">
-                El Atractor de Lorenz es un conjunto de ecuaciones diferenciales desarrollado originalmente para modelar la convección atmosférica. Edward Lorenz descubrió que pequeños cambios en las condiciones iniciales (como redondear un decimal) producían resultados totalmente diferentes.
+            <h2 id="info-h-history">La Historia: Un "Error" Meteorológico</h2>
+            <p id="info-p-history">
+                En 1963, Edward Lorenz, un meteorólogo del MIT, intentaba predecir el clima con una computadora primitiva. Un día, repitió una simulación introduciendo 0.506 en lugar de 0.506127. Pensó que esa milésima no importaría, pero al volver del café, la simulación era totalmente distinta. Acababa de descubrir el Caos Determinista: sistemas donde reglas exactas producen resultados impredecibles si cambias mínimamente el inicio.
             </p>
 
-            <h2 id="info-h-butterfly">El Efecto Mariposa</h2>
+            <h2 id="info-h-eq">Las Ecuaciones Diferenciales (El Motor)</h2>
+            <p id="info-p-eq">
+                El sistema de Lorenz se define por tres ecuaciones diferenciales ordinarias que dictan la velocidad y dirección del cambio en cada instante:
+            </p>
+            <div class="math-box">
+                dx/dt = σ (y - x)<br>
+                dy/dt = x (ρ - z) - y<br>
+                dz/dt = x y - β z
+            </div>
+            
+            <h2 id="info-h-vars">Variables del Mundo Real</h2>
+            <ul id="info-list-vars">
+                <li><strong>x:</strong> Velocidad de rotación del fluido (convección).</li>
+                <li><strong>y:</strong> Diferencia de temperatura entre corrientes ascendentes y descendentes.</li>
+                <li><strong>z:</strong> Desviación de la temperatura vertical respecto al equilibrio.</li>
+            </ul>
+
+            <h2 id="info-h-const">Las Constantes (Tus Sliders)</h2>
+            <ul id="info-list-const">
+                <li><strong>Sigma (σ):</strong> Viscosidad del fluido. En tu lab es 10. Si sube, es más espeso (miel vs agua).</li>
+                <li><strong>Rho (ρ):</strong> Diferencia de temperatura base-tope. Si ρ > 24.74, nace el Caos.</li>
+                <li><strong>Beta (β):</strong> Proporción geométrica del espacio. Normalmente 8/3.</li>
+            </ul>
+
+            <h2 id="info-h-butterfly">¿Por qué tiene forma de Mariposa?</h2>
             <p id="info-p-butterfly">
-                Esta sensibilidad extrema dio origen al término "Efecto Mariposa": la idea de que el aleteo de una mariposa en Brasil podría provocar un tornado en Texas. La forma que ves dibujándose arriba se conoce como "Atractor Extraño". Nunca se repite a sí mismo y está confinado en un volumen finito, pero tiene una longitud infinita.
+                Cuando el sistema es caótico (Rho=28), el punto nunca se queda quieto. Gira alrededor de un "ala", se vuelve inestable y salta a la otra. Lo increíble es que nunca se cruza consigo mismo y nunca repite la misma trayectoria exacta, dibujando una estructura fractal infinita en un espacio finito.
             </p>
             
             <div class="dl-section">
                 <h3 style="color:var(--primary); margin-bottom:15px;" id="h-dl-data">Descarga de Datos (Cálculo)</h3>
                 <p id="p-dl-data" style="font-size:0.9rem;">
-                    Descarga las coordenadas (X, Y, Z) generadas por la simulación en formato CSV para utilizarlas en software matemático externo (Excel, Matlab, Python).
+                    Descarga las coordenadas (X, Y, Z) generadas por la simulación en formato CSV.
                 </p>
                 <button onclick="downloadData()" class="btn-txt-dl" id="btn-dl-data">
                     ⬇ Descargar Coordenadas (.csv)
@@ -315,8 +356,6 @@
         function calculate() {
             // Euler integration
             let dt = 0.01;
-            
-            // Repetimos el cálculo varias veces por frame según la velocidad
             const steps = parseInt(slSpeed.value) * 2;
             
             for(let i=0; i<steps; i++) {
@@ -329,8 +368,6 @@
                 z = z + dz;
                 
                 points.push({x, y, z});
-                
-                // Limitar memoria (efecto estela matrix)
                 if(points.length > 3000) {
                     points.shift();
                 }
@@ -339,21 +376,16 @@
 
         /* --- 3. DIBUJADO (PROYECCIÓN 3D) --- */
         function draw() {
-            // Fondo semi-transparente para efecto "trail"
             ctx.fillStyle = "rgba(0, 0, 0, 1)"; 
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
             calculate();
 
             ctx.lineWidth = 1.5;
             const cx = canvas.width / 2;
-            const cy = canvas.height / 2 + 50; // Bajamos un poco el centro
+            const cy = canvas.height / 2 + 50;
             const scale = 12;
 
-            if (points.length < 2) {
-                requestAnimationFrame(draw);
-                return;
-            }
+            if (points.length < 2) { requestAnimationFrame(draw); return; }
 
             ctx.beginPath();
             
@@ -372,31 +404,23 @@
 
                 // Proyección 2D
                 let px = cx + rotX * scale;
-                let py = cy - rotY * scale; // Invertir Y para canvas
-                
+                let py = cy - rotY * scale; 
                 let npx = cx + nRotX * scale;
                 let npy = cy - nRotY * scale;
 
-                // Color dinámico (Gradiente Verde a Morado según índice)
-                // i/points.length va de 0 a 1
                 let ratio = i / points.length;
-                
-                // Mezcla de colores:
-                // Inicio (Verde): 0, 255, 65
-                // Fin (Morado): 189, 0, 255
+                // Gradiente Verde a Morado
                 let rVal = 0 + ratio * (189 - 0);
                 let gVal = 255 + ratio * (0 - 255);
                 let bVal = 65 + ratio * (255 - 65);
                 
                 ctx.strokeStyle = `rgb(${rVal},${gVal},${bVal})`;
                 
-                // Dibujamos segmento a segmento para mantener el color
                 ctx.beginPath();
                 ctx.moveTo(px, py);
                 ctx.lineTo(npx, npy);
                 ctx.stroke();
             }
-
             requestAnimationFrame(draw);
         }
 
@@ -432,14 +456,11 @@
         function downloadData() {
             let csvContent = "data:text/csv;charset=utf-8,";
             csvContent += "Step,X,Y,Z\n";
-            
-            // Descargamos los últimos 1000 puntos para no colgar el navegador
             const limit = Math.min(points.length, 5000);
             for(let i = 0; i < limit; i++){
                 let row = `${i},${points[i].x.toFixed(4)},${points[i].y.toFixed(4)},${points[i].z.toFixed(4)}`;
                 csvContent += row + "\r\n";
             }
-            
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
             link.setAttribute("href", encodedUri);
@@ -456,10 +477,16 @@
                 title: "PROYECTO CAOS", desc: "Simulación del Atractor de Lorenz y el Efecto Mariposa.",
                 lbl_speed: "Velocidad de Simulación:", btn_restart: "REINICIAR", btn_save: "💾 IMG",
                 txt_note: "Arrastra el ratón sobre el canvas para rotar la vista 3D.",
-                h_chaos: "La Matemática del Caos",
-                p_chaos: "El Atractor de Lorenz es un conjunto de ecuaciones diferenciales desarrollado para modelar la convección atmosférica. Edward Lorenz descubrió que pequeños cambios en las condiciones iniciales (como redondear un decimal) producían resultados totalmente diferentes.",
-                h_butterfly: "El Efecto Mariposa",
-                p_butterfly: "Esta sensibilidad extrema dio origen al término 'Efecto Mariposa'. La forma que ves dibujándose arriba se conoce como 'Atractor Extraño'. Nunca se repite a sí mismo y está confinado en un volumen finito, pero tiene una longitud infinita.",
+                h_history: "La Historia: Un \"Error\" Meteorológico",
+                p_history: "En 1963, Edward Lorenz, un meteorólogo del MIT, intentaba predecir el clima con una computadora primitiva. Un día, repitió una simulación introduciendo 0.506 en lugar de 0.506127. Pensó que esa milésima no importaría, pero al volver del café, la simulación era totalmente distinta. Acababa de descubrir el Caos Determinista: sistemas donde reglas exactas producen resultados impredecibles si cambias mínimamente el inicio.",
+                h_eq: "Las Ecuaciones Diferenciales (El Motor)",
+                p_eq: "El sistema de Lorenz se define por tres ecuaciones diferenciales ordinarias que dictan la velocidad y dirección del cambio en cada instante:",
+                h_vars: "Variables del Mundo Real",
+                list_vars: "<li><strong>x:</strong> Velocidad de rotación del fluido (convección).</li><li><strong>y:</strong> Diferencia de temperatura entre corrientes ascendentes y descendentes.</li><li><strong>z:</strong> Desviación de la temperatura vertical respecto al equilibrio.</li>",
+                h_const: "Las Constantes (Tus Sliders)",
+                list_const: "<li><strong>Sigma (σ):</strong> Viscosidad del fluido. En tu lab es 10. Si sube, es más espeso (miel vs agua).</li><li><strong>Rho (ρ):</strong> Diferencia de temperatura base-tope. Si ρ > 24.74, nace el Caos.</li><li><strong>Beta (β):</strong> Proporción geométrica del espacio. Normalmente 8/3.</li>",
+                h_butterfly: "¿Por qué tiene forma de Mariposa?",
+                p_butterfly: "Cuando el sistema es caótico (Rho=28), el punto nunca se queda quieto. Gira alrededor de un \"ala\", se vuelve inestable y salta a la otra. Lo increíble es que nunca se cruza consigo mismo y nunca repite la misma trayectoria exacta, dibujando una estructura fractal infinita en un espacio finito.",
                 h_dl_data: "Descarga de Datos (Cálculo)",
                 p_dl_data: "Descarga las coordenadas (X, Y, Z) generadas por la simulación en formato CSV para utilizarlas en software matemático externo.",
                 btn_dl_data: "⬇ Descargar Coordenadas (.csv)",
@@ -470,10 +497,16 @@
                 title: "PROJECT CHAOS", desc: "Lorenz Attractor Simulation and the Butterfly Effect.",
                 lbl_speed: "Simulation Speed:", btn_restart: "RESTART", btn_save: "💾 IMG",
                 txt_note: "Drag mouse over canvas to rotate the 3D view.",
-                h_chaos: "The Mathematics of Chaos",
-                p_chaos: "The Lorenz Attractor is a set of differential equations originally developed to model atmospheric convection. Edward Lorenz discovered that tiny changes in initial conditions (like rounding a decimal) produced vastly different results.",
-                h_butterfly: "The Butterfly Effect",
-                p_butterfly: "This extreme sensitivity gave rise to the term 'Butterfly Effect'. The shape you see drawing above is known as a 'Strange Attractor'. It never repeats itself and is confined within a finite volume, yet has infinite length.",
+                h_history: "The History: A Meteorological \"Error\"",
+                p_history: "In 1963, Edward Lorenz, an MIT meteorologist, was trying to predict weather using a primitive computer. One day, he repeated a simulation entering 0.506 instead of 0.506127. He thought that thousandth wouldn't matter, but upon returning from coffee, the simulation was totally different. He had just discovered Deterministic Chaos: systems where exact rules produce unpredictable results if you slightly change the start.",
+                h_eq: "The Differential Equations (The Engine)",
+                p_eq: "The Lorenz system is defined by three ordinary differential equations that dictate the speed and direction of change at every instant:",
+                h_vars: "Real World Variables",
+                list_vars: "<li><strong>x:</strong> Rate of fluid rotation (convection).</li><li><strong>y:</strong> Temperature difference between ascending and descending currents.</li><li><strong>z:</strong> Vertical temperature deviation from equilibrium.</li>",
+                h_const: "The Constants (Your Sliders)",
+                list_const: "<li><strong>Sigma (σ):</strong> Fluid viscosity. In your lab it's 10. If raised, it's thicker (honey vs water).</li><li><strong>Rho (ρ):</strong> Temp difference base-top. If ρ > 24.74, Chaos is born.</li><li><strong>Beta (β):</strong> Geometric proportion of the space. Usually 8/3.</li>",
+                h_butterfly: "Why the Butterfly Shape?",
+                p_butterfly: "When the system is chaotic (Rho=28), the point never stays still. It orbits one \"wing\", becomes unstable, and jumps to the other. Amazingly, it never crosses itself and never repeats the exact same path, drawing an infinite fractal structure in finite space.",
                 h_dl_data: "Data Download (Calculus)",
                 p_dl_data: "Download the (X, Y, Z) coordinates generated by the simulation in CSV format for use in external mathematical software.",
                 btn_dl_data: "⬇ Download Coordinates (.csv)",
@@ -484,12 +517,18 @@
                 title: "PROJECTE CAOS", desc: "Simulació de l'Atractor de Lorenz i l'Efecte Papallona.",
                 lbl_speed: "Velocitat de Simulació:", btn_restart: "REINICIAR", btn_save: "💾 IMG",
                 txt_note: "Arrossega el ratolí sobre el canvas per rotar la vista 3D.",
-                h_chaos: "La Matemàtica del Caos",
-                p_chaos: "L'Atractor de Lorenz és un conjunt d'equacions diferencials desenvolupat per modelar la convecció atmosfèrica. Edward Lorenz va descobrir que petits canvis en les condicions inicials produïen resultats totalment diferents.",
-                h_butterfly: "L'Efecte Papallona",
-                p_butterfly: "Aquesta sensibilitat extrema va donar origen al terme 'Efecte Papallona'. La forma que veus dibuixant-se a dalt es coneix com 'Atractor Estrany'. Mai es repeteix a si mateix i està confinat en un volum finit, però té una longitud infinita.",
-                h_dl_data: "Descàrrega de Dades (Càlcul)",
-                p_dl_data: "Descarrega les coordenades (X, Y, Z) generades per la simulació en format CSV per utilitzar-les en programari matemàtic extern.",
+                h_history: "La Història: Un \"Error\" Meteorològic",
+                p_history: "El 1963, Edward Lorenz, un meteoròleg del MIT, intentava predir el clima amb un ordinador primitiu. Un dia, va repetir una simulació introduint 0.506 en lloc de 0.506127. Va pensar que aquella mil·lèsima no importaria, però en tornar del cafè, la simulació era totalment diferent. Acabava de descobrir el Caos Determinista.",
+                h_eq: "Les Equacions Diferencials (El Motor)",
+                p_eq: "El sistema de Lorenz es defineix per tres equacions diferencials ordinàries que dicten la velocitat i direcció del canvi en cada instant:",
+                h_vars: "Variables del Món Real",
+                list_vars: "<li><strong>x:</strong> Velocitat de rotació del fluid (convecció).</li><li><strong>y:</strong> Diferència de temperatura entre corrents ascendents i descendents.</li><li><strong>z:</strong> Desviació de la temperatura vertical respecte a l'equilibri.</li>",
+                h_const: "Les Constants (Els teus Sliders)",
+                list_const: "<li><strong>Sigma (σ):</strong> Viscositat del fluid. Al teu lab és 10. Si puja, és més espès (mel vs aigua).</li><li><strong>Rho (ρ):</strong> Diferència de temperatura base-top. Si ρ > 24.74, neix el Caos.</li><li><strong>Beta (β):</strong> Proporció geomètrica de l'espai. Normalment 8/3.</li>",
+                h_butterfly: "Per què té forma de Papallona?",
+                p_butterfly: "Quan el sistema és caòtic (Rho=28), el punt mai es queda quiet. Gira al voltant d'una \"ala\", es torna inestable i salta a l'altra. L'increïble és que mai es creua amb si mateix i mai repeteix la mateixa trajectòria exacta.",
+                h_dl_data: "Descàrrega de Dades",
+                p_dl_data: "Descarrega les coordenades (X, Y, Z) generades per la simulació en format CSV.",
                 btn_dl_data: "⬇ Descarregar Coordenades (.csv)",
                 legal: "Avís Legal", privacy: "Privacitat", cookies: "Cookies", contact: "Contacte", coffee: "Convida'm a un cafè", rights: "© 2025 Graphics Labs"
             },
@@ -498,12 +537,18 @@
                 title: "PROJET CHAOS", desc: "Simulation de l'Attracteur de Lorenz et Effet Papillon.",
                 lbl_speed: "Vitesse de Simulation:", btn_restart: "REDÉMARRER", btn_save: "💾 IMG",
                 txt_note: "Faites glisser la souris sur le canevas pour faire pivoter la vue 3D.",
-                h_chaos: "Les Mathématiques du Chaos",
-                p_chaos: "L'attracteur de Lorenz est un ensemble d'équations différentielles développé pour modéliser la convection atmosphérique. Edward Lorenz a découvert que de minuscules changements produisaient des résultats totalement différents.",
-                h_butterfly: "L'Effet Papillon",
-                p_butterfly: "Cette sensibilité extrême a donné naissance au terme 'Effet Papillon'. La forme que vous voyez ci-dessus est connue sous le nom d'Attracteur Étrange. Il ne se répète jamais et est confiné dans un volume fini, mais a une longueur infinie.",
+                h_history: "L'Histoire : Une \"Erreur\" Météorologique",
+                p_history: "En 1963, Edward Lorenz, météorologue au MIT, tentait de prédire le climat. Un jour, il a répété une simulation en entrant 0.506 au lieu de 0.506127. Il pensait que ce millième n'aurait pas d'importance, mais le résultat fut totalement différent. Il venait de découvrir le Chaos Déterministe.",
+                h_eq: "Les Équations Différentielles (Le Moteur)",
+                p_eq: "Le système de Lorenz est défini par trois équations différentielles ordinaires qui dictent la vitesse et la direction du changement à chaque instant :",
+                h_vars: "Variables du Monde Réel",
+                list_vars: "<li><strong>x:</strong> Vitesse de rotation du fluide (convection).</li><li><strong>y:</strong> Différence de température entre courants ascendants et descendants.</li><li><strong>z:</strong> Déviation de la température verticale par rapport à l'équilibre.</li>",
+                h_const: "Les Constantes (Vos Sliders)",
+                list_const: "<li><strong>Sigma (σ):</strong> Viscosité du fluide. Ici 10. Si elle augmente, c'est plus épais (miel vs eau).</li><li><strong>Rho (ρ):</strong> Différence de temp. base-sommet. Si ρ > 24.74, le Chaos naît.</li><li><strong>Beta (β):</strong> Proportion géométrique de l'espace. Normalement 8/3.</li>",
+                h_butterfly: "Pourquoi une forme de Papillon ?",
+                p_butterfly: "Quand le système est chaotique (Rho=28), le point ne reste jamais immobile. Il tourne autour d'une \"aile\", devient instable et saute vers l'autre. Il ne se croise jamais lui-même et ne répète jamais la même trajectoire exacte.",
                 h_dl_data: "Téléchargement de Données",
-                p_dl_data: "Téléchargez les coordonnées (X, Y, Z) générées par la simulation au format CSV pour les utiliser dans un logiciel mathématique externe.",
+                p_dl_data: "Téléchargez les coordonnées (X, Y, Z) générées au format CSV.",
                 btn_dl_data: "⬇ Télécharger Coordonnées (.csv)",
                 legal: "Mentions Légales", privacy: "Confidentialité", cookies: "Cookies", contact: "Contact", coffee: "Offrez-moi un café", rights: "© 2025 Graphics Labs"
             },
@@ -512,12 +557,18 @@
                 title: "PROJEKT CHAOS", desc: "Lorenz-Attraktor-Simulation und der Schmetterlingseffekt.",
                 lbl_speed: "Simulationsgeschwindigkeit:", btn_restart: "NEUSTART", btn_save: "💾 IMG",
                 txt_note: "Ziehen Sie die Maus über die Leinwand, um die 3D-Ansicht zu drehen.",
-                h_chaos: "Die Mathematik des Chaos",
-                p_chaos: "Der Lorenz-Attraktor ist ein Satz von Differentialgleichungen. Edward Lorenz entdeckte, dass winzige Änderungen der Anfangsbedingungen (wie das Runden einer Dezimalstelle) völlig unterschiedliche Ergebnisse lieferten.",
-                h_butterfly: "Der Schmetterlingseffekt",
-                p_butterfly: "Diese extreme Empfindlichkeit führte zum Begriff 'Schmetterlingseffekt'. Die Form oben ist als 'Seltsamer Attraktor' bekannt. Er wiederholt sich nie und ist in einem endlichen Volumen begrenzt, hat aber eine unendliche Länge.",
+                h_history: "Die Geschichte: Ein meteorologischer \"Fehler\"",
+                p_history: "1963 versuchte Edward Lorenz, das Wetter vorherzusagen. Er wiederholte eine Simulation mit 0,506 statt 0,506127. Er dachte, das Tausendstel sei egal, aber das Ergebnis war völlig anders. Er hatte gerade das deterministische Chaos entdeckt.",
+                h_eq: "Die Differentialgleichungen (Der Motor)",
+                p_eq: "Das Lorenz-System wird durch drei gewöhnliche Differentialgleichungen definiert:",
+                h_vars: "Variablen der realen Welt",
+                list_vars: "<li><strong>x:</strong> Rotationsgeschwindigkeit der Flüssigkeit.</li><li><strong>y:</strong> Temperaturunterschied zwischen auf- und absteigenden Strömen.</li><li><strong>z:</strong> Vertikale Temperaturabweichung vom Gleichgewicht.</li>",
+                h_const: "Die Konstanten (Ihre Regler)",
+                list_const: "<li><strong>Sigma (σ):</strong> Viskosität. Hier 10. Wenn höher, dicker (Honig vs Wasser).</li><li><strong>Rho (ρ):</strong> Temperaturdifferenz. Wenn ρ > 24.74, entsteht Chaos.</li><li><strong>Beta (β):</strong> Geometrische Proportion. Normalerweise 8/3.</li>",
+                h_butterfly: "Warum die Schmetterlingsform?",
+                p_butterfly: "Wenn das System chaotisch ist (Rho=28), bleibt der Punkt nie stehen. Er umkreist einen \"Flügel\", wird instabil und springt zum anderen. Er kreuzt sich nie selbst und wiederholt nie genau denselben Pfad.",
                 h_dl_data: "Daten-Download",
-                p_dl_data: "Laden Sie die (X, Y, Z) Koordinaten im CSV-Format herunter, um sie in externer mathematischer Software zu verwenden.",
+                p_dl_data: "Laden Sie die (X, Y, Z) Koordinaten im CSV-Format herunter.",
                 btn_dl_data: "⬇ Koordinaten herunterladen (.csv)",
                 legal: "Impressum", privacy: "Datenschutz", cookies: "Cookies", contact: "Kontakt", coffee: "Kauf mir einen Kaffee", rights: "© 2025 Graphics Labs"
             },
@@ -526,12 +577,18 @@
                 title: "PROJETO CAOS", desc: "Simulação do Atrator de Lorenz e o Efeito Borboleta.",
                 lbl_speed: "Velocidade da Simulação:", btn_restart: "REINICIAR", btn_save: "💾 IMG",
                 txt_note: "Arraste o mouse sobre o canvas para girar a visualização 3D.",
-                h_chaos: "A Matemática do Caos",
-                p_chaos: "O Atrator de Lorenz é um conjunto de equações diferenciais. Edward Lorenz descobriu que pequenas mudanças nas condições iniciais produziam resultados totalmente diferentes.",
-                h_butterfly: "O Efeito Borboleta",
-                p_butterfly: "Essa sensibilidade extrema deu origem ao termo 'Efeito Borboleta'. A forma que você vê desenhando acima é conhecida como 'Atrator Estranho'. Nunca se repete e está confinado em um volume finito, mas tem comprimento infinito.",
+                h_history: "A História: Um \"Erro\" Meteorológico",
+                p_history: "Em 1963, Edward Lorenz tentava prever o clima. Repetiu uma simulação inserindo 0.506 em vez de 0.506127. Pensou que não importaria, mas o resultado foi totalmente diferente. Ele acabara de descobrir o Caos Determinístico.",
+                h_eq: "As Equações Diferenciais (O Motor)",
+                p_eq: "O sistema de Lorenz é definido por três equações diferenciais ordinárias:",
+                h_vars: "Variáveis do Mundo Real",
+                list_vars: "<li><strong>x:</strong> Velocidade de rotação do fluido.</li><li><strong>y:</strong> Diferença de temperatura entre correntes ascendentes e descendentes.</li><li><strong>z:</strong> Desvio da temperatura vertical em relação ao equilíbrio.</li>",
+                h_const: "As Constantes (Seus Sliders)",
+                list_const: "<li><strong>Sigma (σ):</strong> Viscosidade. Aqui é 10. Se subir, é mais espesso (mel vs água).</li><li><strong>Rho (ρ):</strong> Diferença de temperatura. Se ρ > 24.74, nasce o Caos.</li><li><strong>Beta (β):</strong> Proporção geométrica. Normalmente 8/3.</li>",
+                h_butterfly: "Por que a forma de Borboleta?",
+                p_butterfly: "Quando o sistema é caótico (Rho=28), o ponto nunca para. Gira em torno de uma \"asa\", torna-se instável e salta para a outra. Nunca se cruza consigo mesmo e nunca repete a mesma trajetória exata.",
                 h_dl_data: "Download de Dados",
-                p_dl_data: "Baixe as coordenadas (X, Y, Z) geradas pela simulação em formato CSV para uso em software matemático externo.",
+                p_dl_data: "Baixe as coordenadas (X, Y, Z) em formato CSV.",
                 btn_dl_data: "⬇ Baixar Coordenadas (.csv)",
                 legal: "Aviso Legal", privacy: "Privacidade", cookies: "Cookies", contact: "Contato", coffee: "Pagar um café", rights: "© 2025 Graphics Labs"
             },
@@ -540,12 +597,18 @@
                 title: "PROGETTO CAOS", desc: "Simulazione dell'Attrattore di Lorenz ed Effetto Farfalla.",
                 lbl_speed: "Velocità di Simulazione:", btn_restart: "RIAVVIA", btn_save: "💾 IMG",
                 txt_note: "Trascina il mouse sulla tela per ruotare la vista 3D.",
-                h_chaos: "La Matematica del Caos",
-                p_chaos: "L'Attrattore di Lorenz è un insieme di equazioni differenziali. Edward Lorenz scoprì che piccoli cambiamenti nelle condizioni iniziali producevano risultati totalmente diversi.",
-                h_butterfly: "L'Effetto Farfalla",
-                p_butterfly: "Questa estrema sensibilità ha dato origine al termine 'Effetto Farfalla'. La forma che vedi sopra è nota come 'Attrattore Strano'. Non si ripete mai ed è confinato in un volume finito, ma ha una lunghezza infinita.",
+                h_history: "La Storia: Un \"Errore\" Meteorologico",
+                p_history: "Nel 1963, Edward Lorenz tentava di prevedere il clima. Ripeté una simulazione inserendo 0.506 invece di 0.506127. Il risultato fu totalmente diverso. Aveva appena scoperto il Caos Deterministico.",
+                h_eq: "Le Equazioni Differenziali (Il Motore)",
+                p_eq: "Il sistema di Lorenz è definito da tre equazioni differenziali ordinarie:",
+                h_vars: "Variabili del Mondo Reale",
+                list_vars: "<li><strong>x:</strong> Velocità di rotazione del fluido.</li><li><strong>y:</strong> Differenza di temperatura tra correnti ascendenti e discendenti.</li><li><strong>z:</strong> Deviazione della temperatura verticale dall'equilibrio.</li>",
+                h_const: "Le Costanti (I tuoi Slider)",
+                list_const: "<li><strong>Sigma (σ):</strong> Viscosità. Qui è 10. Se sale, è più denso (miele vs acqua).</li><li><strong>Rho (ρ):</strong> Differenza di temperatura. Se ρ > 24.74, nasce il Caos.</li><li><strong>Beta (β):</strong> Proporzione geometrica. Normalmente 8/3.</li>",
+                h_butterfly: "Perché la forma a Farfalla?",
+                p_butterfly: "Quando il sistema è caotico (Rho=28), il punto non si ferma mai. Ruota attorno a un'\"ala\", diventa instabile e salta all'altra. Non si incrocia mai con se stesso e non ripete mai lo stesso percorso.",
                 h_dl_data: "Download Dati",
-                p_dl_data: "Scarica le coordinate (X, Y, Z) generate dalla simulazione in formato CSV per utilizzarle in software matematici esterni.",
+                p_dl_data: "Scarica le coordinate (X, Y, Z) in formato CSV.",
                 btn_dl_data: "⬇ Scarica Coordinate (.csv)",
                 legal: "Note Legali", privacy: "Privacy", cookies: "Cookies", contact: "Contatto", coffee: "Offrimi un caffè", rights: "© 2025 Graphics Labs"
             },
@@ -554,12 +617,18 @@
                 title: "PROJECT CHAOS", desc: "Lorenz Attractor Simulatie en het Vlinder Effect.",
                 lbl_speed: "Simulatiesnelheid:", btn_restart: "HERSTARTEN", btn_save: "💾 IMG",
                 txt_note: "Sleep de muis over het canvas om de 3D-weergave te draaien.",
-                h_chaos: "De Wiskunde van Chaos",
-                p_chaos: "De Lorenz-attractor is een set differentiaalvergelijkingen. Edward Lorenz ontdekte dat kleine veranderingen in de beginvoorwaarden totaal verschillende resultaten opleverden.",
-                h_butterfly: "Het Vlindereffect",
-                p_butterfly: "Deze extreme gevoeligheid gaf aanleiding tot de term 'Vlindereffect'. De vorm die je hierboven ziet, staat bekend als een 'Vreemde Attractor'. Hij herhaalt zichzelf nooit en is beperkt tot een eindig volume.",
+                h_history: "De Geschiedenis: Een Meteorologische \"Fout\"",
+                p_history: "In 1963 probeerde Edward Lorenz het weer te voorspellen. Hij herhaalde een simulatie met 0.506 in plaats van 0.506127. Het resultaat was totaal anders. Hij had net Deterministische Chaos ontdekt.",
+                h_eq: "De Differentiaalvergelijkingen (De Motor)",
+                p_eq: "Het Lorenz-systeem wordt gedefinieerd door drie gewone differentiaalvergelijkingen:",
+                h_vars: "Variabelen uit de echte wereld",
+                list_vars: "<li><strong>x:</strong> Rotatiesnelheid van de vloeistof.</li><li><strong>y:</strong> Temperatuurverschil tussen stromen.</li><li><strong>z:</strong> Verticale temperatuurafwijking.</li>",
+                h_const: "De Constanten (Je Sliders)",
+                list_const: "<li><strong>Sigma (σ):</strong> Viscositeit. Hier 10. Hoger is dikker (honing vs water).</li><li><strong>Rho (ρ):</strong> Temperatuurverschil. Als ρ > 24.74, ontstaat Chaos.</li><li><strong>Beta (β):</strong> Geometrische verhouding. Meestal 8/3.</li>",
+                h_butterfly: "Waarom de Vlindervorm?",
+                p_butterfly: "Als het systeem chaotisch is (Rho=28), staat het punt nooit stil. Het draait om een \"vleugel\", wordt onstabiel en springt naar de andere. Het kruist zichzelf nooit en herhaalt nooit exact hetzelfde pad.",
                 h_dl_data: "Gegevens Downloaden",
-                p_dl_data: "Download de (X, Y, Z) coördinaten gegenereerd door de simulatie in CSV-formaat.",
+                p_dl_data: "Download de (X, Y, Z) coördinaten in CSV-formaat.",
                 btn_dl_data: "⬇ Download Coördinaten (.csv)",
                 legal: "Juridisch", privacy: "Privacy", cookies: "Cookies", contact: "Contact", coffee: "Koop koffie", rights: "© 2025 Graphics Labs"
             },
@@ -568,12 +637,18 @@
                 title: "プロジェクト・カオス", desc: "ローレンツ・アトラクタのシミュレーションとバタフライ効果。",
                 lbl_speed: "シミュレーション速度:", btn_restart: "再起動", btn_save: "💾 画像保存",
                 txt_note: "キャンバス上でマウスをドラッグして3Dビューを回転させます。",
-                h_chaos: "カオスの数学",
-                p_chaos: "ローレンツ・アトラクタは、大気対流をモデル化するために開発された微分方程式のセットです。エドワード・ローレンツは、初期条件のわずかな変化が全く異なる結果を生み出すことを発見しました。",
-                h_butterfly: "バタフライ効果",
-                p_butterfly: "この極端な感度は「バタフライ効果」という言葉を生み出しました。上に描かれている形は「ストレンジ・アトラクタ」として知られています。それは決して繰り返されず、有限の体積内に閉じ込められていますが、無限の長さを持っています。",
+                h_history: "歴史：気象学的「エラー」",
+                p_history: "1963年、エドワード・ローレンツは天気を予測しようとしていました。彼は0.506127の代わりに0.506を入力してシミュレーションを繰り返しました。結果は全く異なりました。彼は決定論的カオスを発見したのです。",
+                h_eq: "微分方程式（エンジン）",
+                p_eq: "ローレンツシステムは、3つの常微分方程式によって定義されます：",
+                h_vars: "現実世界の変数",
+                list_vars: "<li><strong>x:</strong> 流体の回転速度（対流）。</li><li><strong>y:</strong> 上昇気流と下降気流の温度差。</li><li><strong>z:</strong> 平衡からの垂直温度偏差。</li>",
+                h_const: "定数（スライダー）",
+                list_const: "<li><strong>Sigma (σ):</strong> 流体の粘度。ここでは10。上げると蜂蜜のように濃くなります。</li><li><strong>Rho (ρ):</strong> 温度差。ρ > 24.74の場合、カオスが生まれます。</li><li><strong>Beta (β):</strong> 空間の幾何学的比率。通常8/3。</li>",
+                h_butterfly: "なぜ蝶の形なのか？",
+                p_butterfly: "システムがカオス（Rho=28）の場合、点は決して静止しません。一つの「翼」の周りを回り、不安定になり、もう一方に飛び移ります。決して自分自身と交差せず、全く同じ経路を繰り返すことはありません。",
                 h_dl_data: "データダウンロード",
-                p_dl_data: "外部の数学ソフトウェアで使用するために、シミュレーションによって生成された（X、Y、Z）座標をCSV形式でダウンロードします。",
+                p_dl_data: "（X、Y、Z）座標をCSV形式でダウンロードします。",
                 btn_dl_data: "⬇ 座標をDL (.csv)",
                 legal: "法的通知", privacy: "プライバシー", cookies: "クッキー", contact: "連絡先", coffee: "コーヒーを奢る", rights: "© 2025 Graphics Labs"
             }
@@ -585,18 +660,29 @@
             currentLang = lang;
             const t = translations[lang] || translations['es'];
             
+            // Textos básicos
             document.getElementById('nav-main').innerText = t.nav_main;
             document.getElementById('nav-math').innerText = t.nav_math;
             document.getElementById('txt-title').innerText = t.title;
             document.getElementById('txt-desc').innerText = t.desc;
-            
             document.getElementById('lbl-speed').innerText = t.lbl_speed;
             document.getElementById('btn-restart').innerText = t.btn_restart;
             document.getElementById('btn-save').innerText = t.btn_save;
             document.getElementById('txt-note').innerText = t.txt_note;
 
-            document.getElementById('info-h-chaos').innerText = t.h_chaos;
-            document.getElementById('info-p-chaos').innerText = t.p_chaos;
+            // Textos nuevos de información
+            document.getElementById('info-h-history').innerText = t.h_history;
+            document.getElementById('info-p-history').innerText = t.p_history;
+            
+            document.getElementById('info-h-eq').innerText = t.h_eq;
+            document.getElementById('info-p-eq').innerText = t.p_eq;
+            
+            document.getElementById('info-h-vars').innerText = t.h_vars;
+            document.getElementById('info-list-vars').innerHTML = t.list_vars; // innerHTML porque tiene <li>
+            
+            document.getElementById('info-h-const').innerText = t.h_const;
+            document.getElementById('info-list-const').innerHTML = t.list_const; // innerHTML porque tiene <li>
+            
             document.getElementById('info-h-butterfly').innerText = t.h_butterfly;
             document.getElementById('info-p-butterfly').innerText = t.p_butterfly;
             
@@ -604,6 +690,7 @@
             document.getElementById('p-dl-data').innerText = t.p_dl_data;
             document.getElementById('btn-dl-data').innerText = t.btn_dl_data;
 
+            // Footer
             document.getElementById('link-legal').innerText = t.legal;
             document.getElementById('link-privacy').innerText = t.privacy;
             document.getElementById('link-cookies').innerText = t.cookies;
@@ -611,6 +698,7 @@
             document.getElementById('btn-coffee').innerText = t.coffee;
             document.getElementById('footer-rights').innerText = t.rights;
 
+            // Botones idioma
             document.querySelectorAll('.lang-switch button').forEach(b => {
                 b.classList.remove('active');
                 if(b.id === 'btn-' + lang) b.classList.add('active');
@@ -633,7 +721,6 @@
                 this.size = Math.random() * 12 + 8;
                 this.speedX = (Math.random() * 1) - 0.5;
                 this.speedY = (Math.random() * 1) - 0.5;
-                // Símbolos de cálculo y caos
                 const symbols = ['∫', 'dx', 'dy', 'dt', 'σ', 'ρ', 'β', '∆', '∞'];
                 this.text = symbols[Math.floor(Math.random() * symbols.length)];
             }
