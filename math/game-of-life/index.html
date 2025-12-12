@@ -6,7 +6,7 @@
     <title>Project Automata | Graphics Labs</title>
     <meta name="description" content="Simulación del Juego de la Vida de Conway. Autómatas celulares.">
     <style>
-        /* --- ESTILOS BASE (Mismos que Fourier/Hub) --- */
+        /* --- ESTILOS BASE --- */
         :root {
             --primary: #00ff41; 
             --primary-dim: rgba(0, 255, 65, 0.3);
@@ -76,6 +76,11 @@
             padding: 8px 15px; border-radius: 5px; cursor: pointer; transition: 0.3s; font-size: 0.9rem;
         }
         button.secondary-btn:hover { background: var(--secondary); color: #fff; box-shadow: 0 0 15px var(--secondary); }
+        
+        /* Botón activo para modo color */
+        button.secondary-btn.active-mode {
+            background: var(--secondary); color: #fff; box-shadow: 0 0 10px var(--secondary);
+        }
 
         /* Sliders y Selects */
         .input-group { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 0.9rem; }
@@ -114,7 +119,7 @@
             border-radius: 4px;
             box-shadow: 0 0 30px rgba(0, 255, 65, 0.1);
             cursor: crosshair;
-            image-rendering: pixelated; /* Importante para el look grid */
+            image-rendering: pixelated; 
         }
 
         .status-text {
@@ -122,7 +127,8 @@
             font-family: 'Courier New', monospace;
             margin-top: 10px;
             height: 20px;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
         }
 
         /* --- INFO --- */
@@ -215,13 +221,19 @@
             </div>
             
             <div class="control-row">
+                <button class="secondary-btn" onclick="toggleColorMode()" id="btn-color">🎨 COLOR</button>
+                <button class="secondary-btn" onclick="saveImage()" id="btn-save">💾 IMG</button>
+                
                 <div class="input-group">
                     <span id="lbl-speed">Velocidad:</span>
                     <input type="range" id="speed-slider" min="1" max="60" value="30">
                 </div>
+            </div>
+
+            <div class="control-row">
                 <div class="input-group">
                     <span id="lbl-pattern">Patrón:</span>
-                    <select id="pattern-select" onchange="loadPattern(this.value)">
+                    <select id="pattern-select" onchange="loadPattern(this.value, this.options[this.selectedIndex].text)">
                         <option value="none" id="opt-select">- Seleccionar -</option>
                         <option value="glider">Glider</option>
                         <option value="gosper">Gosper Glider Gun</option>
@@ -230,7 +242,8 @@
                     </select>
                 </div>
             </div>
-            <div class="status-text" id="status-display">GEN: 0 | POBLACIÓN: 0</div>
+
+            <div class="status-text" id="status-display">GEN: 0 | POBLACIÓN: 0 | PATRÓN: CUSTOM</div>
         </div>
 
         <div id="canvas-container">
@@ -246,7 +259,7 @@
 
             <h2 id="info-h-rules">Las 4 Reglas Sagradas</h2>
             <p id="info-p-rules">
-                El universo es una rejilla infinita de celdas cuadradas. Cada celda tiene dos estados posibles: viva (verde) o muerta (negro). En cada paso de tiempo (generación), cada celda interactúa con sus 8 vecinas:
+                El universo es una rejilla infinita de celdas cuadradas. Cada celda tiene dos estados posibles: viva o muerta. En cada paso de tiempo (generación), cada celda interactúa con sus 8 vecinas:
             </p>
 
             <div class="rules-grid">
@@ -300,29 +313,31 @@
         const ctx = canvas.getContext('2d');
         const statusDisplay = document.getElementById('status-display');
         
-        let resolution = 10; // Tamaño de cada celda en px
+        let resolution = 10; 
         let cols, rows;
         let grid;
         let animationId;
         let isPlaying = false;
         let generation = 0;
-        let speed = 30; // FPS objetivo
+        let population = 0;
+        let speed = 30;
         let lastFrameTime = 0;
+        
+        // Nuevas variables para las mejoras
+        let isColorMode = false;
+        let currentPatternName = "CUSTOM";
 
         // Ajustar tamaño del canvas
         function resizeCanvas() {
-            // Un tamaño fijo razonable para escritorio, adaptable
             const maxWidth = Math.min(window.innerWidth - 40, 800);
             const height = 500;
             
-            // Asegurar que sea múltiplo de la resolución
             canvas.width = Math.floor(maxWidth / resolution) * resolution;
             canvas.height = Math.floor(height / resolution) * resolution;
             
             cols = canvas.width / resolution;
             rows = canvas.height / resolution;
             
-            // Reiniciar grid si cambian dimensiones
             grid = make2DArray(cols, rows);
             draw();
         }
@@ -338,23 +353,19 @@
         /* --- 2. LÓGICA DEL CORE --- */
         function computeNextGen() {
             let next = make2DArray(cols, rows);
-            let population = 0;
+            population = 0;
 
             for (let i = 0; i < cols; i++) {
                 for (let j = 0; j < rows; j++) {
                     let state = grid[i][j];
-                    
-                    // Contar vecinos (Toroidal: los bordes se conectan)
-                    let sum = 0;
                     let neighbors = countNeighbors(grid, i, j);
 
-                    // Reglas de Conway
                     if (state == 0 && neighbors == 3) {
-                        next[i][j] = 1; // Nace
+                        next[i][j] = 1; 
                     } else if (state == 1 && (neighbors < 2 || neighbors > 3)) {
-                        next[i][j] = 0; // Muere
+                        next[i][j] = 0;
                     } else {
-                        next[i][j] = state; // Sigue igual
+                        next[i][j] = state; 
                     }
 
                     if(next[i][j] === 1) population++;
@@ -362,28 +373,27 @@
             }
             grid = next;
             generation++;
-            updateStatus(population);
+            updateStatus();
         }
 
         function countNeighbors(grid, x, y) {
             let sum = 0;
             for (let i = -1; i < 2; i++) {
                 for (let j = -1; j < 2; j++) {
-                    // Toroidal wrap-around (módulo)
                     let col = (x + i + cols) % cols;
                     let row = (y + j + rows) % rows;
                     sum += grid[col][row];
                 }
             }
-            sum -= grid[x][y]; // Restar la propia célula
+            sum -= grid[x][y]; 
             return sum;
         }
 
         function draw() {
-            ctx.fillStyle = '#000'; // Fondo
+            ctx.fillStyle = '#000'; 
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Dibujar rejilla tenue
+            // Rejilla
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
             ctx.lineWidth = 1;
             ctx.beginPath();
@@ -395,27 +405,36 @@
             }
             ctx.stroke();
 
-            // Dibujar células vivas
-            ctx.fillStyle = '#00f341'; // Verde Matrix
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = '#00f341'; // Glow effect
+            // Células
+            ctx.shadowBlur = isColorMode ? 15 : 10; // Más brillo en modo color
 
             for (let i = 0; i < cols; i++) {
                 for (let j = 0; j < rows; j++) {
                     if (grid[i][j] == 1) {
-                        // Dejamos 1px de margen para que se vea la rejilla
+                        
+                        if (isColorMode) {
+                            // Color dinámico basado en posición y generación (Efecto Arcoiris)
+                            const hue = (generation * 2 + (i * 3) + (j * 3)) % 360;
+                            const color = `hsl(${hue}, 100%, 50%)`;
+                            ctx.fillStyle = color;
+                            ctx.shadowColor = color;
+                        } else {
+                            // Clásico Matrix
+                            ctx.fillStyle = '#00f341'; 
+                            ctx.shadowColor = '#00f341';
+                        }
+
                         ctx.fillRect(i * resolution + 1, j * resolution + 1, resolution - 1, resolution - 1);
                     }
                 }
             }
-            ctx.shadowBlur = 0; // Reset
+            ctx.shadowBlur = 0; 
         }
 
         /* --- 3. GAME LOOP --- */
         function gameLoop(timestamp) {
             if (!isPlaying) return;
 
-            // Control de FPS
             const interval = 1000 / speed;
             if (timestamp - lastFrameTime > interval) {
                 computeNextGen();
@@ -433,7 +452,7 @@
             
             if (isPlaying) {
                 btn.innerText = "⏸ PAUSE";
-                btn.style.background = "var(--secondary)"; // Cambio de color visual
+                btn.style.background = "var(--secondary)"; 
                 btn.style.color = "#fff";
                 gameLoop(0);
             } else {
@@ -447,21 +466,48 @@
         function clearGrid() {
             grid = make2DArray(cols, rows);
             generation = 0;
+            population = 0;
+            currentPatternName = "CUSTOM";
+            
             isPlaying = false;
             document.getElementById('btn-play').innerText = "▶ PLAY";
             document.getElementById('btn-play').style.background = "var(--primary)";
+            
             draw();
-            updateStatus(0);
+            updateStatus();
         }
 
         function randomizeGrid() {
+            population = 0;
             for (let i = 0; i < cols; i++) {
                 for (let j = 0; j < rows; j++) {
-                    grid[i][j] = Math.random() > 0.85 ? 1 : 0; // 15% de densidad
+                    const alive = Math.random() > 0.85 ? 1 : 0;
+                    grid[i][j] = alive;
+                    if(alive) population++;
                 }
             }
             generation = 0;
+            currentPatternName = "RANDOM";
             draw();
+            updateStatus();
+        }
+
+        function toggleColorMode() {
+            isColorMode = !isColorMode;
+            const btn = document.getElementById('btn-color');
+            if(isColorMode) {
+                btn.classList.add('active-mode');
+            } else {
+                btn.classList.remove('active-mode');
+            }
+            draw();
+        }
+
+        function saveImage() {
+            const link = document.createElement('a');
+            link.download = 'game_of_life_' + generation + '.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
         }
 
         // Mouse interaction
@@ -476,8 +522,13 @@
             const j = Math.floor(y / resolution);
             
             if (i >= 0 && i < cols && j >= 0 && j < rows) {
-                grid[i][j] = 1;
-                draw();
+                if(grid[i][j] === 0) {
+                    grid[i][j] = 1;
+                    population++;
+                    currentPatternName = "CUSTOM"; // Si dibuja, ya es custom
+                    updateStatus();
+                    draw();
+                }
             }
         }
 
@@ -486,55 +537,66 @@
         canvas.addEventListener('mouseup', () => { isDrawing = false; });
         canvas.addEventListener('mouseleave', () => { isDrawing = false; });
 
-        // Inputs
         document.getElementById('speed-slider').addEventListener('input', (e) => {
             speed = parseInt(e.target.value);
         });
 
         /* --- 5. PRESETS / PATRONES --- */
-        function loadPattern(type) {
-            clearGrid(); // Limpia pero no resetea el botón de play visualmente si estaba pausado
+        function loadPattern(type, name) {
+            if(type === 'none') return;
+            
+            // Limpiar pero mantener dimensiones
+            grid = make2DArray(cols, rows);
+            generation = 0;
+            population = 0;
+            currentPatternName = name || type.toUpperCase();
+
             const cx = Math.floor(cols / 2);
             const cy = Math.floor(rows / 2);
 
             if (type === 'glider') {
-                grid[cx][cy-1] = 1; grid[cx+1][cy] = 1; grid[cx-1][cy+1] = 1; grid[cx][cy+1] = 1; grid[cx+1][cy+1] = 1;
+                const points = [[0,-1], [1,0], [-1,1], [0,1], [1,1]];
+                points.forEach(p => safeSet(cx+p[0], cy+p[1]));
             } 
             else if (type === 'gosper') {
-                // Gosper Glider Gun (Coordinates relative to top-left usually, shifting to center-left)
                 const ox = 5; const oy = 10;
                 const points = [
                     [25,1], [23,2], [25,2], [13,3], [14,3], [21,3], [22,3], [35,3], [36,3], [12,4], [16,4], [21,4], [22,4], [35,4], [36,4], [1,5], [2,5], [11,5], [17,5], [21,5], [22,5], [1,6], [2,6], [11,6], [15,6], [17,6], [18,6], [23,6], [25,6], [11,7], [17,7], [25,7], [12,8], [16,8], [13,9], [14,9]
                 ];
-                points.forEach(p => {
-                    if (p[0]+ox < cols && p[1]+oy < rows) grid[p[0]+ox][p[1]+oy] = 1;
-                });
+                points.forEach(p => safeSet(p[0]+ox, p[1]+oy));
             }
             else if (type === 'pulsar') {
-                 // Simple Pulsar pattern parts
-                 const range = [-6, -1, 1, 6]; // rows relative to center
+                 const range = [-6, -1, 1, 6]; 
                  range.forEach(r => {
                      for(let c = -4; c <= 4; c++) {
                          if(Math.abs(c) !== 0 && Math.abs(c) !== 1) {
-                             grid[cx+c][cy+r] = 1;
-                             grid[cx+r][cy+c] = 1; // symmetry
+                             safeSet(cx+c, cy+r);
+                             safeSet(cx+r, cy+c);
                          }
                      }
                  });
             }
             else if (type === 'lwss') {
-                // Lightweight spaceship
                 const p = [[0,1],[0,3],[1,0],[2,0],[3,0],[3,3],[4,0],[4,1],[4,2]];
-                p.forEach(xy => grid[cx+xy[0]][cy+xy[1]] = 1);
+                p.forEach(xy => safeSet(cx+xy[0], cy+xy[1]));
             }
             
             draw();
-            document.getElementById('pattern-select').value = 'none'; // Reset select
+            updateStatus();
+            document.getElementById('pattern-select').value = 'none'; // Reset UX
         }
 
-        function updateStatus(pop) {
+        function safeSet(x, y) {
+            if (x >= 0 && x < cols && y >= 0 && y < rows) {
+                grid[x][y] = 1;
+                population++;
+            }
+        }
+
+        function updateStatus() {
             const t = translations[currentLang] || translations['es'];
-            statusDisplay.innerText = `${t.stat_gen}: ${generation} | ${t.stat_pop}: ${pop}`;
+            const patLabel = t.stat_pat || "PATRÓN";
+            statusDisplay.innerText = `${t.stat_gen}: ${generation} | ${t.stat_pop}: ${population} | ${patLabel}: ${currentPatternName}`;
         }
 
 
@@ -544,13 +606,14 @@
                 nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH",
                 title: "PROYECTO AUTÓMATA", desc: "El Juego de la Vida de Conway. Emergencia matemática.",
                 btn_play: "▶ JUGAR", btn_pause: "⏸ PAUSA", btn_clear: "LIMPIAR", btn_random: "ALEATORIO",
+                btn_color: "🎨 COLOR", btn_save: "💾 IMG",
                 lbl_speed: "Velocidad:", lbl_pattern: "Cargar Patrón:", opt_select: "- Seleccionar -",
                 txt_note: "Haz clic o arrastra el mouse sobre la rejilla para dar vida a las células.",
-                stat_gen: "GEN", stat_pop: "POBLACIÓN",
+                stat_gen: "GEN", stat_pop: "POBLACIÓN", stat_pat: "PATRÓN",
                 h_what: "¿Qué es el Juego de la Vida?",
                 p_what: "Diseñado por John Conway en 1970, es un 'juego de cero jugadores'. Tú determinas el estado inicial y observas cómo reglas simples crean complejidad infinita.",
                 h_rules: "Las 4 Reglas Sagradas",
-                p_rules: "Universo de celdas vivas (verde) o muertas (negro). Cada turno interactúan con sus 8 vecinas:",
+                p_rules: "Universo de celdas vivas o muertas. Cada turno interactúan con sus 8 vecinas:",
                 rule_1: "<strong>Soledad:</strong> < 2 vecinos → Muere.",
                 rule_2: "<strong>Supervivencia:</strong> 2 o 3 vecinos → Vive.",
                 rule_3: "<strong>Sobrepoblación:</strong> > 3 vecinos → Muere.",
@@ -563,13 +626,14 @@
                 nav_main: "← MAIN HUB", nav_math: "← MATH HUB",
                 title: "PROJECT AUTOMATA", desc: "Conway's Game of Life. Mathematical emergence.",
                 btn_play: "▶ PLAY", btn_pause: "⏸ PAUSE", btn_clear: "CLEAR", btn_random: "RANDOM",
+                btn_color: "🎨 COLOR", btn_save: "💾 IMG",
                 lbl_speed: "Speed:", lbl_pattern: "Load Pattern:", opt_select: "- Select -",
                 txt_note: "Click or drag on the grid to bring cells to life.",
-                stat_gen: "GEN", stat_pop: "POPULATION",
+                stat_gen: "GEN", stat_pop: "POPULATION", stat_pat: "PATTERN",
                 h_what: "What is the Game of Life?",
                 p_what: "Designed by John Conway in 1970, it is a 'zero-player game'. You set the initial state and watch how simple rules create infinite complexity.",
                 h_rules: "The 4 Sacred Rules",
-                p_rules: "Universe of live (green) or dead (black) cells. Each turn they interact with 8 neighbors:",
+                p_rules: "Universe of live or dead cells. Each turn they interact with 8 neighbors:",
                 rule_1: "<strong>Underpopulation:</strong> < 2 neighbors → Dies.",
                 rule_2: "<strong>Survival:</strong> 2 or 3 neighbors → Lives.",
                 rule_3: "<strong>Overpopulation:</strong> > 3 neighbors → Dies.",
@@ -582,13 +646,14 @@
                 nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH",
                 title: "PROJECTE AUTÒMATA", desc: "El Joc de la Vida de Conway. Emergència matemàtica.",
                 btn_play: "▶ JUGAR", btn_pause: "⏸ PAUSA", btn_clear: "NETEJAR", btn_random: "ALEATORI",
+                btn_color: "🎨 COLOR", btn_save: "💾 IMG",
                 lbl_speed: "Velocitat:", lbl_pattern: "Carregar Patró:", opt_select: "- Seleccionar -",
                 txt_note: "Fes clic o arrossega el ratolí sobre la graella per donar vida a les cèl·lules.",
-                stat_gen: "GEN", stat_pop: "POBLACIÓ",
+                stat_gen: "GEN", stat_pop: "POBLACIÓ", stat_pat: "PATRÓ",
                 h_what: "Què és el Joc de la Vida?",
                 p_what: "Dissenyat per John Conway el 1970, és un 'joc de zero jugadors'. Tu determines l'estat inicial i observes com regles simples creen complexitat infinita.",
                 h_rules: "Les 4 Regles Sagrades",
-                p_rules: "Univers de cel·les vives (verd) o mortes (negre). Cada torn interactuen amb les 8 veïnes:",
+                p_rules: "Univers de cel·les vives o mortes. Cada torn interactuen amb les 8 veïnes:",
                 rule_1: "<strong>Solitud:</strong> < 2 veïnes → Mor.",
                 rule_2: "<strong>Supervivència:</strong> 2 o 3 veïnes → Viu.",
                 rule_3: "<strong>Sobrepoblació:</strong> > 3 veïnes → Mor.",
@@ -601,13 +666,14 @@
                 nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH",
                 title: "PROJET AUTOMATE", desc: "Le Jeu de la Vie de Conway. Émergence mathématique.",
                 btn_play: "▶ JOUER", btn_pause: "⏸ PAUSE", btn_clear: "EFFACER", btn_random: "ALÉATOIRE",
+                btn_color: "🎨 COULEUR", btn_save: "💾 IMG",
                 lbl_speed: "Vitesse :", lbl_pattern: "Charger Motif :", opt_select: "- Sélectionner -",
                 txt_note: "Cliquez ou glissez sur la grille pour donner vie aux cellules.",
-                stat_gen: "GÉN", stat_pop: "POPULATION",
+                stat_gen: "GÉN", stat_pop: "POPULATION", stat_pat: "MOTIF",
                 h_what: "Qu'est-ce que le Jeu de la Vie ?",
                 p_what: "Conçu par John Conway en 1970, c'est un 'jeu à zéro joueur'. Vous définissez l'état initial et observez comment des règles simples créent une complexité infinie.",
                 h_rules: "Les 4 Règles Sacrées",
-                p_rules: "Univers de cellules vivantes (vertes) ou mortes (noires). Chaque tour, elles interagissent avec 8 voisines :",
+                p_rules: "Univers de cellules vivantes ou mortes. Chaque tour, elles interagissent avec 8 voisines :",
                 rule_1: "<strong>Sous-population :</strong> < 2 voisines → Meurt.",
                 rule_2: "<strong>Survie :</strong> 2 ou 3 voisines → Vit.",
                 rule_3: "<strong>Surpopulation :</strong> > 3 voisines → Meurt.",
@@ -620,13 +686,14 @@
                 nav_main: "← HAUPT-HUB", nav_math: "← MATH HUB",
                 title: "PROJEKT AUTOMAT", desc: "Conways Spiel des Lebens. Mathematische Emergenz.",
                 btn_play: "▶ START", btn_pause: "⏸ PAUSE", btn_clear: "LÖSCHEN", btn_random: "ZUFALL",
+                btn_color: "🎨 FARBE", btn_save: "💾 BILD",
                 lbl_speed: "Geschw.:", lbl_pattern: "Muster laden:", opt_select: "- Wählen -",
                 txt_note: "Klicken oder ziehen Sie auf dem Raster, um Zellen zum Leben zu erwecken.",
-                stat_gen: "GEN", stat_pop: "POPULATION",
+                stat_gen: "GEN", stat_pop: "POPULATION", stat_pat: "MUSTER",
                 h_what: "Was ist das Spiel des Lebens?",
                 p_what: "Entworfen von John Conway im Jahr 1970. Du bestimmst den Anfangszustand und beobachtest, wie einfache Regeln unendliche Komplexität erzeugen.",
                 h_rules: "Die 4 Heiligen Regeln",
-                p_rules: "Universum aus lebenden (grün) oder toten (schwarz) Zellen. Interaktion mit 8 Nachbarn:",
+                p_rules: "Universum aus lebenden oder toten Zellen. Interaktion mit 8 Nachbarn:",
                 rule_1: "<strong>Unterbevölkerung:</strong> < 2 Nachbarn → Stirbt.",
                 rule_2: "<strong>Überleben:</strong> 2 oder 3 Nachbarn → Lebt.",
                 rule_3: "<strong>Überbevölkerung:</strong> > 3 Nachbarn → Stirbt.",
@@ -639,13 +706,14 @@
                 nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH",
                 title: "PROJETO AUTÔMATO", desc: "O Jogo da Vida de Conway. Emergência matemática.",
                 btn_play: "▶ JOGAR", btn_pause: "⏸ PAUSA", btn_clear: "LIMPAR", btn_random: "ALEATÓRIO",
+                btn_color: "🎨 COR", btn_save: "💾 IMG",
                 lbl_speed: "Velocidade:", lbl_pattern: "Carregar Padrão:", opt_select: "- Selecionar -",
                 txt_note: "Clique ou arraste na grade para dar vida às células.",
-                stat_gen: "GER", stat_pop: "POPULAÇÃO",
+                stat_gen: "GER", stat_pop: "POPULAÇÃO", stat_pat: "PADRÃO",
                 h_what: "O que é o Jogo da Vida?",
                 p_what: "Projetado por John Conway em 1970. Você define o estado inicial e observa como regras simples criam complexidade infinita.",
                 h_rules: "As 4 Regras Sagradas",
-                p_rules: "Universo de células vivas (verde) ou mortas (preto). A cada turno interagem com 8 vizinhas:",
+                p_rules: "Universo de células vivas ou mortas. A cada turno interagem com 8 vizinhas:",
                 rule_1: "<strong>Subpopulação:</strong> < 2 vizinhas → Morre.",
                 rule_2: "<strong>Sobrevivência:</strong> 2 ou 3 vizinhas → Vive.",
                 rule_3: "<strong>Superpopulação:</strong> > 3 vizinhas → Morre.",
@@ -658,13 +726,14 @@
                 nav_main: "← HUB PRINCIPALE", nav_math: "← HUB MATH",
                 title: "PROGETTO AUTOMA", desc: "Il Gioco della Vita di Conway. Emergenza matematica.",
                 btn_play: "▶ GIOCA", btn_pause: "⏸ PAUSA", btn_clear: "PULISCI", btn_random: "CASUALE",
+                btn_color: "🎨 COLORE", btn_save: "💾 IMG",
                 lbl_speed: "Velocità:", lbl_pattern: "Carica Pattern:", opt_select: "- Seleziona -",
                 txt_note: "Clicca o trascina sulla griglia per dare vita alle cellule.",
-                stat_gen: "GEN", stat_pop: "POPOLAZIONE",
+                stat_gen: "GEN", stat_pop: "POPOLAZIONE", stat_pat: "PATTERN",
                 h_what: "Cos'è il Gioco della Vita?",
                 p_what: "Progettato da John Conway nel 1970. Tu determini lo stato iniziale e osservi come regole semplici creano complessità infinita.",
                 h_rules: "Le 4 Regole Sacre",
-                p_rules: "Universo di cellule vive (verdi) o morte (nere). Ogni turno interagiscono con 8 vicine:",
+                p_rules: "Universo di cellule vive o morte. Ogni turno interagiscono con 8 vicine:",
                 rule_1: "<strong>Sottopopolazione:</strong> < 2 vicine → Muore.",
                 rule_2: "<strong>Sopravvivenza:</strong> 2 o 3 vicine → Vive.",
                 rule_3: "<strong>Sovrappopolazione:</strong> > 3 vicine → Muore.",
@@ -677,13 +746,14 @@
                 nav_main: "← HOOFDHUB", nav_math: "← MATH HUB",
                 title: "PROJECT AUTOMAAT", desc: "Conway's Game of Life. Wiskundige emergentie.",
                 btn_play: "▶ START", btn_pause: "⏸ PAUZE", btn_clear: "WISSEN", btn_random: "WILLEKEURIG",
+                btn_color: "🎨 KLEUR", btn_save: "💾 IMG",
                 lbl_speed: "Snelheid:", lbl_pattern: "Patroon Laden:", opt_select: "- Selecteer -",
                 txt_note: "Klik of sleep op het rooster om cellen tot leven te wekken.",
-                stat_gen: "GEN", stat_pop: "BEVOLKING",
+                stat_gen: "GEN", stat_pop: "BEVOLKING", stat_pat: "PATROON",
                 h_what: "Wat is de Game of Life?",
                 p_what: "Ontworpen door John Conway in 1970. Je bepaalt de beginstatus en ziet hoe eenvoudige regels oneindige complexiteit creëren.",
                 h_rules: "De 4 Heilige Regels",
-                p_rules: "Universum van levende (groen) of dode (zwart) cellen. Interactie met 8 buren:",
+                p_rules: "Universum van levende of dode cellen. Interactie met 8 buren:",
                 rule_1: "<strong>Onderbevolking:</strong> < 2 buren → Sterft.",
                 rule_2: "<strong>Overleving:</strong> 2 of 3 buren → Leeft.",
                 rule_3: "<strong>Overbevolking:</strong> > 3 buren → Sterft.",
@@ -696,13 +766,14 @@
                 nav_main: "← メインハブ", nav_math: "← 数学ハブ",
                 title: "プロジェクト・オートマトン", desc: "コンウェイのライフゲーム。数学的創発。",
                 btn_play: "▶ 再生", btn_pause: "⏸ 一時停止", btn_clear: "クリア", btn_random: "ランダム",
+                btn_color: "🎨 色", btn_save: "💾 画像",
                 lbl_speed: "速度:", lbl_pattern: "パターン読込:", opt_select: "- 選択 -",
                 txt_note: "グリッドをクリックまたはドラッグして細胞に命を吹き込みます。",
-                stat_gen: "世代", stat_pop: "人口",
+                stat_gen: "世代", stat_pop: "人口", stat_pat: "パターン",
                 h_what: "ライフゲームとは？",
                 p_what: "1970年にジョン・コンウェイによって設計されました。初期状態を決定し、単純なルールが無限の複雑さを生み出す様子を観察します。",
                 h_rules: "4つの聖なるルール",
-                p_rules: "生きている（緑）または死んでいる（黒）細胞の宇宙。各ターンで8つの隣人と相互作用します：",
+                p_rules: "生きているまたは死んでいる細胞の宇宙。各ターンで8つの隣人と相互作用します：",
                 rule_1: "<strong>過疎:</strong> 隣人が2つ未満 → 死ぬ。",
                 rule_2: "<strong>生存:</strong> 隣人が2つか3つ → 生きる。",
                 rule_3: "<strong>過密:</strong> 隣人が3つ超 → 死ぬ。",
@@ -731,6 +802,9 @@
             document.getElementById('btn-play').innerText = isPlaying ? t.btn_pause : t.btn_play;
             document.getElementById('btn-clear').innerText = t.btn_clear;
             document.getElementById('btn-random').innerText = t.btn_random;
+            document.getElementById('btn-color').innerText = t.btn_color;
+            document.getElementById('btn-save').innerText = t.btn_save;
+            
             document.getElementById('lbl-speed').innerText = t.lbl_speed;
             document.getElementById('lbl-pattern').innerText = t.lbl_pattern;
             document.getElementById('opt-select').innerText = t.opt_select;
@@ -762,7 +836,7 @@
                 if(b.id === 'btn-' + lang) b.classList.add('active');
             });
 
-            updateStatus(0); // Refresh stats text
+            updateStatus(); // Refresh stats text
         }
 
         /* --- 7. BACKGROUND ANIMATION --- */
