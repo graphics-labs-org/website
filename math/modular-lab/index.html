@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Modulo | Graphics Labs</title>
+    <meta name="description" content="Visualización de Aritmética Modular y patrones geométricos.">
+    <style>
+        /* --- ESTILOS BASE --- */
+        :root {
+            --primary: #00ff41; 
+            --primary-dim: rgba(0, 255, 65, 0.3);
+            --secondary: #bd00ff;
+            --highlight: #ffee00;
+            --glass: rgba(20, 20, 20, 0.7);
+            --glass-text: rgba(30, 30, 30, 0.8);
+            --border: rgba(255, 255, 255, 0.1);
+            --text: #ffffff;
+            --muted: #aaaaaa;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', monospace, sans-serif; }
+        
+        body {
+            background-color: #050505;
+            color: var(--text);
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            user-select: none;
+        }
+
+        #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- CONTROLES --- */
+        .controls {
+            background: var(--glass);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin: 20px auto;
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .slider-row {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .slider-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            min-width: 150px;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            outline: none;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--primary);
+            transition: 0.2s;
+        }
+        input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+        .value-display { font-family: 'Courier New', monospace; color: var(--highlight); font-weight: bold; font-size: 1.1rem; }
+
+        .buttons-row { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; margin-top: 10px; }
+
+        button.action-btn {
+            background: var(--primary); color: #000; border: none; padding: 10px 20px; border-radius: 5px;
+            cursor: pointer; font-weight: bold; transition: 0.3s; text-transform: uppercase; font-size: 0.9rem;
+            min-width: 120px;
+        }
+        button.action-btn:hover { box-shadow: 0 0 15px var(--primary); transform: scale(1.05); }
+        
+        button.secondary-btn {
+            background: transparent; border: 1px solid var(--secondary); color: var(--secondary);
+            padding: 8px 15px; border-radius: 5px; cursor: pointer; transition: 0.3s; font-size: 0.9rem;
+            display: flex; align-items: center; gap: 5px;
+        }
+        button.secondary-btn:hover { background: var(--secondary); color: #fff; box-shadow: 0 0 15px var(--secondary); }
+
+        /* --- VISUALIZADOR --- */
+        #canvas-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        #modulo-canvas {
+            background: #000;
+            border: 1px solid var(--border);
+            border-radius: 50%; /* Canvas circular */
+            box-shadow: 0 0 30px rgba(0, 255, 65, 0.1);
+            max-width: 100%;
+        }
+
+        /* --- INFO --- */
+        .info-section {
+            background: var(--glass-text);
+            padding: 40px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin: 40px auto;
+            max-width: 900px;
+            text-align: left;
+            line-height: 1.8;
+            color: #ddd;
+        }
+        .info-section h2 { color: var(--primary); margin-bottom: 20px; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-top: 40px; }
+        .info-section h2:first-child { margin-top: 0; }
+        .info-section p { margin-bottom: 20px; font-size: 1rem; text-align: justify; }
+        
+        .math-box {
+            background: rgba(0,0,0,0.5);
+            border-left: 4px solid var(--secondary);
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            color: var(--secondary);
+            font-size: 1.1rem;
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        .dl-section { margin-top: 30px; border-top: 1px dashed var(--border); padding-top: 20px; text-align: center; }
+        
+        .btn-txt-dl {
+            display: inline-block; background: rgba(255, 255, 255, 0.1); color: var(--muted); text-decoration: none;
+            padding: 15px 25px; border: 1px solid var(--muted); border-radius: 4px; font-family: var(--font-mono);
+            font-size: 0.9rem; transition: 0.3s; cursor: pointer;
+        }
+        .btn-txt-dl:hover { background: var(--secondary); color: #000; border-color: var(--secondary); box-shadow: 0 0 10px var(--secondary); }
+
+        .ad-container {
+            width: 100%; max-width: 728px; margin: 30px auto; min-height: 90px;
+            display: flex; justify-content: center; align-items: center;
+            border: 1px dashed rgba(255,255,255,0.1); border-radius: 8px; background: rgba(0,0,0,0.2);
+        }
+        .ad-placeholder-text { color: var(--border); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; }
+
+        /* Nav & Footer */
+        nav { display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .nav-links { display: flex; gap: 15px; }
+        .nav-btn { text-decoration: none; color: var(--muted); font-size: 0.9rem; border: 1px solid var(--border); padding: 5px 10px; border-radius: 4px; transition: 0.3s; background: rgba(0,0,0,0.5); }
+        .nav-btn:hover { color: var(--primary); border-color: var(--primary); }
+        .logo { font-size: 1.2rem; font-weight: bold; color: var(--primary); text-decoration: none; letter-spacing: 2px; }
+        .lang-switch button { background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: var(--muted); padding: 5px 10px; cursor: pointer; border-radius: 4px; margin-left: 2px;}
+        .lang-switch button.active { background-color: var(--primary) !important; color: #000 !important; border-color: var(--primary) !important; font-weight: bold; }
+        footer { margin-top: auto; background: rgba(0,0,0,0.9); backdrop-filter: blur(5px); border-top: 1px solid var(--border); padding: 30px 20px; text-align: center; font-size: 0.8rem; color: var(--muted); display: flex; flex-direction: column; gap: 15px; align-items: center; position: relative; z-index: 20; }
+        .legal-links { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin-bottom: 10px; }
+        .legal-links a { color: var(--muted); text-decoration: none; transition: 0.3s; border-bottom: 1px solid transparent; }
+        .legal-links a:hover { color: var(--primary); border-bottom-color: var(--primary); }
+        .coffee-btn { background: linear-gradient(45deg, #FFDD00, #FBB03B); color: #000; padding: 8px 15px; border-radius: 20px; text-decoration: none; font-weight: bold; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 5px; transition: transform 0.2s; }
+        .coffee-btn:hover { transform: scale(1.05); }
+
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="container">
+        <nav>
+            <div class="nav-links">
+                <a href="../../index.html" class="nav-btn" id="nav-main">← HUB PRINCIPAL</a>
+                <a href="../index.html" class="nav-btn" id="nav-math">← HUB MATH</a>
+            </div>
+            <div class="logo">GRAPHICS LABS</div>
+            <div class="lang-switch">
+                <button onclick="setLang('es')" id="btn-es" class="active">ES</button>
+                <button onclick="setLang('ca')" id="btn-ca">CA</button>
+                <button onclick="setLang('en')" id="btn-en">EN</button>
+                <button onclick="setLang('fr')" id="btn-fr">FR</button>
+                <button onclick="setLang('de')" id="btn-de">DE</button>
+                <button onclick="setLang('pt')" id="btn-pt">PT</button>
+                <button onclick="setLang('it')" id="btn-it">IT</button>
+                <button onclick="setLang('nl')" id="btn-nl">NL</button>
+                <button onclick="setLang('ja')" id="btn-ja">JP</button>
+            </div>
+        </nav>
+
+        <h1 id="txt-title">PROYECTO MÓDULO</h1>
+        <p style="color:var(--muted); margin-bottom: 20px;" id="txt-desc">Visualización de Aritmética Modular y Geometría Sagrada.</p>
+
+        <div class="controls">
+            
+            <div class="slider-row">
+                <div class="slider-group">
+                    <label id="lbl-points">Puntos (N):</label>
+                    <input type="range" id="sl-points" min="10" max="500" step="1" value="200">
+                    <div class="value-display" id="val-points">200</div>
+                </div>
+                
+                <div class="slider-group">
+                    <label id="lbl-mult">Multiplicador (M):</label>
+                    <input type="range" id="sl-mult" min="2" max="100" step="0.01" value="2">
+                    <div class="value-display" id="val-mult">2.00</div>
+                </div>
+            </div>
+
+            <div class="buttons-row">
+                <button class="action-btn" onclick="toggleAnimation()" id="btn-anim">▶ ANIMAR</button>
+                <button class="secondary-btn" onclick="toggleColor()" id="btn-color">🎨 COLOR</button>
+                <button class="secondary-btn" onclick="saveHighRes()" id="btn-save">💾 IMG HQ</button>
+            </div>
+        </div>
+
+        <div id="canvas-container">
+            <canvas id="modulo-canvas" width="800" height="800"></canvas>
+            <p style="color:var(--muted); font-size: 0.8rem; margin-top:5px;" id="txt-note">Observa cómo formas simples como la Cardioide (M=2) emergen de la multiplicación.</p>
+        </div>
+
+        <div class="info-section">
+            <h2 id="info-h-math">La Matemática del Reloj</h2>
+            <p id="info-p-math">
+                La aritmética modular es un sistema matemático donde los números "dan la vuelta" al alcanzar cierto valor (el módulo), como las horas de un reloj. En esta visualización, colocamos $N$ puntos alrededor de un círculo.
+            </p>
+
+            <h2 id="info-h-algo">El Algoritmo</h2>
+            <p id="info-p-algo">
+                Para cada punto $i$ en el círculo, dibujamos una línea conectándolo con el punto resultante de multiplicar $i$ por el factor $M$, aplicando el módulo $N$.
+            </p>
+            <div class="math-box">
+                Destino = (i × M) mod N
+            </div>
+            <p id="info-p-shapes">
+                Cuando $M = 2$, se forma una <strong>Cardioide</strong> (corazón). Cuando $M = 3$, una <strong>Nefroide</strong> (riñón). A medida que $M$ aumenta o cambia con decimales, emergen patrones de interferencia complejos y caóticos que de repente se ordenan en flores simétricas.
+            </p>
+            
+            <div class="dl-section">
+                <h3 style="color:var(--secondary); margin-bottom:15px;" id="h-dl-table">Descarga de Tabla</h3>
+                <p id="p-dl-table" style="font-size:0.9rem;">
+                    Genera una tabla de conexiones modular para los valores actuales de N y M en formato CSV.
+                </p>
+                <button onclick="downloadTable()" class="btn-txt-dl" id="btn-dl-table">
+                    ⬇ Descargar Tabla (.csv)
+                </button>
+            </div>
+        </div>
+
+        <div class="ad-container"><span class="ad-placeholder-text">Ad Space</span></div>
+    </div>
+
+    <footer>
+        <div class="legal-links">
+            <a href="../../legal.html" id="link-legal">Aviso Legal</a>
+            <a href="../../privacy.html" id="link-privacy">Política de Privacidad</a>
+            <a href="../../cookies.html" id="link-cookies">Política de Cookies</a>
+            <a href="mailto:pbazan@gmail.com" id="link-contact">Contacto</a>
+        </div>
+        <span id="footer-rights">© 2025 Graphics Labs</span>
+        <a href="https://paypal.me/pbazan" target="_blank" class="coffee-btn">
+            ☕ <span id="btn-coffee">Invítame a un café</span>
+        </a>
+    </footer>
+
+    <script>
+        /* --- 1. CONFIGURACIÓN --- */
+        const canvas = document.getElementById('modulo-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let numPoints = 200;
+        let multiplier = 2;
+        let isAnimating = false;
+        let animationId;
+        let colorMode = 0; // 0: Green, 1: Rainbow, 2: White/Blue
+
+        // UI
+        const slPoints = document.getElementById('sl-points');
+        const slMult = document.getElementById('sl-mult');
+        const valPoints = document.getElementById('val-points');
+        const valMult = document.getElementById('val-mult');
+        const btnAnim = document.getElementById('btn-anim');
+
+        // Listeners
+        slPoints.oninput = () => { numPoints = parseInt(slPoints.value); valPoints.innerText = numPoints; draw(); };
+        slMult.oninput = () => { multiplier = parseFloat(slMult.value); valMult.innerText = multiplier.toFixed(2); draw(); };
+
+        /* --- 2. MOTOR DE RENDERIZADO --- */
+        function renderScene(targetCtx, width, height, scale) {
+            targetCtx.fillStyle = "#000";
+            targetCtx.fillRect(0, 0, width, height);
+
+            const cx = width / 2;
+            const cy = height / 2;
+            const radius = (width / 2) - (20 * scale);
+
+            // Dibujar círculo base
+            targetCtx.strokeStyle = "rgba(255,255,255,0.1)";
+            targetCtx.lineWidth = 1 * scale;
+            targetCtx.beginPath();
+            targetCtx.arc(cx, cy, radius, 0, Math.PI * 2);
+            targetCtx.stroke();
+
+            // Dibujar líneas modulares
+            targetCtx.lineWidth = Math.max(0.5, 1 * scale / (numPoints/100)); // Líneas más finas si hay muchos puntos
+
+            for (let i = 0; i < numPoints; i++) {
+                // Calcular posición punto origen
+                const angle1 = (Math.PI * 2 * i) / numPoints - Math.PI/2;
+                const x1 = cx + radius * Math.cos(angle1);
+                const y1 = cy + radius * Math.sin(angle1);
+
+                // Calcular destino: (i * M) % N
+                // Usamos lógica flotante para animación suave si M es decimal
+                const targetVal = (i * multiplier) % numPoints;
+                
+                const angle2 = (Math.PI * 2 * targetVal) / numPoints - Math.PI/2;
+                const x2 = cx + radius * Math.cos(angle2);
+                const y2 = cy + radius * Math.sin(angle2);
+
+                targetCtx.beginPath();
+                targetCtx.moveTo(x1, y1);
+                targetCtx.lineTo(x2, y2);
+
+                // Coloreado
+                if (colorMode === 0) {
+                    targetCtx.strokeStyle = `rgba(0, 255, 65, 0.3)`;
+                } else if (colorMode === 1) {
+                    const hue = (i / numPoints) * 360;
+                    targetCtx.strokeStyle = `hsla(${hue}, 80%, 60%, 0.3)`;
+                } else {
+                    targetCtx.strokeStyle = `rgba(0, 200, 255, 0.3)`;
+                }
+                
+                targetCtx.stroke();
+            }
+        }
+
+        /* --- 3. DIBUJO Y ANIMACIÓN --- */
+        function draw() {
+            renderScene(ctx, canvas.width, canvas.height, 1);
+        }
+
+        function toggleAnimation() {
+            isAnimating = !isAnimating;
+            if(isAnimating) {
+                btnAnim.innerText = "⏸ PAUSAR";
+                btnAnim.style.background = "var(--secondary)";
+                btnAnim.style.color = "#fff";
+                animate();
+            } else {
+                btnAnim.innerText = "▶ ANIMAR";
+                btnAnim.style.background = "var(--primary)";
+                btnAnim.style.color = "#000";
+                cancelAnimationFrame(animationId);
+            }
+        }
+
+        function animate() {
+            multiplier += 0.01;
+            if (multiplier > 100) multiplier = 0;
+            
+            // Actualizar UI
+            slMult.value = multiplier;
+            valMult.innerText = multiplier.toFixed(2);
+            
+            draw();
+            if(isAnimating) animationId = requestAnimationFrame(animate);
+        }
+
+        function toggleColor() {
+            colorMode = (colorMode + 1) % 3;
+            draw();
+        }
+
+        function saveHighRes() {
+            const tempCanvas = document.createElement('canvas');
+            const scaleFactor = 3;
+            tempCanvas.width = canvas.width * scaleFactor;
+            tempCanvas.height = canvas.height * scaleFactor;
+            const tempCtx = tempCanvas.getContext('2d');
+            renderScene(tempCtx, tempCanvas.width, tempCanvas.height, scaleFactor);
+            
+            const link = document.createElement('a');
+            link.download = `modulo_${multiplier.toFixed(2)}_art.png`;
+            link.href = tempCanvas.toDataURL('image/png');
+            link.click();
+        }
+
+        function downloadTable() {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += `Origin (i),Target (i * ${multiplier.toFixed(2)}) mod ${numPoints}\n`;
+            
+            for(let i = 0; i < numPoints; i++) {
+                let target = (i * multiplier) % numPoints;
+                csvContent += `${i},${target.toFixed(2)}\n`;
+            }
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "modular_connections.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        /* --- 4. FONDO ANIMADO --- */
+        const bgCanvas = document.getElementById('bg-canvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        let particlesArray = [];
+        const mouse = { x: null, y: null, radius: 150 };
+
+        window.addEventListener('mousemove', (e) => { mouse.x = e.x; mouse.y = e.y; });
+        function resizeBg() { bgCanvas.width = window.innerWidth; bgCanvas.height = window.innerHeight; }
+        window.addEventListener('resize', () => { resizeBg(); initParticles(); });
+        resizeBg();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * bgCanvas.width;
+                this.y = Math.random() * bgCanvas.height;
+                this.size = Math.random() * 12 + 8;
+                this.speedX = (Math.random() * 1) - 0.5;
+                this.speedY = (Math.random() * 1) - 0.5;
+                const symbols = ['mod', '%', '×', 'N', 'M', 'i'];
+                this.text = symbols[Math.floor(Math.random() * symbols.length)];
+            }
+            draw() {
+                bgCtx.font = this.size + 'px monospace';
+                bgCtx.fillStyle = 'rgba(0, 255, 65, 0.15)'; 
+                bgCtx.fillText(this.text, this.x, this.y);
+            }
+            update() {
+                this.x += this.speedX; this.y += this.speedY;
+                if (mouse.x != null) {
+                    let dx = mouse.x - this.x;
+                    let dy = mouse.y - this.y;
+                    let distance = Math.sqrt(dx*dx + dy*dy);
+                    if (distance < mouse.radius) {
+                        const forceDirectionX = dx / distance;
+                        const forceDirectionY = dy / distance;
+                        const force = (mouse.radius - distance) / mouse.radius;
+                        this.x -= forceDirectionX * force * 5;
+                        this.y -= forceDirectionY * force * 5;
+                    }
+                }
+                if (this.x > bgCanvas.width) this.x = 0; if (this.x < 0) this.x = bgCanvas.width;
+                if (this.y > bgCanvas.height) this.y = 0; if (this.y < 0) this.y = bgCanvas.height;
+                this.draw();
+            }
+        }
+
+        function initParticles() {
+            particlesArray = [];
+            let n = (bgCanvas.height * bgCanvas.width) / 9000;
+            for (let i = 0; i < n; i++) particlesArray.push(new Particle());
+        }
+        function animateParticles() {
+            bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+            for (let i = 0; i < particlesArray.length; i++) particlesArray[i].update();
+            requestAnimationFrame(animateParticles);
+        }
+        initParticles(); animateParticles();
+
+        /* --- 5. IDIOMAS --- */
+        const translations = {
+            'es': {
+                nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH",
+                title: "PROYECTO MÓDULO", desc: "Visualización de Aritmética Modular y Geometría Sagrada.",
+                lbl_points: "Puntos (N):", lbl_mult: "Multiplicador (M):",
+                btn_anim: "▶ ANIMAR", btn_pause: "⏸ PAUSAR", btn_color: "🎨 COLOR", btn_save: "💾 IMG HQ",
+                txt_note: "Observa cómo formas simples como la Cardioide (M=2) emergen de la multiplicación.",
+                h_math: "La Matemática del Reloj",
+                p_math: "La aritmética modular es un sistema matemático donde los números 'dan la vuelta' al alcanzar cierto valor (el módulo), como las horas de un reloj. En esta visualización, colocamos N puntos alrededor de un círculo.",
+                h_algo: "El Algoritmo",
+                p_algo: "Para cada punto i en el círculo, dibujamos una línea conectándolo con el punto resultante de multiplicar i por el factor M, aplicando el módulo N.",
+                h_dl_table: "Descarga de Tabla", p_dl_table: "Genera una tabla de conexiones modular para los valores actuales de N y M.",
+                btn_dl_table: "⬇ Descargar Tabla (.csv)",
+                p_shapes: "Cuando M = 2, se forma una Cardioide (corazón). Cuando M = 3, una Nefroide. A medida que M aumenta, emergen patrones de interferencia complejos.",
+                legal: "Aviso Legal", privacy: "Privacidad", cookies: "Cookies", contact: "Contacto", coffee: "Invítame a un café"
+            },
+            'en': {
+                nav_main: "← MAIN HUB", nav_math: "← MATH HUB",
+                title: "PROJECT MODULO", desc: "Visualization of Modular Arithmetic and Sacred Geometry.",
+                lbl_points: "Points (N):", lbl_mult: "Multiplier (M):",
+                btn_anim: "▶ ANIMATE", btn_pause: "⏸ PAUSE", btn_color: "🎨 COLOR", btn_save: "💾 IMG HQ",
+                txt_note: "Observe how simple shapes like the Cardioid (M=2) emerge from multiplication.",
+                h_math: "Clock Arithmetic",
+                p_math: "Modular arithmetic is a system where numbers 'wrap around' upon reaching a certain value (the modulus), like hours on a clock. Here, we place N points around a circle.",
+                h_algo: "The Algorithm",
+                p_algo: "For each point i, we draw a line connecting it to the point resulting from multiplying i by factor M, modulo N.",
+                h_dl_table: "Table Download", p_dl_table: "Generate a modular connection table for current N and M values.",
+                btn_dl_table: "⬇ Download Table (.csv)",
+                p_shapes: "When M = 2, a Cardioid (heart) forms. When M = 3, a Nephroid. As M increases, complex interference patterns emerge.",
+                legal: "Legal Notice", privacy: "Privacy Policy", cookies: "Cookies", contact: "Contact", coffee: "Buy me a coffee"
+            },
+            'ca': {
+                nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH",
+                title: "PROJECTE MÒDUL", desc: "Visualització d'Aritmètica Modular i Geometria Sagrada.",
+                lbl_points: "Punts (N):", lbl_mult: "Multiplicador (M):",
+                btn_anim: "▶ ANIMAR", btn_pause: "⏸ PAUSAR", btn_color: "🎨 COLOR", btn_save: "💾 IMG HQ",
+                txt_note: "Observa com formes simples com la Cardioide (M=2) emergeixen de la multiplicació.",
+                h_math: "La Matemàtica del Rellotge",
+                p_math: "L'aritmètica modular és un sistema on els nombres 'fan la volta' en arribar a cert valor, com les hores d'un rellotge. Aquí col·loquem N punts al voltant d'un cercle.",
+                h_algo: "L'Algorisme",
+                p_algo: "Per a cada punt i, dibuixem una línia connectant-lo amb el punt resultant de multiplicar i pel factor M, mòdul N.",
+                h_dl_table: "Descàrrega de Taula", p_dl_table: "Genera una taula de connexions modular per als valors actuals.",
+                btn_dl_table: "⬇ Descarregar Taula (.csv)",
+                p_shapes: "Quan M = 2, es forma una Cardioide (cor). Quan M = 3, una Nefroide. A mesura que M augmenta, emergeixen patrons complexos.",
+                legal: "Avís Legal", privacy: "Privacitat", cookies: "Cookies", contact: "Contacte", coffee: "Convida'm a un cafè"
+            },
+            'fr': {
+                nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH",
+                title: "PROJET MODULO", desc: "Visualisation de l'Arithmétique Modulaire et Géométrie Sacrée.",
+                lbl_points: "Points (N) :", lbl_mult: "Multiplicateur (M) :",
+                btn_anim: "▶ ANIMER", btn_pause: "⏸ PAUSE", btn_color: "🎨 COULEUR", btn_save: "💾 IMG HQ",
+                txt_note: "Observez comment des formes simples comme la Cardioïde (M=2) émergent.",
+                h_math: "L'Arithmétique de l'Horloge",
+                p_math: "L'arithmétique modulaire est un système où les nombres 's'enroulent' après une certaine valeur. Ici, nous plaçons N points autour d'un cercle.",
+                h_algo: "L'Algorithme",
+                p_algo: "Pour chaque point i, nous traçons une ligne le reliant au point résultant de la multiplication de i par M, modulo N.",
+                h_dl_table: "Télécharger Tableau", p_dl_table: "Générer un tableau de connexion modulaire.",
+                btn_dl_table: "⬇ Télécharger (.csv)",
+                p_shapes: "Quand M = 2, une Cardioïde se forme. Quand M = 3, une Néphroïde. Des motifs complexes émergent avec M.",
+                legal: "Mentions Légales", privacy: "Confidentialité", cookies: "Cookies", contact: "Contact", coffee: "Offrez-moi un café"
+            },
+            'de': {
+                nav_main: "← HAUPT-HUB", nav_math: "← MATH HUB",
+                title: "PROJEKT MODULO", desc: "Visualisierung von Modulararithmetik und Heiliger Geometrie.",
+                lbl_points: "Punkte (N):", lbl_mult: "Multiplikator (M):",
+                btn_anim: "▶ ANIMIEREN", btn_pause: "⏸ PAUSE", btn_color: "🎨 FARBE", btn_save: "💾 IMG HQ",
+                txt_note: "Beobachten Sie, wie Formen wie die Kardioide (M=2) entstehen.",
+                h_math: "Die Uhrenmathematik",
+                p_math: "Modulararithmetik ist ein System, bei dem Zahlen 'umlaufen', wenn sie einen Wert erreichen. Hier platzieren wir N Punkte um einen Kreis.",
+                h_algo: "Der Algorithmus",
+                p_algo: "Für jeden Punkt i zeichnen wir eine Linie zu (i * M) mod N.",
+                h_dl_table: "Tabelle herunterladen", p_dl_table: "Generieren Sie eine Verbindungstabelle für die aktuellen Werte.",
+                btn_dl_table: "⬇ Herunterladen (.csv)",
+                p_shapes: "Bei M = 2 entsteht eine Kardioide (Herz). Bei M = 3 eine Nephroide. Mit steigendem M entstehen komplexe Muster.",
+                legal: "Impressum", privacy: "Datenschutz", cookies: "Cookies", contact: "Kontakt", coffee: "Kauf mir einen Kaffee"
+            },
+            'pt': {
+                nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH",
+                title: "PROJETO MÓDULO", desc: "Visualização de Aritmética Modular e Geometria Sagrada.",
+                lbl_points: "Pontos (N):", lbl_mult: "Multiplicador (M):",
+                btn_anim: "▶ ANIMAR", btn_pause: "⏸ PAUSA", btn_color: "🎨 COR", btn_save: "💾 IMG HQ",
+                txt_note: "Observe como formas simples como a Cardioide (M=2) emergem.",
+                h_math: "A Matemática do Relógio",
+                p_math: "A aritmética modular é um sistema onde os números 'dão a volta'. Aqui colocamos N pontos ao redor de um círculo.",
+                h_algo: "O Algoritmo",
+                p_algo: "Para cada ponto i, desenhamos uma linha conectando-o ao resultado de (i * M) mod N.",
+                h_dl_table: "Baixar Tabela", p_dl_table: "Gera uma tabela de conexões modulares.",
+                btn_dl_table: "⬇ Baixar Tabela (.csv)",
+                p_shapes: "Quando M = 2, forma-se uma Cardioide. Quando M = 3, uma Nefroide. Padrões complexos emergem com M.",
+                legal: "Aviso Legal", privacy: "Privacidade", cookies: "Cookies", contact: "Contato", coffee: "Pagar um café"
+            },
+            'it': {
+                nav_main: "← HUB PRINCIPALE", nav_math: "← HUB MATH",
+                title: "PROGETTO MODULO", desc: "Visualizzazione dell'Aritmetica Modulare e Geometria Sacra.",
+                lbl_points: "Punti (N):", lbl_mult: "Moltiplicatore (M):",
+                btn_anim: "▶ ANIMARE", btn_pause: "⏸ PAUSA", btn_color: "🎨 COLORE", btn_save: "💾 IMG HQ",
+                txt_note: "Osserva come emergono forme semplici come la Cardioide (M=2).",
+                h_math: "La Matematica dell'Orologio",
+                p_math: "L'aritmetica modulare è un sistema in cui i numeri 'girano intorno'. Qui posizioniamo N punti attorno a un cerchio.",
+                h_algo: "L'Algoritmo",
+                p_algo: "Per ogni punto i, disegniamo una linea che lo collega a (i * M) mod N.",
+                h_dl_table: "Scarica Tabella", p_dl_table: "Genera una tabella di connessione modulare.",
+                btn_dl_table: "⬇ Scarica Tabella (.csv)",
+                p_shapes: "Quando M = 2, si forma una Cardioide. Quando M = 3, una Nefroide. Modelli complessi emergono con M.",
+                legal: "Note Legali", privacy: "Privacy", cookies: "Cookies", contact: "Contatto", coffee: "Offrimi un caffè"
+            },
+            'nl': {
+                nav_main: "← HOOFDHUB", nav_math: "← MATH HUB",
+                title: "PROJECT MODULO", desc: "Visualisatie van Modulaire Rekenkunde en Heilige Geometrie.",
+                lbl_points: "Punten (N):", lbl_mult: "Vermenigvuldiger (M):",
+                btn_anim: "▶ ANIMEREN", btn_pause: "⏸ PAUZE", btn_color: "🎨 KLEUR", btn_save: "💾 IMG HQ",
+                txt_note: "Zie hoe vormen zoals de Cardioïde (M=2) ontstaan.",
+                h_math: "Klokrekenen",
+                p_math: "Modulaire rekenkunde is een systeem waarbij getallen 'rondgaan'. Hier plaatsen we N punten rond een cirkel.",
+                h_algo: "Het Algoritme",
+                p_algo: "Voor elk punt i tekenen we een lijn naar (i * M) mod N.",
+                h_dl_table: "Tabel Downloaden", p_dl_table: "Genereer een modulaire verbindingstabel.",
+                btn_dl_table: "⬇ Downloaden (.csv)",
+                p_shapes: "Bij M = 2 ontstaat een Cardioïde. Bij M = 3 een Nefroïde. Complexe patronen ontstaan met M.",
+                legal: "Juridisch", privacy: "Privacy", cookies: "Cookies", contact: "Contact", coffee: "Koop koffie"
+            },
+            'ja': {
+                nav_main: "← メインハブ", nav_math: "← 数学ハブ",
+                title: "プロジェクト・モジュロ", desc: "合同算術と神聖幾何学の視覚化。",
+                lbl_points: "点 (N):", lbl_mult: "乗数 (M):",
+                btn_anim: "▶ アニメーション", btn_pause: "⏸ 一時停止", btn_color: "🎨 色変更", btn_save: "💾 画像保存 HQ",
+                txt_note: "カージオイド（M=2）のような単純な形がどのように現れるか観察してください。",
+                h_math: "時計の数学",
+                p_math: "合同算術は、ある値（法）に達すると数が「一周する」システムです。ここでは円の周りにN個の点を配置します。",
+                h_algo: "アルゴリズム",
+                p_algo: "各点 i について、(i * M) mod N の結果となる点に線を引きます。",
+                h_dl_table: "表をダウンロード", p_dl_table: "現在の値の接続テーブルを生成します。",
+                btn_dl_table: "⬇ ダウンロード (.csv)",
+                p_shapes: "M=2のときカージオイド（心臓形）、M=3のときネフロイドが形成されます。Mが増えると複雑なパターンが現れます。",
+                legal: "法的通知", privacy: "プライバシー", cookies: "クッキー", contact: "連絡先", coffee: "コーヒーを奢る"
+            }
+        };
+
+        // INIT LANG
+        const savedLang = localStorage.getItem('gl_lang') || 'es';
+        
+        function setLang(lang) {
+            localStorage.setItem('gl_lang', lang);
+            const t = translations[lang] || translations['es'];
+            
+            // Textos
+            document.getElementById('nav-main').innerText = t.nav_main;
+            document.getElementById('nav-math').innerText = t.nav_math;
+            document.getElementById('txt-title').innerText = t.title;
+            document.getElementById('txt-desc').innerText = t.desc;
+            
+            document.getElementById('lbl-points').innerText = t.lbl_points;
+            document.getElementById('lbl-mult').innerText = t.lbl_mult;
+            
+            document.getElementById('btn-anim').innerText = isAnimating ? t.btn_pause : t.btn_anim;
+            document.getElementById('btn-color').innerText = t.btn_color;
+            document.getElementById('btn-save').innerText = t.btn_save;
+            document.getElementById('txt-note').innerText = t.txt_note;
+
+            document.getElementById('info-h-math').innerText = t.h_math;
+            document.getElementById('info-p-math').innerText = t.p_math;
+            document.getElementById('info-h-algo').innerText = t.h_algo;
+            document.getElementById('info-p-algo').innerText = t.p_algo;
+            document.getElementById('info-p-shapes').innerText = t.p_shapes;
+            
+            document.getElementById('h-dl-table').innerText = t.h_dl_table;
+            document.getElementById('p-dl-table').innerText = t.p_dl_table;
+            document.getElementById('btn-dl-table').innerText = t.btn_dl_table;
+
+            document.getElementById('link-legal').innerText = t.legal;
+            document.getElementById('link-privacy').innerText = t.privacy;
+            document.getElementById('link-cookies').innerText = t.cookies;
+            document.getElementById('link-contact').innerText = t.contact;
+            document.getElementById('btn-coffee').innerText = t.coffee;
+
+            document.querySelectorAll('.lang-switch button').forEach(b => {
+                b.classList.remove('active');
+                if(b.id === 'btn-' + lang) b.classList.add('active');
+            });
+        }
+
+        setLang(savedLang);
+        draw();
+
+    </script>
+</body>
+</html>
