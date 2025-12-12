@@ -253,7 +253,7 @@
             <div class="buttons-row">
                 <button class="action-btn" onclick="drawCollatz()" id="btn-draw">GENERAR ARTE</button>
                 <button class="secondary-btn" onclick="toggleColor()" id="btn-color">🎨 COLOR</button>
-                <button class="secondary-btn" onclick="saveImage()" id="btn-save">💾 IMG</button>
+                <button class="secondary-btn" onclick="saveHighRes()" id="btn-save">💾 IMG HQ</button>
             </div>
         </div>
 
@@ -265,19 +265,19 @@
         <div class="info-section">
             <h2 id="info-h-simple">El Problema más Simple e Imposible</h2>
             <p id="info-p-simple">
-                La Conjetura de Collatz es famosa por ser increíblemente fácil de explicar pero imposible de demostrar. Toma cualquier número entero positivo $n$:
+                La Conjetura de Collatz es famosa por ser increíblemente fácil de explicar pero imposible de demostrar. Toma cualquier número entero positivo n:
             </p>
             <div class="math-box">
                 Si es PAR: n = n / 2<br>
                 Si es IMPAR: n = 3n + 1
             </div>
             <p id="info-p-loop">
-                Repite el proceso. La conjetura dice que, sin importar qué número elijas (7, 100, un millón...), eventualmente siempre caerá en el bucle infinito <strong>4 → 2 → 1</strong>.
+                Repite el proceso. La conjetura dice que, sin importar qué número elijas, siempre caerá en el bucle infinito 4 → 2 → 1.
             </p>
 
             <h2 id="info-h-art">¿Cómo funciona la Visualización?</h2>
             <p id="info-p-art">
-                En este gráfico, dibujamos el camino inverso. Empezamos desde abajo y trazamos la trayectoria de miles de números. Si el siguiente paso es par, giramos a un lado; si es impar, al otro. El resultado es una estructura orgánica que parece algas marinas o raíces, revelando el orden oculto dentro del aparente caos numérico.
+                En este gráfico, dibujamos el camino inverso. Empezamos desde abajo y trazamos la trayectoria de miles de números. Si el siguiente paso es par, giramos a un lado; si es impar, al otro. El resultado es una estructura orgánica parecida a algas marinas.
             </p>
             
             <div class="dl-section">
@@ -347,54 +347,50 @@
             return seq.reverse(); // De 1 hacia arriba (para dibujar como árbol)
         }
 
-        /* --- 3. DIBUJADO --- */
-        function drawCollatz() {
-            // Limpiar
-            ctx.fillStyle = "#000";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        /* --- 3. MOTOR DE RENDERIZADO (ESCALABLE) --- */
+        function renderScene(targetCtx, width, height, scale) {
+            // Limpiar fondo
+            targetCtx.fillStyle = "#000";
+            targetCtx.fillRect(0, 0, width, height);
 
             const angleOffset = parseFloat(slAngle.value);
-            const len = parseInt(slLen.value);
+            const len = parseInt(slLen.value) * scale; // Escalamos la longitud
             const opacity = parseFloat(slOpacity.value);
 
-            ctx.lineWidth = 1;
+            targetCtx.lineWidth = 1 * scale; // Escalamos el grosor
             
-            // Dibujamos muchas secuencias para formar el "árbol"
-            // Empezamos desde el 1 y vamos subiendo.
-            // Pero como la gráfica es un árbol, es más fácil iterar números del 1 al X
-            // y trazar su camino de regreso al 1.
-            
-            const startX = canvas.width / 2;
-            const startY = canvas.height - 50;
+            // Punto de inicio (centro abajo)
+            const startX = width / 2;
+            const startY = height - (50 * scale); // Margen escalado
 
-            for (let i = 1; i < 2000; i++) { // Dibujamos las primeras 2000 secuencias
+            // Dibujamos las primeras 2000 secuencias
+            for (let i = 1; i < 2000; i++) { 
                 let sequence = getCollatzSequence(i);
                 
-                // Color setup
+                // Configuración de Color
                 if(colorMode === 0) {
-                    ctx.strokeStyle = `rgba(0, 255, 65, ${opacity})`;
+                    targetCtx.strokeStyle = `rgba(0, 255, 65, ${opacity})`;
                 } else {
                     // Gradiente basado en la longitud de la secuencia
                     let hue = (sequence.length * 2) % 360;
-                    ctx.strokeStyle = `hsla(${hue}, 80%, 60%, ${opacity})`;
+                    targetCtx.strokeStyle = `hsla(${hue}, 80%, 60%, ${opacity})`;
                 }
 
-                ctx.beginPath();
-                ctx.moveTo(startX, startY);
+                targetCtx.beginPath();
+                targetCtx.moveTo(startX, startY);
 
                 let currentX = startX;
                 let currentY = startY;
                 let currentAngle = -Math.PI / 2; // Apunta arriba
 
-                // Dibujamos el camino desde 1 hacia arriba (reverse sequence)
-                // sequence[0] es 1.
+                // Dibujamos el camino
                 for (let j = 0; j < sequence.length - 1; j++) {
                     let num = sequence[j];
                     let nextNum = sequence[j+1];
 
                     // Determinar giro
                     if (nextNum % 2 === 0) {
-                        currentAngle -= angleOffset; // Par: Giro izquierda (arbitrario)
+                        currentAngle -= angleOffset; // Par: Giro izquierda
                     } else {
                         currentAngle += angleOffset; // Impar: Giro derecha
                     }
@@ -402,10 +398,17 @@
                     currentX += Math.cos(currentAngle) * len;
                     currentY += Math.sin(currentAngle) * len;
                     
-                    ctx.lineTo(currentX, currentY);
+                    targetCtx.lineTo(currentX, currentY);
                 }
-                ctx.stroke();
+                targetCtx.stroke();
             }
+        }
+
+        /* --- 4. FUNCIONES DE DIBUJO Y GUARDADO --- */
+        
+        // Dibuja en el canvas normal (pantalla)
+        function drawCollatz() {
+            renderScene(ctx, canvas.width, canvas.height, 1);
         }
 
         function toggleColor() {
@@ -413,10 +416,24 @@
             drawCollatz();
         }
 
-        function saveImage() {
+        // Nueva función: Renderiza en un canvas temporal de alta resolución
+        function saveHighRes() {
+            // 1. Crear canvas temporal en memoria
+            const tempCanvas = document.createElement('canvas');
+            const scaleFactor = 3; // 3x Calidad
+            
+            tempCanvas.width = canvas.width * scaleFactor;  // 2400
+            tempCanvas.height = canvas.height * scaleFactor; // 1800
+            
+            const tempCtx = tempCanvas.getContext('2d');
+
+            // 2. Renderizar la escena escalada
+            renderScene(tempCtx, tempCanvas.width, tempCanvas.height, scaleFactor);
+
+            // 3. Descargar
             const link = document.createElement('a');
-            link.download = 'collatz_visualization.png';
-            link.href = canvas.toDataURL('image/png');
+            link.download = 'collatz_high_res.png';
+            link.href = tempCanvas.toDataURL('image/png');
             link.click();
         }
 
@@ -455,7 +472,7 @@
             link.click();
         }
 
-        /* --- 4. INTERACTIVIDAD FONDO --- */
+        /* --- 5. INTERACTIVIDAD FONDO --- */
         const bgCanvas = document.getElementById('bg-canvas');
         const bgCtx = bgCanvas.getContext('2d');
         let particlesArray = [];
@@ -516,13 +533,13 @@
         }
         initParticles(); animateParticles();
 
-        /* --- 5. MULTI-IDIOMA --- */
+        /* --- 6. MULTI-IDIOMA --- */
         const translations = {
             'es': {
                 nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH",
                 title: "PROYECTO COLLATZ", desc: "Visualización de la Conjetura 3x+1 y arte generativo.",
                 lbl_angle: "Ángulo de Giro:", lbl_len: "Longitud Línea:", lbl_opacity: "Opacidad:",
-                btn_draw: "GENERAR ARTE", btn_color: "🎨 COLOR", btn_save: "💾 IMG",
+                btn_draw: "GENERAR ARTE", btn_color: "🎨 COLOR", btn_save: "💾 IMG HQ",
                 txt_note: "Cada línea representa el 'vuelo' de un número hasta llegar a 1.",
                 h_simple: "El Problema más Simple e Imposible",
                 p_simple: "La Conjetura de Collatz es famosa por ser increíblemente fácil de explicar pero imposible de demostrar. Toma cualquier número entero positivo n:",
@@ -537,7 +554,7 @@
                 nav_main: "← MAIN HUB", nav_math: "← MATH HUB",
                 title: "PROJECT COLLATZ", desc: "Visualization of the 3x+1 Conjecture and generative art.",
                 lbl_angle: "Turn Angle:", lbl_len: "Line Length:", lbl_opacity: "Opacity:",
-                btn_draw: "GENERATE ART", btn_color: "🎨 COLOR", btn_save: "💾 IMG",
+                btn_draw: "GENERATE ART", btn_color: "🎨 COLOR", btn_save: "💾 IMG HQ",
                 txt_note: "Each line represents the 'flight' of a number reaching 1.",
                 h_simple: "The Simplest Impossible Problem",
                 p_simple: "The Collatz Conjecture is famous for being incredibly simple to explain but impossible to prove. Take any positive integer n:",
@@ -552,7 +569,7 @@
                 nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH",
                 title: "PROJECTE COLLATZ", desc: "Visualització de la Conjectura 3x+1 i art generatiu.",
                 lbl_angle: "Angle de Gir:", lbl_len: "Longitud Línia:", lbl_opacity: "Opacitat:",
-                btn_draw: "GENERAR ART", btn_color: "🎨 COLOR", btn_save: "💾 IMG",
+                btn_draw: "GENERAR ART", btn_color: "🎨 COLOR", btn_save: "💾 IMG HQ",
                 txt_note: "Cada línia representa el 'vol' d'un nombre fins arribar a 1.",
                 h_simple: "El Problema més Simple i Impossible",
                 p_simple: "La Conjectura de Collatz és famosa per ser increïblement fàcil d'explicar però impossible de demostrar. Pren qualsevol enter positiu n:",
@@ -567,7 +584,7 @@
                 nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH",
                 title: "PROJET COLLATZ", desc: "Visualisation de la Conjecture 3x+1 et art génératif.",
                 lbl_angle: "Angle de Rotation :", lbl_len: "Longueur Ligne :", lbl_opacity: "Opacité :",
-                btn_draw: "GÉNÉRER ART", btn_color: "🎨 COULEUR", btn_save: "💾 IMG",
+                btn_draw: "GÉNÉRER ART", btn_color: "🎨 COULEUR", btn_save: "💾 IMG HQ",
                 txt_note: "Chaque ligne représente le 'vol' d'un nombre jusqu'à 1.",
                 h_simple: "Le Problème Impossible le plus Simple",
                 p_simple: "La Conjecture de Collatz est célèbre pour être incroyablement simple à expliquer mais impossible à prouver. Prenez n'importe quel entier positif n :",
@@ -582,7 +599,7 @@
                 nav_main: "← HAUPT-HUB", nav_math: "← MATH HUB",
                 title: "PROJEKT COLLATZ", desc: "Visualisierung der 3x+1 Vermutung und generative Kunst.",
                 lbl_angle: "Drehwinkel:", lbl_len: "Linienlänge:", lbl_opacity: "Deckkraft:",
-                btn_draw: "KUNST GENERIEREN", btn_color: "🎨 FARBE", btn_save: "💾 IMG",
+                btn_draw: "KUNST GENERIEREN", btn_color: "🎨 FARBE", btn_save: "💾 IMG HQ",
                 txt_note: "Jede Linie stellt den 'Flug' einer Zahl dar, bis sie 1 erreicht.",
                 h_simple: "Das einfachste unmögliche Problem",
                 p_simple: "Die Collatz-Vermutung ist berühmt dafür, unglaublich einfach zu erklären, aber unmöglich zu beweisen. Nehmen Sie eine beliebige positive ganze Zahl n:",
@@ -597,7 +614,7 @@
                 nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH",
                 title: "PROJETO COLLATZ", desc: "Visualização da Conjectura 3x+1 e arte generativa.",
                 lbl_angle: "Ângulo de Giro:", lbl_len: "Comprimento Linha:", lbl_opacity: "Opacidade:",
-                btn_draw: "GERAR ARTE", btn_color: "🎨 COR", btn_save: "💾 IMG",
+                btn_draw: "GERAR ARTE", btn_color: "🎨 COR", btn_save: "💾 IMG HQ",
                 txt_note: "Cada linha representa o 'voo' de um número até chegar a 1.",
                 h_simple: "O Problema mais Simples e Impossível",
                 p_simple: "A Conjectura de Collatz é famosa por ser incrivelmente fácil de explicar, mas impossível de provar. Pegue qualquer inteiro positivo n:",
@@ -612,7 +629,7 @@
                 nav_main: "← HUB PRINCIPALE", nav_math: "← HUB MATH",
                 title: "PROGETTO COLLATZ", desc: "Visualizzazione della Congettura 3x+1 e arte generativa.",
                 lbl_angle: "Angolo di Rotazione:", lbl_len: "Lunghezza Linea:", lbl_opacity: "Opacità:",
-                btn_draw: "GENERARE ARTE", btn_color: "🎨 COLORE", btn_save: "💾 IMG",
+                btn_draw: "GENERARE ARTE", btn_color: "🎨 COLORE", btn_save: "💾 IMG HQ",
                 txt_note: "Ogni linea rappresenta il 'volo' di un numero fino a raggiungere 1.",
                 h_simple: "Il Problema più Semplice e Impossibile",
                 p_simple: "La Congettura di Collatz è famosa per essere incredibilmente semplice da spiegare ma impossibile da dimostrare. Prendi un qualsiasi intero positivo n:",
@@ -627,7 +644,7 @@
                 nav_main: "← HOOFDHUB", nav_math: "← MATH HUB",
                 title: "PROJECT COLLATZ", desc: "Visualisatie van het 3x+1 Vermoeden en generatieve kunst.",
                 lbl_angle: "Draaihoek:", lbl_len: "Lijnlengte:", lbl_opacity: "Ondoorschijnendheid:",
-                btn_draw: "KUNST GENEREREN", btn_color: "🎨 KLEUR", btn_save: "💾 IMG",
+                btn_draw: "KUNST GENEREREN", btn_color: "🎨 KLEUR", btn_save: "💾 IMG HQ",
                 txt_note: "Elke lijn vertegenwoordigt de 'vlucht' van een getal tot het 1 bereikt.",
                 h_simple: "Het Eenvoudigste Onmogelijke Probleem",
                 p_simple: "Het Collatz-vermoeden is beroemd omdat het ongelooflijk eenvoudig uit te leggen is, maar onmogelijk te bewijzen. Neem een positief geheel getal n:",
@@ -642,7 +659,7 @@
                 nav_main: "← メインハブ", nav_math: "← 数学ハブ",
                 title: "プロジェクト・コラッツ", desc: "3x+1予想の視覚化とジェネレーティブアート。",
                 lbl_angle: "回転角度:", lbl_len: "線の長さ:", lbl_opacity: "不透明度:",
-                btn_draw: "アート生成", btn_color: "🎨 色変更", btn_save: "💾 画像保存",
+                btn_draw: "アート生成", btn_color: "🎨 色変更", btn_save: "💾 画像保存 HQ",
                 txt_note: "各線は、1に到達するまでの数字の「飛行」を表します。",
                 h_simple: "最も単純で不可能な問題",
                 p_simple: "コラッツ予想は、説明するのは非常に簡単ですが、証明するのは不可能であることで有名です。任意の正の整数nを取ります：",
