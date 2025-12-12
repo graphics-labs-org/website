@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Double Pendulum | Graphics Labs</title>
+    <meta name="description" content="Simulación de caos determinista con un péndulo doble.">
+    <style>
+        /* --- ESTILOS BASE --- */
+        :root {
+            --primary: #00ff41; 
+            --primary-dim: rgba(0, 255, 65, 0.3);
+            --secondary: #bd00ff;
+            --highlight: #ffee00;
+            --glass: rgba(20, 20, 20, 0.7);
+            --glass-text: rgba(30, 30, 30, 0.8);
+            --border: rgba(255, 255, 255, 0.1);
+            --text: #ffffff;
+            --muted: #aaaaaa;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', monospace, sans-serif; }
+        
+        body {
+            background-color: #050505;
+            color: var(--text);
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            user-select: none;
+        }
+
+        #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- CONTROLES --- */
+        .controls {
+            background: var(--glass);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin: 20px auto;
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .slider-row {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .slider-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            min-width: 140px;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            outline: none;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--primary);
+            transition: 0.2s;
+        }
+        input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+        .value-display { font-family: 'Courier New', monospace; color: var(--highlight); font-weight: bold; font-size: 0.9rem; }
+
+        .buttons-row { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; margin-top: 10px; }
+
+        button.action-btn {
+            background: var(--primary); color: #000; border: none; padding: 10px 20px; border-radius: 5px;
+            cursor: pointer; font-weight: bold; transition: 0.3s; text-transform: uppercase; font-size: 0.9rem;
+        }
+        button.action-btn:hover { box-shadow: 0 0 15px var(--primary); transform: scale(1.05); }
+        
+        button.secondary-btn {
+            background: transparent; border: 1px solid var(--secondary); color: var(--secondary);
+            padding: 8px 15px; border-radius: 5px; cursor: pointer; transition: 0.3s; font-size: 0.9rem;
+            display: flex; align-items: center; gap: 5px;
+        }
+        button.secondary-btn:hover { background: var(--secondary); color: #fff; box-shadow: 0 0 15px var(--secondary); }
+
+        /* --- VISUALIZADOR --- */
+        #canvas-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        #pendulum-canvas {
+            background: #000;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            box-shadow: 0 0 30px rgba(0, 255, 65, 0.1);
+            max-width: 100%;
+            cursor: pointer;
+        }
+
+        /* --- INFO --- */
+        .info-section {
+            background: var(--glass-text);
+            padding: 40px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin: 40px auto;
+            max-width: 900px;
+            text-align: left;
+            line-height: 1.8;
+            color: #ddd;
+        }
+        .info-section h2 { color: var(--primary); margin-bottom: 20px; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-top: 40px; }
+        .info-section h2:first-child { margin-top: 0; }
+        .info-section p { margin-bottom: 20px; font-size: 1rem; text-align: justify; }
+        
+        .math-box {
+            background: rgba(0,0,0,0.5);
+            border-left: 4px solid var(--secondary);
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            color: var(--secondary);
+            font-size: 1rem;
+            line-height: 1.6;
+            text-align: left;
+            overflow-x: auto;
+        }
+
+        .dl-section { margin-top: 30px; border-top: 1px dashed var(--border); padding-top: 20px; text-align: center; }
+        
+        .btn-txt-dl {
+            display: inline-block; background: rgba(255, 255, 255, 0.1); color: var(--muted); text-decoration: none;
+            padding: 15px 25px; border: 1px solid var(--muted); border-radius: 4px; font-family: var(--font-mono);
+            font-size: 0.9rem; transition: 0.3s; cursor: pointer;
+        }
+        .btn-txt-dl:hover { background: var(--secondary); color: #000; border-color: var(--secondary); box-shadow: 0 0 10px var(--secondary); }
+
+        .ad-container {
+            width: 100%; max-width: 728px; margin: 30px auto; min-height: 90px;
+            display: flex; justify-content: center; align-items: center;
+            border: 1px dashed rgba(255,255,255,0.1); border-radius: 8px; background: rgba(0,0,0,0.2);
+        }
+        .ad-placeholder-text { color: var(--border); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; }
+
+        /* Nav & Footer */
+        nav { display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .nav-links { display: flex; gap: 15px; }
+        .nav-btn { text-decoration: none; color: var(--muted); font-size: 0.9rem; border: 1px solid var(--border); padding: 5px 10px; border-radius: 4px; transition: 0.3s; background: rgba(0,0,0,0.5); }
+        .nav-btn:hover { color: var(--primary); border-color: var(--primary); }
+        .logo { font-size: 1.2rem; font-weight: bold; color: var(--primary); text-decoration: none; letter-spacing: 2px; }
+        .lang-switch button { background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: var(--muted); padding: 5px 10px; cursor: pointer; border-radius: 4px; margin-left: 2px;}
+        .lang-switch button.active { background-color: var(--primary) !important; color: #000 !important; border-color: var(--primary) !important; font-weight: bold; }
+        footer { margin-top: auto; background: rgba(0,0,0,0.9); backdrop-filter: blur(5px); border-top: 1px solid var(--border); padding: 30px 20px; text-align: center; font-size: 0.8rem; color: var(--muted); display: flex; flex-direction: column; gap: 15px; align-items: center; position: relative; z-index: 20; }
+        .legal-links { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin-bottom: 10px; }
+        .legal-links a { color: var(--muted); text-decoration: none; transition: 0.3s; border-bottom: 1px solid transparent; }
+        .legal-links a:hover { color: var(--primary); border-bottom-color: var(--primary); }
+        .coffee-btn { background: linear-gradient(45deg, #FFDD00, #FBB03B); color: #000; padding: 8px 15px; border-radius: 20px; text-decoration: none; font-weight: bold; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 5px; transition: transform 0.2s; }
+        .coffee-btn:hover { transform: scale(1.05); }
+
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="container">
+        <nav>
+            <div class="nav-links">
+                <a href="../../index.html" class="nav-btn" id="nav-main">← HUB PRINCIPAL</a>
+                <a href="../index.html" class="nav-btn" id="nav-math">← HUB MATH</a>
+            </div>
+            <div class="logo">GRAPHICS LABS</div>
+            <div class="lang-switch">
+                <button onclick="setLang('es')" id="btn-es" class="active">ES</button>
+                <button onclick="setLang('ca')" id="btn-ca">CA</button>
+                <button onclick="setLang('en')" id="btn-en">EN</button>
+                <button onclick="setLang('fr')" id="btn-fr">FR</button>
+                <button onclick="setLang('de')" id="btn-de">DE</button>
+                <button onclick="setLang('pt')" id="btn-pt">PT</button>
+                <button onclick="setLang('it')" id="btn-it">IT</button>
+                <button onclick="setLang('nl')" id="btn-nl">NL</button>
+                <button onclick="setLang('ja')" id="btn-ja">JP</button>
+            </div>
+        </nav>
+
+        <h1 id="txt-title">EL DOBLE PÉNDULO</h1>
+        <p style="color:var(--muted); margin-bottom: 20px;" id="txt-desc">Simulación física de sistemas dinámicos caóticos.</p>
+
+        <div class="controls">
+            
+            <div class="slider-row">
+                <div class="slider-group">
+                    <label id="lbl-m1">Masa 1 (m₁)</label>
+                    <input type="range" id="sl-m1" min="1" max="40" step="1" value="20">
+                </div>
+                <div class="slider-group">
+                    <label id="lbl-m2">Masa 2 (m₂)</label>
+                    <input type="range" id="sl-m2" min="1" max="40" step="1" value="20">
+                </div>
+                <div class="slider-group">
+                    <label id="lbl-l1">Longitud 1 (l₁)</label>
+                    <input type="range" id="sl-l1" min="50" max="200" step="5" value="125">
+                </div>
+                <div class="slider-group">
+                    <label id="lbl-l2">Longitud 2 (l₂)</label>
+                    <input type="range" id="sl-l2" min="50" max="200" step="5" value="125">
+                </div>
+            </div>
+            
+            <div class="slider-row" style="margin-top:10px;">
+                <div class="slider-group">
+                    <label id="lbl-g">Gravedad (g)</label>
+                    <input type="range" id="sl-g" min="0.1" max="5" step="0.1" value="1">
+                    <div class="value-display" id="val-g">1.0</div>
+                </div>
+                <div class="slider-group">
+                    <label id="lbl-trail">Longitud Rastro</label>
+                    <input type="range" id="sl-trail" min="100" max="2000" step="100" value="800">
+                </div>
+            </div>
+
+            <div class="buttons-row">
+                <button class="action-btn" onclick="resetSim()" id="btn-reset">REINICIAR</button>
+                <button class="secondary-btn" onclick="clearTrace()" id="btn-clear">LIMPIAR RASTRO</button>
+                <button class="secondary-btn" onclick="saveHighRes()" id="btn-save">💾 IMG HQ</button>
+            </div>
+        </div>
+
+        <div id="canvas-container">
+            <canvas id="pendulum-canvas" width="800" height="600"></canvas>
+            <p style="color:var(--muted); font-size: 0.8rem; margin-top:5px;" id="txt-note">Haz clic en el canvas para dar un impulso al péndulo.</p>
+        </div>
+
+        <div class="info-section">
+            <h2 id="info-h-chaos">El Caos en Movimiento</h2>
+            <p id="info-p-chaos">
+                El péndulo doble es uno de los sistemas físicos más simples que exhibe un comportamiento caótico. A diferencia de un péndulo simple, cuyo movimiento es predecible y regular, al añadir un segundo brazo, la más mínima variación en la posición inicial provoca una trayectoria completamente diferente en cuestión de segundos.
+            </p>
+
+            <h2 id="info-h-physics">La Física Detrás</h2>
+            <p id="info-p-physics">
+                Este laboratorio resuelve numéricamente las ecuaciones de movimiento de Lagrange en tiempo real. No es una animación pregrabada; tu navegador está calculando las fuerzas, velocidades y aceleraciones angulares 60 veces por segundo.
+            </p>
+            
+            <div class="math-box">
+                θ₁'' = −g(2m₁ + m₂)sinθ₁ − m₂g sin(θ₁ − 2θ₂) ...<br>
+                θ₂'' = 2sin(θ₁ − θ₂)(θ₁'²l₁(m₁ + m₂) + g(m₁ + m₂)cosθ₁ ...
+            </div>
+
+            <div class="dl-section">
+                <h3 style="color:var(--secondary); margin-bottom:15px;" id="h-dl-data">Descarga de Datos (Física)</h3>
+                <p id="p-dl-data" style="font-size:0.9rem;">
+                    Descarga el historial de posiciones angulares (θ₁ y θ₂) y velocidades para analizar la entropía y el diagrama de fases del sistema.
+                </p>
+                <button onclick="downloadData()" class="btn-txt-dl" id="btn-dl-data">
+                    ⬇ Descargar Datos (.csv)
+                </button>
+            </div>
+        </div>
+
+        <div class="ad-container"><span class="ad-placeholder-text">Ad Space</span></div>
+    </div>
+
+    <footer>
+        <div class="legal-links">
+            <a href="../../legal.html" id="link-legal">Aviso Legal</a>
+            <a href="../../privacy.html" id="link-privacy">Política de Privacidad</a>
+            <a href="../../cookies.html" id="link-cookies">Política de Cookies</a>
+            <a href="mailto:pbazan@gmail.com" id="link-contact">Contacto</a>
+        </div>
+        <span id="footer-rights">© 2025 Graphics Labs</span>
+        <a href="https://paypal.me/pbazan" target="_blank" class="coffee-btn">
+            ☕ <span id="btn-coffee">Invítame a un café</span>
+        </a>
+    </footer>
+
+    <script>
+        /* --- 1. CONFIGURACIÓN --- */
+        const canvas = document.getElementById('pendulum-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Variables Físicas
+        let r1 = 125, r2 = 125;
+        let m1 = 20, m2 = 20;
+        let a1 = Math.PI / 2; // Angulo 1
+        let a2 = Math.PI / 2; // Angulo 2
+        let a1_v = 0, a2_v = 0; // Velocidades angulares
+        let g = 1;
+        
+        let path = [];
+        let maxPath = 800;
+
+        // UI References
+        const slM1 = document.getElementById('sl-m1');
+        const slM2 = document.getElementById('sl-m2');
+        const slL1 = document.getElementById('sl-l1');
+        const slL2 = document.getElementById('sl-l2');
+        const slG = document.getElementById('sl-g');
+        const slTrail = document.getElementById('sl-trail');
+
+        // Listeners
+        slM1.oninput = () => m1 = parseFloat(slM1.value);
+        slM2.oninput = () => m2 = parseFloat(slM2.value);
+        slL1.oninput = () => r1 = parseFloat(slL1.value);
+        slL2.oninput = () => r2 = parseFloat(slL2.value);
+        slG.oninput = () => { g = parseFloat(slG.value); document.getElementById('val-g').innerText = g.toFixed(1); };
+        slTrail.oninput = () => maxPath = parseInt(slTrail.value);
+
+        // Interacción: Impulso
+        canvas.addEventListener('mousedown', () => {
+            a1_v += (Math.random() - 0.5) * 0.2;
+            a2_v += (Math.random() - 0.5) * 0.3;
+        });
+
+        /* --- 2. MOTOR FÍSICO --- */
+        function updatePhysics() {
+            // Ecuaciones de movimiento (Lagrangiano)
+            let num1 = -g * (2 * m1 + m2) * Math.sin(a1);
+            let num2 = -m2 * g * Math.sin(a1 - 2 * a2);
+            let num3 = -2 * Math.sin(a1 - a2) * m2;
+            let num4 = a2_v * a2_v * r2 + a1_v * a1_v * r1 * Math.cos(a1 - a2);
+            let den = r1 * (2 * m1 + m2 - m2 * Math.cos(2 * a1 - 2 * a2));
+            
+            let a1_a = (num1 + num2 + num3 * num4) / den;
+
+            num1 = 2 * Math.sin(a1 - a2);
+            num2 = (a1_v * a1_v * r1 * (m1 + m2));
+            num3 = g * (m1 + m2) * Math.cos(a1);
+            num4 = a2_v * a2_v * r2 * m2 * Math.cos(a1 - a2);
+            den = r2 * (2 * m1 + m2 - m2 * Math.cos(2 * a1 - 2 * a2));
+            
+            let a2_a = (num1 * (num2 + num3 + num4)) / den;
+
+            // Integración
+            a1_v += a1_a;
+            a2_v += a2_a;
+            a1 += a1_v;
+            a2 += a2_v;
+
+            // Fricción (para que no explote)
+            a1_v *= 0.999;
+            a2_v *= 0.999;
+        }
+
+        /* --- 3. DIBUJADO (SCENE RENDERER) --- */
+        function renderScene(targetCtx, width, height, scale) {
+            // Fondo
+            targetCtx.fillStyle = '#000';
+            targetCtx.fillRect(0, 0, width, height);
+
+            // Ajustar centro
+            targetCtx.save();
+            targetCtx.translate(width / 2, height / 3);
+            targetCtx.scale(scale, scale);
+
+            // Calcular posiciones cartesianas
+            let x1 = r1 * Math.sin(a1);
+            let y1 = r1 * Math.cos(a1);
+            let x2 = x1 + r2 * Math.sin(a2);
+            let y2 = y1 + r2 * Math.cos(a2);
+
+            // Guardar Rastro
+            if (scale === 1) { // Solo guardamos rastro en el loop normal
+                // Color basado en velocidad del segundo brazo
+                let vel = Math.abs(a2_v) * 2000; 
+                let hue = (vel + 200) % 360; 
+                path.push({x: x2, y: y2, h: hue});
+                if(path.length > maxPath) path.shift();
+            }
+
+            // DIBUJAR RASTRO
+            targetCtx.lineWidth = 2 / scale; // Linea fina en HQ
+            
+            // Usamos globalCompositeOperation para efecto neón
+            targetCtx.globalCompositeOperation = "lighter";
+
+            for(let i = 1; i < path.length; i++) {
+                let p1 = path[i-1];
+                let p2 = path[i];
+                
+                targetCtx.beginPath();
+                targetCtx.strokeStyle = `hsla(${p2.h}, 100%, 60%, ${i/path.length})`;
+                targetCtx.moveTo(p1.x, p1.y);
+                targetCtx.lineTo(p2.x, p2.y);
+                targetCtx.stroke();
+            }
+            
+            targetCtx.globalCompositeOperation = "source-over";
+
+            // DIBUJAR PÉNDULO
+            targetCtx.strokeStyle = '#333';
+            targetCtx.lineWidth = 2;
+
+            // Brazos
+            targetCtx.beginPath();
+            targetCtx.moveTo(0, 0);
+            targetCtx.lineTo(x1, y1);
+            targetCtx.lineTo(x2, y2);
+            targetCtx.stroke();
+
+            // Masas
+            targetCtx.fillStyle = 'var(--primary)';
+            targetCtx.beginPath();
+            targetCtx.arc(x1, y1, m1/2, 0, Math.PI * 2);
+            targetCtx.fill();
+
+            targetCtx.fillStyle = 'var(--secondary)';
+            targetCtx.beginPath();
+            targetCtx.arc(x2, y2, m2/2, 0, Math.PI * 2);
+            targetCtx.fill();
+
+            targetCtx.restore();
+        }
+
+        /* --- 4. ANIMATION LOOP --- */
+        function animate() {
+            updatePhysics();
+            renderScene(ctx, canvas.width, canvas.height, 1);
+            requestAnimationFrame(animate);
+        }
+
+        /* --- 5. FUNCIONES AUXILIARES --- */
+        function resetSim() {
+            a1 = Math.PI / 2;
+            a2 = Math.PI / 2 + 0.1; // Pequeño offset
+            a1_v = 0;
+            a2_v = 0;
+            path = [];
+        }
+
+        function clearTrace() {
+            path = [];
+        }
+
+        function saveHighRes() {
+            const tempCanvas = document.createElement('canvas');
+            const scaleFactor = 3;
+            tempCanvas.width = canvas.width * scaleFactor;
+            tempCanvas.height = canvas.height * scaleFactor;
+            const tempCtx = tempCanvas.getContext('2d');
+            
+            // Renderizamos la escena actual en el canvas grande
+            // OJO: Solo dibujará el rastro actual en memoria
+            renderScene(tempCtx, tempCanvas.width, tempCanvas.height, scaleFactor);
+            
+            const link = document.createElement('a');
+            link.download = 'double_pendulum_art.png';
+            link.href = tempCanvas.toDataURL('image/png');
+            link.click();
+        }
+
+        function downloadData() {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "TimeStep,Angle1,Angle2,Vel1,Vel2\n";
+            // Exportamos los últimos puntos del rastro (aproximación de historia reciente)
+            // Nota: 'path' solo tiene X/Y, no los ángulos históricos para ahorrar memoria en dibujo.
+            // Para la descarga real, generamos un pequeño log ahora mismo o guardamos historial aparte.
+            // Para simplificar, guardaremos el estado actual + un pequeño historial si existiera.
+            // En este caso, como 'path' solo tiene coordenadas visuales, simularemos la descarga
+            // de las coordenadas X,Y del rastro visual.
+            
+            csvContent = "data:text/csv;charset=utf-8,Step,X,Y\n";
+            path.forEach((p, index) => {
+                csvContent += `${index},${p.x.toFixed(4)},${p.y.toFixed(4)}\r\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "pendulum_trace.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        /* --- 6. FONDO ANIMADO --- */
+        const bgCanvas = document.getElementById('bg-canvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        let particlesArray = [];
+        const mouse = { x: null, y: null, radius: 150 };
+
+        window.addEventListener('mousemove', (e) => { mouse.x = e.x; mouse.y = e.y; });
+        function resizeBg() { bgCanvas.width = window.innerWidth; bgCanvas.height = window.innerHeight; }
+        window.addEventListener('resize', () => { resizeBg(); initParticles(); });
+        resizeBg();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * bgCanvas.width;
+                this.y = Math.random() * bgCanvas.height;
+                this.size = Math.random() * 12 + 8;
+                this.speedX = (Math.random() * 1) - 0.5;
+                this.speedY = (Math.random() * 1) - 0.5;
+                const symbols = ['θ', 'ω', 'g', 'L', 'm', 'sin', 'cos'];
+                this.text = symbols[Math.floor(Math.random() * symbols.length)];
+            }
+            draw() {
+                bgCtx.font = this.size + 'px monospace';
+                bgCtx.fillStyle = 'rgba(0, 255, 65, 0.15)'; 
+                bgCtx.fillText(this.text, this.x, this.y);
+            }
+            update() {
+                this.x += this.speedX; this.y += this.speedY;
+                if (mouse.x != null) {
+                    let dx = mouse.x - this.x;
+                    let dy = mouse.y - this.y;
+                    let distance = Math.sqrt(dx*dx + dy*dy);
+                    if (distance < mouse.radius) {
+                        const forceDirectionX = dx / distance;
+                        const forceDirectionY = dy / distance;
+                        const force = (mouse.radius - distance) / mouse.radius;
+                        this.x -= forceDirectionX * force * 5;
+                        this.y -= forceDirectionY * force * 5;
+                    }
+                }
+                if (this.x > bgCanvas.width) this.x = 0; if (this.x < 0) this.x = bgCanvas.width;
+                if (this.y > bgCanvas.height) this.y = 0; if (this.y < 0) this.y = bgCanvas.height;
+                this.draw();
+            }
+        }
+
+        function initParticles() {
+            particlesArray = [];
+            let n = (bgCanvas.height * bgCanvas.width) / 9000;
+            for (let i = 0; i < n; i++) particlesArray.push(new Particle());
+        }
+        function animateParticles() {
+            bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+            for (let i = 0; i < particlesArray.length; i++) particlesArray[i].update();
+            requestAnimationFrame(animateParticles);
+        }
+        initParticles(); animateParticles();
+
+        /* --- 7. MULTI-IDIOMA --- */
+        const translations = {
+            'es': {
+                nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH",
+                title: "EL DOBLE PÉNDULO", desc: "Simulación física de sistemas dinámicos caóticos.",
+                lbl_m1: "Masa 1 (m₁)", lbl_m2: "Masa 2 (m₂)", lbl_l1: "Longitud 1 (l₁)", lbl_l2: "Longitud 2 (l₂)", lbl_g: "Gravedad (g)", lbl_trail: "Longitud Rastro",
+                btn_reset: "REINICIAR", btn_clear: "LIMPIAR RASTRO", btn_save: "💾 IMG HQ",
+                txt_note: "Haz clic en el canvas para dar un impulso al péndulo.",
+                h_chaos: "El Caos en Movimiento",
+                p_chaos: "El péndulo doble es uno de los sistemas físicos más simples que exhibe un comportamiento caótico. A diferencia de un péndulo simple, cuyo movimiento es predecible y regular, al añadir un segundo brazo, la más mínima variación en la posición inicial provoca una trayectoria completamente diferente en cuestión de segundos.",
+                h_physics: "La Física Detrás",
+                p_physics: "Este laboratorio resuelve numéricamente las ecuaciones de movimiento de Lagrange en tiempo real. No es una animación pregrabada; tu navegador está calculando las fuerzas, velocidades y aceleraciones angulares 60 veces por segundo.",
+                h_dl_data: "Descarga de Datos (Física)", p_dl_data: "Descarga el historial del rastro (coordenadas X, Y) generado por el péndulo.",
+                btn_dl_data: "⬇ Descargar Datos (.csv)",
+                legal: "Aviso Legal", privacy: "Política de Privacidad", cookies: "Cookies", contact: "Contacto", coffee: "Invítame a un café"
+            },
+            'en': {
+                nav_main: "← MAIN HUB", nav_math: "← MATH HUB",
+                title: "DOUBLE PENDULUM", desc: "Physics simulation of chaotic dynamic systems.",
+                lbl_m1: "Mass 1 (m₁)", lbl_m2: "Mass 2 (m₂)", lbl_l1: "Length 1 (l₁)", lbl_l2: "Length 2 (l₂)", lbl_g: "Gravity (g)", lbl_trail: "Trail Length",
+                btn_reset: "RESTART", btn_clear: "CLEAR TRAIL", btn_save: "💾 IMG HQ",
+                txt_note: "Click on canvas to nudge the pendulum.",
+                h_chaos: "Chaos in Motion",
+                p_chaos: "The double pendulum is one of the simplest physical systems to exhibit chaotic behavior. Unlike a simple pendulum, whose motion is predictable and regular, adding a second arm means the slightest variation in starting position causes a completely different trajectory within seconds.",
+                h_physics: "The Physics Behind It",
+                p_physics: "This lab numerically solves Lagrange's equations of motion in real-time. It's not a pre-recorded animation; your browser is calculating forces, velocities, and angular accelerations 60 times per second.",
+                h_dl_data: "Data Download (Physics)", p_dl_data: "Download the trail history (X, Y coordinates) generated by the pendulum.",
+                btn_dl_data: "⬇ Download Data (.csv)",
+                legal: "Legal Notice", privacy: "Privacy Policy", cookies: "Cookies", contact: "Contact", coffee: "Buy me a coffee"
+            },
+            'ca': {
+                nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH",
+                title: "EL PÈNDOL DOBLE", desc: "Simulació física de sistemes dinàmics caòtics.",
+                lbl_m1: "Massa 1 (m₁)", lbl_m2: "Massa 2 (m₂)", lbl_l1: "Longitud 1 (l₁)", lbl_l2: "Longitud 2 (l₂)", lbl_g: "Gravetat (g)", lbl_trail: "Longitud Rast.",
+                btn_reset: "REINICIAR", btn_clear: "NETEJAR RASTRE", btn_save: "💾 IMG HQ",
+                txt_note: "Fes clic al canvas per donar un impuls al pèndol.",
+                h_chaos: "El Caos en Moviment",
+                p_chaos: "El pèndol doble és un dels sistemes físics més simples que exhibeix un comportament caòtic. A diferència d'un pèndol simple, el moviment del qual és predictible i regular, en afegir un segon braç, la més mínima variació en la posició inicial provoca una trajectòria completament diferent en qüestió de segons.",
+                h_physics: "La Física Darrere",
+                p_physics: "Aquest laboratori resol numèricament les equacions de moviment de Lagrange en temps real. No és una animació pregravada; el teu navegador està calculant les forces, velocitats i acceleracions angulars 60 vegades per segon.",
+                h_dl_data: "Descàrrega de Dades", p_dl_data: "Descarrega l'historial del rastre (coordenades X, Y) generat pel pèndol.",
+                btn_dl_data: "⬇ Descarregar Dades (.csv)",
+                legal: "Avís Legal", privacy: "Privacitat", cookies: "Cookies", contact: "Contacte", coffee: "Convida'm a un cafè"
+            },
+            'fr': {
+                nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH",
+                title: "LE DOUBLE PENDULE", desc: "Simulation physique de systèmes dynamiques chaotiques.",
+                lbl_m1: "Masse 1 (m₁)", lbl_m2: "Masse 2 (m₂)", lbl_l1: "Longueur 1 (l₁)", lbl_l2: "Longueur 2 (l₂)", lbl_g: "Gravité (g)", lbl_trail: "Longueur Trace",
+                btn_reset: "REDÉMARRER", btn_clear: "EFFACER TRACE", btn_save: "💾 IMG HQ",
+                txt_note: "Cliquez sur le canevas pour pousser le pendule.",
+                h_chaos: "Le Chaos en Mouvement",
+                p_chaos: "Le double pendule est l'un des systèmes physiques les plus simples présentant un comportement chaotique. Contrairement à un pendule simple, dont le mouvement est prévisible, l'ajout d'un second bras signifie que la moindre variation de la position initiale provoque une trajectoire totalement différente.",
+                h_physics: "La Physique Derrière",
+                p_physics: "Ce laboratoire résout numériquement les équations de mouvement de Lagrange en temps réel. Ce n'est pas une animation préenregistrée ; votre navigateur calcule les forces, vitesses et accélérations angulaires 60 fois par seconde.",
+                h_dl_data: "Téléchargement de Données", p_dl_data: "Téléchargez l'historique de la trace (coordonnées X, Y) généré par le pendule.",
+                btn_dl_data: "⬇ Télécharger Données (.csv)",
+                legal: "Mentions Légales", privacy: "Confidentialité", cookies: "Cookies", contact: "Contact", coffee: "Offrez-moi un café"
+            },
+            'de': {
+                nav_main: "← HAUPT-HUB", nav_math: "← MATH HUB",
+                title: "DAS DOPPELPENDEL", desc: "Physiksimulation chaotischer dynamischer Systeme.",
+                lbl_m1: "Masse 1 (m₁)", lbl_m2: "Masse 2 (m₂)", lbl_l1: "Länge 1 (l₁)", lbl_l2: "Länge 2 (l₂)", lbl_g: "Schwerkraft (g)", lbl_trail: "Spurlänge",
+                btn_reset: "NEUSTART", btn_clear: "SPUR LÖSCHEN", btn_save: "💾 IMG HQ",
+                txt_note: "Klicken Sie auf die Leinwand, um das Pendel anzustoßen.",
+                h_chaos: "Chaos in Bewegung",
+                p_chaos: "Das Doppelpendel ist eines der einfachsten physikalischen Systeme, das chaotisches Verhalten zeigt. Im Gegensatz zu einem einfachen Pendel verursacht die kleinste Änderung der Anfangsposition innerhalb von Sekunden eine völlig andere Flugbahn.",
+                h_physics: "Die Physik dahinter",
+                p_physics: "Dieses Labor löst numerisch die Lagrange-Bewegungsgleichungen in Echtzeit. Es ist keine aufgezeichnete Animation; Ihr Browser berechnet Kräfte, Geschwindigkeiten und Winkelbeschleunigungen 60 Mal pro Sekunde.",
+                h_dl_data: "Daten-Download", p_dl_data: "Laden Sie den Spurverlauf (X, Y Koordinaten) herunter.",
+                btn_dl_data: "⬇ Daten herunterladen (.csv)",
+                legal: "Impressum", privacy: "Datenschutz", cookies: "Cookies", contact: "Kontakt", coffee: "Kauf mir einen Kaffee"
+            },
+            'pt': {
+                nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH",
+                title: "O PÊNDULO DUPLO", desc: "Simulação física de sistemas dinâmicos caóticos.",
+                lbl_m1: "Massa 1 (m₁)", lbl_m2: "Massa 2 (m₂)", lbl_l1: "Comp. 1 (l₁)", lbl_l2: "Comp. 2 (l₂)", lbl_g: "Gravidade (g)", lbl_trail: "Comp. Rastro",
+                btn_reset: "REINICIAR", btn_clear: "LIMPAR RASTRO", btn_save: "💾 IMG HQ",
+                txt_note: "Clique na tela para impulsionar o pêndulo.",
+                h_chaos: "Caos em Movimento",
+                p_chaos: "O pêndulo duplo é um dos sistemas físicos mais simples que exibe comportamento caótico. Ao contrário de um pêndulo simples, adicionar um segundo braço significa que a menor variação na posição inicial causa uma trajetória completamente diferente.",
+                h_physics: "A Física Por Trás",
+                p_physics: "Este laboratório resolve numericamente as equações de movimento de Lagrange em tempo real. Não é uma animação pré-gravada; seu navegador está calculando forças, velocidades e acelerações angulares 60 vezes por segundo.",
+                h_dl_data: "Download de Dados", p_dl_data: "Baixe o histórico do rastro (coordenadas X, Y) gerado pelo pêndulo.",
+                btn_dl_data: "⬇ Baixar Dados (.csv)",
+                legal: "Aviso Legal", privacy: "Privacidade", cookies: "Cookies", contact: "Contato", coffee: "Pagar um café"
+            },
+            'it': {
+                nav_main: "← HUB PRINCIPALE", nav_math: "← HUB MATH",
+                title: "IL DOPPIO PENDOLO", desc: "Simulazione fisica di sistemi dinamici caotici.",
+                lbl_m1: "Massa 1 (m₁)", lbl_m2: "Massa 2 (m₂)", lbl_l1: "Lungh. 1 (l₁)", lbl_l2: "Lungh. 2 (l₂)", lbl_g: "Gravità (g)", lbl_trail: "Lungh. Scia",
+                btn_reset: "RIAVVIA", btn_clear: "PULISCI SCIA", btn_save: "💾 IMG HQ",
+                txt_note: "Clicca sulla tela per spingere il pendolo.",
+                h_chaos: "Caos in Movimento",
+                p_chaos: "Il doppio pendolo è uno dei sistemi fisici più semplici che mostra un comportamento caotico. A differenza di un pendolo semplice, l'aggiunta di un secondo braccio significa che la minima variazione nella posizione iniziale causa una traiettoria completamente diversa.",
+                h_physics: "La Fisica Dietro",
+                p_physics: "Questo laboratorio risolve numericamente le equazioni del moto di Lagrange in tempo reale. Non è un'animazione preregistrata; il tuo browser calcola forze, velocità e accelerazioni angolari 60 volte al secondo.",
+                h_dl_data: "Download Dati", p_dl_data: "Scarica la cronologia della scia (coordinate X, Y) generata dal pendolo.",
+                btn_dl_data: "⬇ Scarica Dati (.csv)",
+                legal: "Note Legali", privacy: "Privacy", cookies: "Cookies", contact: "Contatto", coffee: "Offrimi un caffè"
+            },
+            'nl': {
+                nav_main: "← HOOFDHUB", nav_math: "← MATH HUB",
+                title: "DE DUBBELE SLINGER", desc: "Fysicasimulatie van chaotische dynamische systemen.",
+                lbl_m1: "Massa 1 (m₁)", lbl_m2: "Massa 2 (m₂)", lbl_l1: "Lengte 1 (l₁)", lbl_l2: "Lengte 2 (l₂)", lbl_g: "Zwaartekracht (g)", lbl_trail: "Spoorlengte",
+                btn_reset: "HERSTARTEN", btn_clear: "SPOOR WISSEN", btn_save: "💾 IMG HQ",
+                txt_note: "Klik op het canvas om de slinger een duw te geven.",
+                h_chaos: "Chaos in Beweging",
+                p_chaos: "De dubbele slinger is een van de eenvoudigste fysieke systemen die chaotisch gedrag vertoont. In tegenstelling tot een enkele slinger, zorgt het toevoegen van een tweede arm ervoor dat de kleinste variatie in de startpositie een volledig ander traject veroorzaakt.",
+                h_physics: "De Fysica Erakter",
+                p_physics: "Dit lab lost numeriek de bewegingsvergelijkingen van Lagrange op in real-time. Het is geen vooraf opgenomen animatie; je browser berekent krachten, snelheden en hoekversnellingen 60 keer per seconde.",
+                h_dl_data: "Gegevens Downloaden", p_dl_data: "Download de spoorhistorie (X, Y coördinaten) gegenereerd door de slinger.",
+                btn_dl_data: "⬇ Download Gegevens (.csv)",
+                legal: "Juridisch", privacy: "Privacy", cookies: "Cookies", contact: "Contact", coffee: "Koop koffie"
+            },
+            'ja': {
+                nav_main: "← メインハブ", nav_math: "← 数学ハブ",
+                title: "二重振り子", desc: "カオス力学系の物理シミュレーション。",
+                lbl_m1: "質量 1 (m₁)", lbl_m2: "質量 2 (m₂)", lbl_l1: "長さ 1 (l₁)", lbl_l2: "長さ 2 (l₂)", lbl_g: "重力 (g)", lbl_trail: "軌跡の長さ",
+                btn_reset: "再起動", btn_clear: "軌跡を消去", btn_save: "💾 画像保存 HQ",
+                txt_note: "キャンバスをクリックして振り子を押します。",
+                h_chaos: "動きの中のカオス",
+                p_chaos: "二重振り子は、カオス的挙動を示す最も単純な物理システムの一つです。単純な振り子とは異なり、2本目の腕を追加することで、初期位置のわずかな変化が数秒以内に全く異なる軌道を引き起こします。",
+                h_physics: "背後にある物理学",
+                p_physics: "このラボは、ラグランジュの運動方程式をリアルタイムで数値的に解きます。録画されたアニメーションではありません。ブラウザは毎秒60回、力、速度、角加速度を計算しています。",
+                h_dl_data: "データダウンロード", p_dl_data: "振り子によって生成された軌跡の履歴（X、Y座標）をダウンロードします。",
+                btn_dl_data: "⬇ データDL (.csv)",
+                legal: "法的通知", privacy: "プライバシー", cookies: "クッキー", contact: "連絡先", coffee: "コーヒーを奢る"
+            }
+        };
+
+        let currentLang = 'es';
+        function setLang(lang) {
+            localStorage.setItem('gl_lang', lang);
+            currentLang = lang;
+            const t = translations[lang] || translations['es'];
+            
+            document.getElementById('nav-main').innerText = t.nav_main;
+            document.getElementById('nav-math').innerText = t.nav_math;
+            document.getElementById('txt-title').innerText = t.title;
+            document.getElementById('txt-desc').innerText = t.desc;
+            
+            document.getElementById('lbl-m1').innerText = t.lbl_m1;
+            document.getElementById('lbl-m2').innerText = t.lbl_m2;
+            document.getElementById('lbl-l1').innerText = t.lbl_l1;
+            document.getElementById('lbl-l2').innerText = t.lbl_l2;
+            document.getElementById('lbl-g').innerText = t.lbl_g;
+            document.getElementById('lbl-trail').innerText = t.lbl_trail;
+            
+            document.getElementById('btn-reset').innerText = t.btn_reset;
+            document.getElementById('btn-clear').innerText = t.btn_clear;
+            document.getElementById('btn-save').innerText = t.btn_save;
+            document.getElementById('txt-note').innerText = t.txt_note;
+
+            document.getElementById('info-h-chaos').innerText = t.h_chaos;
+            document.getElementById('info-p-chaos').innerText = t.p_chaos;
+            document.getElementById('info-h-physics').innerText = t.h_physics;
+            document.getElementById('info-p-physics').innerText = t.p_physics;
+            
+            document.getElementById('h-dl-data').innerText = t.h_dl_data;
+            document.getElementById('p-dl-data').innerText = t.p_dl_data;
+            document.getElementById('btn-dl-data').innerText = t.btn_dl_data;
+
+            document.getElementById('link-legal').innerText = t.legal;
+            document.getElementById('link-privacy').innerText = t.privacy;
+            document.getElementById('link-cookies').innerText = t.cookies;
+            document.getElementById('link-contact').innerText = t.contact;
+            document.getElementById('btn-coffee').innerText = t.coffee;
+
+            document.querySelectorAll('.lang-switch button').forEach(b => {
+                b.classList.remove('active');
+                if(b.id === 'btn-' + lang) b.classList.add('active');
+            });
+        }
+
+        // INIT
+        const savedLang = localStorage.getItem('gl_lang') || 'es';
+        setLang(savedLang);
+        requestAnimationFrame(animate);
+
+    </script>
+</body>
+</html>
