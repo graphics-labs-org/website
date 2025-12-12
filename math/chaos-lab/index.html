@@ -157,7 +157,6 @@
         .info-section li { margin-bottom: 10px; border-left: 2px solid var(--primary-dim); padding-left: 15px; }
         .info-section strong { color: var(--text); }
 
-        /* Estilo para las ecuaciones */
         .math-box {
             background: rgba(0,0,0,0.5);
             border-left: 4px solid var(--primary);
@@ -303,7 +302,7 @@
             <div class="dl-section">
                 <h3 style="color:var(--primary); margin-bottom:15px;" id="h-dl-data">Descarga de Datos (Cálculo)</h3>
                 <p id="p-dl-data" style="font-size:0.9rem;">
-                    Descarga las coordenadas (X, Y, Z) generadas por la simulación en formato CSV.
+                    Descarga las coordenadas (X, Y, Z) generadas por la simulación en formato CSV para utilizarlas en software matemático externo.
                 </p>
                 <button onclick="downloadData()" class="btn-txt-dl" id="btn-dl-data">
                     ⬇ Descargar Coordenadas (.csv)
@@ -424,7 +423,7 @@
             requestAnimationFrame(draw);
         }
 
-        /* --- 4. INTERACTIVIDAD --- */
+        /* --- 4. INTERACTIVIDAD (CANVAS PRINCIPAL) --- */
         let isDragging = false;
         let lastMouseX = 0, lastMouseY = 0;
 
@@ -709,9 +708,11 @@
         const bgCanvas = document.getElementById('bg-canvas');
         const bgCtx = bgCanvas.getContext('2d');
         let particlesArray = [];
-        
+        const mouse = { x: null, y: null, radius: 150 }; // <--- AÑADIDO: Objeto Mouse
+
         function resizeBg() { bgCanvas.width = window.innerWidth; bgCanvas.height = window.innerHeight; }
         window.addEventListener('resize', () => { resizeBg(); initParticles(); });
+        window.addEventListener('mousemove', (e) => { mouse.x = e.x; mouse.y = e.y; }); // <--- AÑADIDO: Listener del Mouse
         resizeBg();
 
         class Particle {
@@ -731,6 +732,24 @@
             }
             update() {
                 this.x += this.speedX; this.y += this.speedY;
+
+                // --- AÑADIDO: LÓGICA DE INTERACCIÓN CON EL RATÓN ---
+                if (mouse.x != null) {
+                    let dx = mouse.x - this.x;
+                    let dy = mouse.y - this.y;
+                    let distance = Math.sqrt(dx*dx + dy*dy);
+                    if (distance < mouse.radius) {
+                        const forceDirectionX = dx / distance;
+                        const forceDirectionY = dy / distance;
+                        const force = (mouse.radius - distance) / mouse.radius;
+                        const directionX = forceDirectionX * force * 5;
+                        const directionY = forceDirectionY * force * 5;
+                        this.x -= directionX;
+                        this.y -= directionY;
+                    }
+                }
+                // ----------------------------------------------------
+
                 if (this.x > bgCanvas.width) this.x = 0; if (this.x < 0) this.x = bgCanvas.width;
                 if (this.y > bgCanvas.height) this.y = 0; if (this.y < 0) this.y = bgCanvas.height;
                 this.draw();
