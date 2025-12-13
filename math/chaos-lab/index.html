@@ -29,6 +29,7 @@
             flex-direction: column;
             min-height: 100vh;
             user-select: none;
+            overscroll-behavior: none; /* Evita rebote en móviles */
         }
 
         #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
@@ -135,6 +136,7 @@
             box-shadow: 0 0 30px rgba(0, 255, 65, 0.1);
             cursor: move; 
             max-width: 100%;
+            touch-action: none; /* Importante: deshabilita gestos del navegador sobre el canvas */
         }
 
         /* --- INFO --- */
@@ -427,6 +429,7 @@
         let isDragging = false;
         let lastMouseX = 0, lastMouseY = 0;
 
+        // -- Eventos de Ratón (Desktop) --
         canvas.addEventListener('mousedown', e => { isDragging = true; lastMouseX = e.offsetX; lastMouseY = e.offsetY; });
         window.addEventListener('mouseup', () => isDragging = false);
         canvas.addEventListener('mousemove', e => {
@@ -439,6 +442,36 @@
                 lastMouseY = e.offsetY;
             }
         });
+
+        // -- Eventos Táctiles (Móvil) --
+        canvas.addEventListener('touchstart', e => {
+            e.preventDefault(); // Evita el scroll
+            isDragging = true;
+            const rect = canvas.getBoundingClientRect();
+            // Obtenemos la posición relativa al canvas del primer dedo
+            lastMouseX = e.touches[0].clientX - rect.left;
+            lastMouseY = e.touches[0].clientY - rect.top;
+        }, { passive: false });
+
+        window.addEventListener('touchend', () => isDragging = false);
+
+        canvas.addEventListener('touchmove', e => {
+            e.preventDefault(); // Evita el scroll
+            if(isDragging) {
+                const rect = canvas.getBoundingClientRect();
+                const touchX = e.touches[0].clientX - rect.left;
+                const touchY = e.touches[0].clientY - rect.top;
+
+                const dx = touchX - lastMouseX;
+                const dy = touchY - lastMouseY;
+                
+                angleY += dx * 0.01;
+                angleX += dy * 0.01;
+                
+                lastMouseX = touchX;
+                lastMouseY = touchY;
+            }
+        }, { passive: false });
 
         function restartSim(clear = true) {
             x = 0.1; y = 0; z = 0;
