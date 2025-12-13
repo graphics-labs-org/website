@@ -29,6 +29,7 @@
             flex-direction: column;
             min-height: 100vh;
             user-select: none;
+            overscroll-behavior: none; /* Evita rebotes en móvil */
         }
 
         #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
@@ -148,6 +149,7 @@
             box-shadow: 0 0 30px rgba(0, 255, 65, 0.1);
             cursor: crosshair;
             image-rendering: pixelated; 
+            touch-action: none; /* Importante para dibujar en móvil */
         }
 
         /* --- BARRA DE ESTADO --- */
@@ -392,6 +394,8 @@
             const maxWidth = Math.min(window.innerWidth - 40, 800);
             const height = 500;
             
+            // Si el canvas ya existe y tiene tamaño, intentamos no borrarlo si es solo resize vertical
+            // Pero aquí simplificamos: recalculamos todo para que sea responsive.
             canvas.width = Math.floor(maxWidth / resolution) * resolution;
             canvas.height = Math.floor(height / resolution) * resolution;
             
@@ -503,6 +507,7 @@
         function togglePlay() {
             isPlaying = !isPlaying;
             const btn = document.getElementById('btn-play');
+            const t = translations[currentLang] || translations['es'];
             
             if (isPlaying) {
                 btn.innerText = "⏸ PAUSE";
@@ -566,10 +571,10 @@
 
         let isDrawing = false;
         
-        function paintCell(e) {
+        function paintCell(xClient, yClient) {
             const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
+            const x = xClient - rect.left;
+            const y = yClient - rect.top;
             
             const i = Math.floor(x / resolution);
             const j = Math.floor(y / resolution);
@@ -585,10 +590,26 @@
             }
         }
 
-        canvas.addEventListener('mousedown', (e) => { isDrawing = true; paintCell(e); });
-        canvas.addEventListener('mousemove', (e) => { if(isDrawing) paintCell(e); });
+        // --- Eventos RATÓN ---
+        canvas.addEventListener('mousedown', (e) => { isDrawing = true; paintCell(e.clientX, e.clientY); });
+        canvas.addEventListener('mousemove', (e) => { if(isDrawing) paintCell(e.clientX, e.clientY); });
         canvas.addEventListener('mouseup', () => { isDrawing = false; });
         canvas.addEventListener('mouseleave', () => { isDrawing = false; });
+
+        // --- Eventos TÁCTILES (FIX) ---
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Evita scroll
+            isDrawing = true;
+            paintCell(e.touches[0].clientX, e.touches[0].clientY);
+        }, { passive: false });
+        
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault(); // Evita scroll
+            if(isDrawing) paintCell(e.touches[0].clientX, e.touches[0].clientY);
+        }, { passive: false });
+        
+        canvas.addEventListener('touchend', () => { isDrawing = false; });
+
 
         document.getElementById('speed-slider').addEventListener('input', (e) => {
             speed = parseInt(e.target.value);
@@ -829,7 +850,7 @@
                 rule_3: "<strong>Overbevolking:</strong> > 3 buren → Sterft.",
                 rule_4: "<strong>Voortplanting:</strong> Precies 3 buren → Geboren.",
                 h_math: "Wiskundige Betekenis",
-                p_math: "Het is een voorbeeld van Emergentie en is Turing Compleet: het kan elk algoritme simuleren.",
+                p_math: "Het is een voorbeeld van Emergentie en is Turing Completo: het kan elk algoritme simuleren.",
                 legal: "Juridisch", privacy: "Privacy", cookies: "Cookies", contact: "Contact", coffee: "Koop koffie"
             },
             'ja': {
@@ -911,33 +932,45 @@
         const bgCanvas = document.getElementById('bg-canvas');
         const bgCtx = bgCanvas.getContext('2d');
         let particlesArray = [];
-        let mouse = { x: null, y: null, radius: 150 }; // Radio de repulsión
+        let mouse = { x: null, y: null, radius: 150 }; 
 
         window.addEventListener('mousemove', function(e) { 
             mouse.x = e.x; 
             mouse.y = e.y; 
         });
 
+        // --- FIX DEL SCROLL ---
+        let lastWidth = window.innerWidth; // Guardamos el ancho inicial
+
         function resizeBg() { bgCanvas.width = window.innerWidth; bgCanvas.height = window.innerHeight; }
-        window.addEventListener('resize', () => { resizeBg(); resizeCanvas(); }); // Resize both
+        
+        window.addEventListener('resize', () => { 
+            resizeBg(); 
+            
+            // Solo reiniciamos el juego si cambia el ANCHO (rotación de móvil), 
+            // no el ALTO (barra de dirección al hacer scroll)
+            if (window.innerWidth !== lastWidth) {
+                lastWidth = window.innerWidth;
+                resizeCanvas(); 
+            }
+        });
+        
         resizeBg(); resizeCanvas();
 
         class Particle {
             constructor() {
                 this.x = Math.random() * bgCanvas.width;
                 this.y = Math.random() * bgCanvas.height;
-                this.size = Math.random() * 15 + 10; // Rango 10px - 25px
+                this.size = Math.random() * 15 + 10; 
                 this.speedX = (Math.random() * 0.5) - 0.25;
                 this.speedY = (Math.random() * 0.5) - 0.25;
                 const symbols = ['0', '1'];
                 this.text = symbols[Math.floor(Math.random() * symbols.length)];
             }
             update() {
-                // Movimiento normal
                 this.x += this.speedX; 
                 this.y += this.speedY;
 
-                // Interacción Mouse (Repulsión)
                 if (mouse.x != null) {
                     let dx = mouse.x - this.x;
                     let dy = mouse.y - this.y;
@@ -947,7 +980,7 @@
                         const forceDirectionX = dx / distance;
                         const forceDirectionY = dy / distance;
                         const force = (mouse.radius - distance) / mouse.radius;
-                        const directionX = forceDirectionX * force * 5; // Fuerza 5
+                        const directionX = forceDirectionX * force * 5; 
                         const directionY = forceDirectionY * force * 5;
                         
                         this.x -= directionX;
@@ -955,12 +988,11 @@
                     }
                 }
 
-                // Bordes
                 if (this.x > bgCanvas.width) this.x = 0; else if (this.x < 0) this.x = bgCanvas.width;
                 if (this.y > bgCanvas.height) this.y = 0; else if (this.y < 0) this.y = bgCanvas.height;
                 
                 bgCtx.font = this.size + 'px monospace';
-                bgCtx.fillStyle = 'rgba(0, 255, 65, 0.3)'; // Opacidad subida
+                bgCtx.fillStyle = 'rgba(0, 255, 65, 0.3)'; 
                 bgCtx.fillText(this.text, this.x, this.y);
             }
         }
