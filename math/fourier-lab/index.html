@@ -330,9 +330,14 @@
         canvas.addEventListener('mousemove', e => {
             if(state === 0 && isMouseDown) {
                 const rect = canvas.getBoundingClientRect();
-                // Centramos coordenadas relativas al canvas
-                const x = e.clientX - rect.left - canvas.width / 2;
-                const y = e.clientY - rect.top - canvas.height / 2;
+                
+                // --- CORRECCIÓN ESCALA (Desktop) ---
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+                
+                const x = (e.clientX - rect.left) * scaleX - canvas.width / 2;
+                const y = (e.clientY - rect.top) * scaleY - canvas.height / 2;
+                
                 drawing.push(new Complex(x, y));
                 
                 // Dibujar trazo usuario
@@ -378,9 +383,13 @@
                 const rect = canvas.getBoundingClientRect();
                 const touch = e.touches[0]; // Usamos el primer dedo
                 
-                // Centramos coordenadas (igual que mousemove)
-                const x = touch.clientX - rect.left - canvas.width / 2;
-                const y = touch.clientY - rect.top - canvas.height / 2;
+                // --- CORRECCIÓN ESCALA (Móvil) ---
+                // Ajustamos la diferencia entre píxeles CSS y píxeles internos del canvas
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+
+                const x = (touch.clientX - rect.left) * scaleX - canvas.width / 2;
+                const y = (touch.clientY - rect.top) * scaleY - canvas.height / 2;
                 
                 drawing.push(new Complex(x, y));
                 
@@ -435,15 +444,15 @@
                 x += radius * Math.cos(freq * time + phase + rotation);
                 y += radius * Math.sin(freq * time + phase + rotation);
 
-                // Dibujar círculo
-                targetCtx.strokeStyle = "rgba(255, 255, 255, 0.1)";
-                targetCtx.lineWidth = 1 * scale;
+                // Dibujar círculo (MÁS FUERTE AQUÍ)
+                targetCtx.strokeStyle = "rgba(255, 255, 255, 0.3)"; // Opacidad subida a 0.3
+                targetCtx.lineWidth = 2 * scale; // Grosor subido a 2
                 targetCtx.beginPath();
                 targetCtx.arc(prevx, prevy, radius, 0, 2 * Math.PI);
                 targetCtx.stroke();
 
                 // Dibujar radio (linea)
-                targetCtx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+                targetCtx.strokeStyle = "rgba(255, 255, 255, 0.5)"; // Radio un poco más brillante
                 targetCtx.beginPath();
                 targetCtx.moveTo(prevx, prevy);
                 targetCtx.lineTo(x, y);
