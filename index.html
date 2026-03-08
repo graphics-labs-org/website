@@ -219,13 +219,31 @@
         }
         .coffee-btn:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(255, 221, 0, 0.3); }
 
-        @media (max-width: 768px) {
-            nav { grid-template-columns: 1fr; gap: 15px; justify-items: center; }
-            .brand-title { grid-column: 1; font-size: 1.2rem; }
-            .lang-switch { grid-column: 1; justify-content: center; }
-            h1 { font-size: 2rem; letter-spacing: 2px; }
-            .card { padding: 30px; }
-        }
+@media (max-width: 768px) {
+    nav { 
+        grid-template-columns: 1fr; 
+        gap: 20px; 
+        justify-items: center; 
+        padding-top: 20px;
+    }
+    .brand-title { 
+        grid-column: 1; 
+        font-size: 1.1rem; 
+        text-align: center;
+    }
+    .lang-switch { 
+        grid-column: 1; 
+        justify-content: center; 
+        flex-wrap: wrap; /* Esto hace que los botones bajen a la siguiente línea si no caben */
+        max-width: 90%; 
+    }
+    h1 { 
+        font-size: 1.8rem; /* Reducimos un poco más para que no se corte el texto i18n */
+        letter-spacing: 2px; 
+        padding: 0 10px;
+    }
+    .card { padding: 30px; }
+}
     </style>
 </head>
 <body oncontextmenu="return false;">
@@ -264,7 +282,7 @@
                 <a href="labs/geometria-sagrada-index.html" class="btn-lab" data-i18n="ui.enter_lab"></a>
             </div>
 
-            <div class="card">
+            <div class="card" hidden>
                 <h3 data-i18n="labs.audio.title"></h3>
                 <p data-i18n="labs.audio.desc"></p>
                 <a href="#" class="btn-lab" data-i18n="ui.enter_lab"></a>
@@ -324,6 +342,19 @@
             mouse.x = event.x;
             mouse.y = event.y;
         });
+        // --- AÑADE ESTO PARA MÓVILES ---
+window.addEventListener('touchmove', function(event) {
+    if (event.touches.length > 0) {
+        mouse.x = event.touches[0].clientX;
+        mouse.y = event.touches[0].clientY;
+    }
+}, { passive: true });
+
+window.addEventListener('touchend', function() {
+    mouse.x = null;
+    mouse.y = null;
+});
+// ------------------------------
 
         class Particle {
             constructor(x, y, directionX, directionY, size) {
