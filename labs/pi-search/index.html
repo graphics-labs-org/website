@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Pi (π) | Graphics Labs</title>
+    <meta name="description" content="Buscador de secuencias en Pi y visualización artística.">
+    <style>
+        /* --- ESTILOS BASE --- */
+        :root {
+            --primary: #00ff41; /* Verde Matrix */
+            --primary-dim: rgba(0, 255, 65, 0.3);
+            --secondary: #bd00ff;
+            --highlight: #ffee00;
+            --glass: rgba(20, 20, 20, 0.7);
+            --glass-text: rgba(30, 30, 30, 0.8);
+            --border: rgba(255, 255, 255, 0.1);
+            --text: #ffffff;
+            --muted: #aaaaaa;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', monospace, sans-serif; }
+        
+        body {
+            background-color: #050505;
+            color: var(--text);
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            user-select: none;
+        }
+
+        #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- CONTROLES --- */
+        .controls {
+            background: var(--glass);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin: 20px auto;
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .input-group { display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap; justify-content: center; width: 100%; }
+        
+        label { color: var(--muted); font-size: 0.8rem; margin-bottom: 5px; display: block; text-align: left;}
+
+        input[type="text"], input[type="number"] {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 10px;
+            border-radius: 5px;
+            width: 200px;
+            font-size: 1.1rem;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+        
+        input:focus { outline: none; box-shadow: 0 0 10px var(--primary-dim); }
+
+        button.action-btn {
+            background: var(--primary);
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+            text-transform: uppercase;
+            font-size: 1rem;
+            height: 45px;
+        }
+        button.action-btn:hover { box-shadow: 0 0 15px var(--primary); transform: scale(1.05); }
+        
+        button.secondary-btn {
+            background: transparent;
+            border: 1px solid var(--secondary);
+            color: var(--secondary);
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 0.9rem;
+            display: flex; align-items: center; gap: 5px;
+            height: 45px;
+        }
+        button.secondary-btn:hover { background: var(--secondary); color: #fff; box-shadow: 0 0 15px var(--secondary); }
+
+        /* --- VISUALIZADOR --- */
+        #canvas-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        #pi-canvas {
+            background: #000;
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            box-shadow: 0 0 30px rgba(0, 255, 65, 0.1);
+            cursor: crosshair;
+            margin-bottom: 15px;
+            max-width: 100%;
+        }
+
+        .result-box {
+            background: rgba(0, 255, 65, 0.1);
+            border: 1px solid var(--primary);
+            color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin-top: 10px;
+            min-height: 50px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .visor-container { font-size: 1.5rem; margin-top: 10px; letter-spacing: 2px; }
+        .visor-dim { color: rgba(255,255,255, 0.3); font-size: 1.2rem; }
+        .visor-match { color: var(--highlight); font-weight: bold; font-size: 1.8rem; text-shadow: 0 0 10px var(--highlight); padding: 0 5px; border-bottom: 2px solid var(--highlight);}
+
+        .highlight-text { color: var(--highlight); font-weight: bold; font-size: 1.2rem; }
+
+        /* --- INFO & ADS --- */
+        .info-section {
+            background: var(--glass-text);
+            padding: 40px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin: 40px auto;
+            max-width: 900px;
+            text-align: left;
+            line-height: 1.8;
+            color: #ddd;
+        }
+        .info-section h2 { color: var(--primary); margin-bottom: 20px; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-top: 40px; }
+        .info-section h2:first-child { margin-top: 0; }
+        .info-section p { margin-bottom: 20px; font-size: 1rem; text-align: justify; }
+
+        .dl-buttons-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .btn-txt-dl {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--muted);
+            text-decoration: none;
+            padding: 15px 25px;
+            border: 1px solid var(--muted);
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            transition: 0.3s;
+            min-width: 200px;
+            text-align: center;
+        }
+        .btn-txt-dl:hover {
+            background: var(--primary);
+            color: #000;
+            border-color: var(--primary);
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        .ad-container {
+            width: 100%; max-width: 728px; margin: 30px auto; min-height: 90px;
+            display: flex; justify-content: center; align-items: center;
+            border: 1px dashed rgba(255,255,255,0.1); 
+            border-radius: 8px;
+            background: rgba(0,0,0,0.2);
+        }
+        .ad-placeholder-text { color: var(--border); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; }
+
+        /* Nav & Footer */
+        nav { display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .nav-links { display: flex; gap: 15px; }
+        .nav-btn { text-decoration: none; color: var(--muted); font-size: 0.9rem; border: 1px solid var(--border); padding: 5px 10px; border-radius: 4px; transition: 0.3s; background: rgba(0,0,0,0.5); cursor: pointer; }
+        .nav-btn:hover { color: var(--primary); border-color: var(--primary); }
+        .logo { font-size: 1.2rem; font-weight: bold; color: var(--primary); text-decoration: none; letter-spacing: 2px; }
+        
+        .lang-switch button { background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: var(--muted); padding: 5px 10px; cursor: pointer; border-radius: 4px; margin-left: 2px;}
+        
+        .lang-switch button.active { 
+            background-color: var(--primary) !important; 
+            color: #000 !important; 
+            border-color: var(--primary) !important;
+            font-weight: bold;
+        }
+        
+        footer { margin-top: auto; background: rgba(0,0,0,0.9); backdrop-filter: blur(5px); border-top: 1px solid var(--border); padding: 30px 20px; text-align: center; font-size: 0.8rem; color: var(--muted); display: flex; flex-direction: column; gap: 15px; align-items: center; position: relative; z-index: 20; }
+        .legal-links { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin-bottom: 10px; }
+        .legal-links a { color: var(--muted); text-decoration: none; transition: 0.3s; border-bottom: 1px solid transparent; }
+        .legal-links a:hover { color: var(--primary); border-bottom-color: var(--primary); }
+
+        .coffee-btn { background: linear-gradient(45deg, #FFDD00, #FBB03B); color: #000; padding: 8px 15px; border-radius: 20px; text-decoration: none; font-weight: bold; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 5px; transition: transform 0.2s; }
+        .coffee-btn:hover { transform: scale(1.05); }
+
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="container">
+        <nav>
+            <div class="nav-links">
+                <a href="../../index.html" class="nav-btn" id="nav-main">← HUB PRINCIPAL</a>
+                <a href="javascript:void(0);" onclick="smartBack('../../index.html')" class="nav-btn" id="nav-math">← VOLVER ATRÁS</a>
+            </div>
+            <div class="logo">GRAPHICS LABS</div>
+            <div class="lang-switch">
+                <button onclick="setLang('es')" id="btn-es" class="active">ES</button>
+                <button onclick="setLang('ca')" id="btn-ca">CA</button>
+                <button onclick="setLang('en')" id="btn-en">EN</button>
+                <button onclick="setLang('fr')" id="btn-fr">FR</button>
+                <button onclick="setLang('de')" id="btn-de">DE</button>
+                <button onclick="setLang('pt')" id="btn-pt">PT</button>
+                <button onclick="setLang('it')" id="btn-it">IT</button>
+                <button onclick="setLang('nl')" id="btn-nl">NL</button>
+                <button onclick="setLang('ja')" id="btn-ja">JP</button>
+            </div>
+        </nav>
+
+        <h1 id="txt-title">PROYECTO PI (π)</h1>
+        <p style="color:var(--muted); margin-bottom: 20px;" id="txt-desc">Buscador de patrones y visualización artística de la constante más famosa.</p>
+
+        <div class="controls">
+            <div class="input-group">
+                <div style="flex:1;">
+                    <label id="lbl-search">Buscar secuencia (ej: tu cumpleaños):</label>
+                    <input type="text" id="inp-search" placeholder="1415..." maxlength="10" onkeypress="handleEnter(event)">
+                </div>
+                <div>
+                    <label id="lbl-points">Puntos a dibujar:</label>
+                    <input type="number" id="inp-limit" value="2000" min="100" max="10000" step="100">
+                </div>
+            </div>
+            <div class="input-group">
+                <button class="action-btn" onclick="runSearch()" id="btn-search">BUSCAR & VISUALIZAR</button>
+                <button class="secondary-btn" onclick="resetArt()" id="btn-reset">LIMPIAR</button>
+                <button class="secondary-btn" onclick="saveImage()" id="btn-save">💾 PNG</button>
+            </div>
+        </div>
+
+        <div class="result-box" id="result-display">
+        </div>
+
+        <div id="canvas-container">
+            <canvas id="pi-canvas" width="800" height="800"></canvas>
+            <p style="color:var(--muted); font-size: 0.8rem; margin-top:5px;" id="txt-canvas-note">Cada línia conecta un dígit amb el següent.</p>
+        </div>
+
+        <div class="info-section">
+            <h2 id="info-h-how">Cómo funciona este Experimento</h2>
+            <p id="info-p-how">
+                Este laboratorio ha cargado en memoria los primeros 10.000 decimales del número Pi. Cuando utilizas el buscador, el sistema rastrea esa inmensa cadena numérica intentando encontrar tu secuencia exacta. Si la encuentra, apaga el "ruido" de fondo e ilumina exclusivamente el camino que forman tus números al conectarse entre sí dentro del círculo, revelando la geometría oculta de tu fecha o número favorito.
+            </p>
+
+            <h2 id="info-h-what">¿Qué es Pi?</h2>
+            <p id="info-p1">
+                Pi (π) es la relación entre la longitud de una circunferencia y su diámetro. Es un número irracional, lo que significa que tiene infinitos decimales sin ningún patrón repetitivo periódico conocido.
+            </p>
+            
+            <h2 id="info-h-normal">La Normalidad de Pi</h2>
+            <p id="info-p2">
+                Se sospecha que Pi es un número normal. Esto significa que cualquier secuencia finita de números (como tu fecha de nacimiento, tu número de teléfono o el código binario de una imagen completa) aparece matemáticamente en algún lugar de sus decimales si buscas lo suficientemente lejos.
+            </p>
+
+            <h2 id="info-h-art">La Visualización (Cuerdas)</h2>
+            <p id="info-p3">
+                En este gráfico, hemos colocado los dígitos del 0 al 9 alrededor de un círculo. Trazamos una línea desde la posición del decimal n hasta el decimal n+1. El resultado es una compleja "telaraña" matemática.
+            </p>
+
+            <h2 id="info-h-dl">Descarga Ficheros de Datos</h2>
+            <p id="info-p-dl">
+                Aquí tienes la posibilidad de descargar un fichero con 1 millón de decimales o uno con 10 millones de decimales para que busques tú mismo patrones más complejos en tu ordenador.
+            </p>
+            <div class="dl-buttons-container">
+                <a href="PI_1M.txt" download="PI_1M.txt" class="btn-txt-dl" id="btn-dl-1m">
+                    ⬇ Descargar 1M (.txt)
+                </a>
+                <a href="PI_10M.txt" download="PI_10M.txt" class="btn-txt-dl" id="btn-dl-10m">
+                    ⬇ Descargar 10M (.txt)
+                </a>
+            </div>
+        </div>
+
+        <div class="ad-container"><span class="ad-placeholder-text">AD SPACE</span></div>
+    </div>
+
+    <footer>
+        <div class="legal-links">
+            <a href="../../legal.html" id="link-legal">Aviso Legal</a>
+            <a href="../../privacy.html" id="link-privacy">Política de Privacidad</a>
+            <a href="../../cookies.html" id="link-cookies">Política de Cookies</a>
+            <a href="mailto:pbazan@gmail.com" id="link-contact">Contacto</a>
+        </div>
+        <span id="footer-rights">© 2026 Graphics Labs</span>
+        <a href="https://paypal.me/pbazan" target="_blank" class="coffee-btn">
+            ☕ <span id="btn-coffee">Invítame a un café</span>
+        </a>
+    </footer>
+
+    <script>
+        /* --- 1. SEGURIDAD Y NAVEGACIÓN --- */
+        function smartBack(fallbackUrl) {
+            if (window.history.length > 1 && document.referrer && document.referrer.includes(window.location.host)) {
+                window.history.back();
+            } else {
+                window.location.href = fallbackUrl;
+            }
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
+                e.preventDefault();
+            }
+        });
+
+        /* --- 2. LOS PRIMEROS 10.000 DIGITOS DE PI --- */
+        const PI_STRING = "14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651328230664709384460955058223172535940812848111745028410270193852110555964462294895493038196442881097566593344612847564823378678316527120190914564856692346034861045432664821339360726024914127372458700660631558817488152092096282925409171536436789259036001133053054882046652138414695194151160943305727036575959195309218611738193261179310511854807446237996274956735188575272489122793818301194912983367336244065664308602139494639522473719070217986094370277053921717629317675238467481846766940513200056812714526356082778577134275778960917363717872146844090122495343014654958537105079227968925892354201995611212902196086403441815981362977477130996051870721134999999837297804995105973173281609631859502445945534690830264252230825334468503526193118817101000313783875288658753320838142061717766914730359825349042875546873115956286388235378759375195778185778053217122680661300192787661119590921642019893809525720106548586327886593615338182796823030195203530185296899577362259941389124972177528347913151557485724245415069595082953311686172785588907509838175463746493931925506040092770167113900984882401285836160356370766010471018194295559619894676783744944825537977472684710404753464620804668425906949129331367702898915210475216205696602405803815019351125338243003558764024749647326391419927260426992279678235478163600934172164121992458631503028618297455570674983850549458858692699569092721079750930295532116534498720275596023648066549911988183479775356636980742654252786255181841757467289097777279380008164706001614524919217321721477235014144197356854816136115735255213347574184946843852332390739414333454776241686251898356948556209921922218427255025425688767179049460165346680498862723279178608578438382796797668145410095388378636095068006422512520511739298489608412848862694560424196528502221066118630674427862203919494504712371378696095636437191728746776465757396241389086583264599581339047802759009946576407895126946839835259570982582262052248940772671947826848260147699090264013639443745530506820349625245174939965143142980919065925093722169646151570985838741059788595977297549893016175392846813826868386894277415599185592524595395943104997252468084598727364469584865383673622262609912460805124388439045124413654976278079771569143599770012961608944169486855584840635342207222582848864815845602850601684273945226746767889525213852254995466672782398645659611635488623057745649803559363456817432411251507606947945109659609402522887971089314566913686722874894056010150330861792868092087476091782493858900971490967598526136554978189312978482168299894872265880485756401427047755513237964145152374623436454285844479526586782105114135473573952311342716610213596953623144295248493718711014576540359027993440374200731057853906219838744780847848968332144571386875194350643021845319104848100537061468067491927819119793995206141966342875444064374512371819217999839101591956181467514269123974894090718649423196156794520809514655022523160388193014209376213785595663893778708303906979207734672218256259966150142150306803844773454920260541466592520149744285073251866600213243408819071048633173464965145390579626856100550810665879699816357473638405257145910289706414011097120628043903975951567715770042033786993600723055876317635942187312514712053292819182618612586732157919841484882916447069575270695722091756711672291098169091528017350671274858322287183520935396572512108357915136988209144421006751033467110314126711136941091193932519107602082520261879853188770584297259167781314969900901921169717372784768472686084900337702424291651300500516832336435038951702989392233451722013812806965011784408745196012122859937162313017114448464090389064495444006198690754851602632750529834918740786680881833851022833450850486082503930213321971551843063545500766828294930413776552793975175461395398468339363830474611996653858153842056853386218672527035558669911852017639896221385367856677344424608479054612735255861490334862590636240296604518719890097345405906181583236481655473832650798731";
+
+        /* --- 3. LOGICA VISUALIZACION --- */
+        const canvas = document.getElementById('pi-canvas');
+        const ctx = canvas.getContext('2d');
+        const resultsBox = document.getElementById('result-display');
+        
+        let foundIndices = [];
+        let animationId;
+        
+        function initCanvas() {
+            ctx.fillStyle = "#000";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            const radius = canvas.width / 2 - 40;
+
+            ctx.font = "bold 24px monospace";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            
+            for(let i=0; i<10; i++) {
+                const angle = (Math.PI * 2 * i) / 10 - Math.PI/2;
+                const x = cx + (radius + 25) * Math.cos(angle);
+                const y = cy + (radius + 25) * Math.sin(angle);
+                
+                ctx.fillStyle = `hsl(${i * 36}, 100%, 50%)`;
+                ctx.fillText(i.toString(), x, y);
+            }
+        }
+
+        function getPos(digit, radius, cx, cy) {
+            const angle = (Math.PI * 2 * digit) / 10 - Math.PI/2;
+            return {
+                x: cx + radius * Math.cos(angle),
+                y: cy + radius * Math.sin(angle)
+            };
+        }
+
+        function drawArt(highlightSequence = null) {
+            const limit = parseInt(document.getElementById('inp-limit').value);
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            const radius = canvas.width / 2 - 40;
+            
+            initCanvas(); 
+
+            ctx.lineWidth = 0.5;
+            
+            for(let i = 0; i < limit - 1; i++) {
+                const d1 = parseInt(PI_STRING[i]);
+                const d2 = parseInt(PI_STRING[i+1]);
+                
+                if(isNaN(d1) || isNaN(d2)) continue; 
+
+                const p1 = getPos(d1, radius, cx, cy);
+                const p2 = getPos(d2, radius, cx, cy);
+
+                ctx.beginPath();
+                ctx.moveTo(p1.x, p1.y);
+                const cpX = (p1.x + p2.x) / 2 * 0.5 + cx * 0.5;
+                const cpY = (p1.y + p2.y) / 2 * 0.5 + cy * 0.5;
+                ctx.quadraticCurveTo(cpX, cpY, p2.x, p2.y);
+                
+                if (highlightSequence) {
+                    ctx.strokeStyle = `rgba(0, 255, 65, 0.05)`; 
+                } else {
+                    ctx.strokeStyle = `rgba(0, 255, 65, 0.3)`;
+                }
+                ctx.stroke();
+            }
+
+            if (highlightSequence && foundIndices.length > 0) {
+                const seq = highlightSequence;
+                ctx.lineWidth = 3;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = "#ffee00";
+
+                for(let i=0; i < seq.length - 1; i++) {
+                     const d1 = parseInt(seq[i]);
+                     const d2 = parseInt(seq[i+1]);
+                     
+                     const p1 = getPos(d1, radius, cx, cy);
+                     const p2 = getPos(d2, radius, cx, cy);
+                     
+                     ctx.beginPath();
+                     ctx.moveTo(p1.x, p1.y);
+                     const cpX = (p1.x + p2.x) / 2 * 0.5 + cx * 0.5;
+                     const cpY = (p1.y + p2.y) / 2 * 0.5 + cy * 0.5;
+                     ctx.quadraticCurveTo(cpX, cpY, p2.x, p2.y);
+                     
+                     ctx.strokeStyle = "#ffee00"; 
+                     ctx.stroke();
+                }
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        function runSearch() {
+            const searchVal = document.getElementById('inp-search').value.replace(/[^0-9]/g, '');
+            if(!searchVal) return;
+
+            const piDigitsOnly = PI_STRING;
+            const idx = piDigitsOnly.indexOf(searchVal);
+            const t = translations[currentLang] || translations['es'];
+
+            if(idx !== -1) {
+                foundIndices = [idx];
+                const msg = t.msg_found.replace('{pos}', idx);
+                
+                const startPrev = Math.max(0, idx - 2);
+                const prevDigits = idx > 0 ? piDigitsOnly.substring(startPrev, idx) : "";
+                
+                const endNext = Math.min(piDigitsOnly.length, idx + searchVal.length + 2);
+                const nextDigits = piDigitsOnly.substring(idx + searchVal.length, endNext);
+                
+                resultsBox.innerHTML = `
+                    <div style="font-size:0.9rem; margin-bottom:5px;">${msg}</div>
+                    <div class="visor-container">
+                        <span class="visor-dim">${prevDigits}</span><span class="visor-match">${searchVal}</span><span class="visor-dim">${nextDigits}</span>
+                    </div>
+                `;
+                
+                drawArt(searchVal);
+            } else {
+                resultsBox.innerHTML = `<span style="color:#ff4444">${t.msg_not_found}</span>`;
+                drawArt(null);
+            }
+        }
+
+        function resetArt() {
+            document.getElementById('inp-search').value = "";
+            const t = translations[currentLang] || translations['es'];
+            resultsBox.innerText = t.txt_ready;
+            drawArt(null);
+        }
+
+        function handleEnter(e) {
+            if(e.key === 'Enter') runSearch();
+        }
+
+        function saveImage() {
+            const link = document.createElement('a');
+            link.download = 'pi_art_graphics_labs.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        /* --- 4. MULTI-IDIOMA (TEXTOS EXTENDIDOS) --- */
+        const translations = {
+            'es': {
+                nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH",
+                title: "PROYECTO PI (π)", desc: "Buscador de patrones y visualización artística.",
+                lbl_search: "Buscar secuencia (ej: tu cumpleaños):", lbl_points: "Puntos a dibujar:",
+                btn_search: "BUSCAR & VISUALIZAR", btn_reset: "LIMPIAR", btn_save: "💾 PNG",
+                txt_ready: "Introduce números para buscar en los primeros 10.000 dígitos.",
+                msg_found: "¡Encontrado! Posición {pos}", msg_not_found: "No encontrado en los primeros 10.000 dígitos.",
+                ph_search: "1415...", canvas_note: "Cada línea conecta un dígito con el siguiente.",
+                h_how: "Cómo funciona este Experimento",
+                p_how: "Este laboratorio ha cargado en memoria los primeros 10.000 decimales del número Pi. Cuando utilizas el buscador, el sistema rastrea esa inmensa cadena numérica intentando encontrar tu secuencia exacta. Si la encuentra, apaga el 'ruido' de fondo e ilumina exclusivamente el camino que forman tus números al conectarse entre sí.",
+                h_what: "¿Qué es Pi?", p1: "Pi es la relación entre la longitud de una circunferencia y su diámetro. Es un número irracional, lo que significa que tiene infinitos decimales sin ningún patrón repetitivo periódico conocido.",
+                h_normal: "La Normalidad de Pi", p2: "Se sospecha que Pi es un número normal. Esto significa que cualquier secuencia finita de números (como tu fecha de nacimiento, tu número de teléfono o el código binario de una imagen completa) aparece matemáticamente en algún lugar de sus decimales si buscas lo suficientemente lejos.",
+                h_art: "La Visualización (Cuerdas)", p3: "En este gráfico, hemos colocado los dígitos del 0 al 9 alrededor de un círculo. Trazamos una línea desde la posición del decimal n hasta el decimal n+1. El resultado es una compleja 'telaraña' matemática que muestra la belleza del caos.",
+                h_dl: "Descarga Ficheros de Datos",
+                p_dl: "Aquí tienes la posibilidad de descargar un fichero con 1 millón de decimales o uno con 10 millones de decimales para que busques tú mismo patrones más complejos.",
+                btn_dl_1m: "⬇ Descargar 1M (.txt)", btn_dl_10m: "⬇ Descargar 10M (.txt)",
+                legal: "Aviso Legal", privacy: "Política Privacidad", cookies: "Cookies", contact: "Contacto", coffee: "Invítame a un café",
+                rights: "© 2026 Graphics Labs", ad_text: "Ad Space"
+            },
+            'en': {
+                nav_main: "← MAIN HUB", nav_math: "← HUB MATH",
+                title: "PROJECT PI (π)", desc: "Pattern searcher and artistic visualization.",
+                lbl_search: "Search sequence (e.g. birthday):", lbl_points: "Points to draw:",
+                btn_search: "SEARCH & VISUALIZE", btn_reset: "RESET", btn_save: "💾 PNG",
+                txt_ready: "Enter numbers to search in the first 10,000 digits.",
+                msg_found: "Found! Position {pos}", msg_not_found: "Not found in the first 10,000 digits.",
+                ph_search: "1415...", canvas_note: "Each line connects a digit to the next one.",
+                h_how: "How this Experiment works",
+                p_how: "This lab has loaded the first 10,000 decimals of Pi into memory. When you use the search, the system scans this immense numerical chain to find your exact sequence. If found, it dims the background noise and illuminates only the path formed by your numbers connecting to each other within the circle.",
+                h_what: "What is Pi?", p1: "Pi is the ratio of a circle's circumference to its diameter. It is an irrational number, meaning it has infinite decimal places without any known repeating periodic pattern.",
+                h_normal: "Normality of Pi", p2: "Pi is suspected to be a normal number. This means that any finite sequence of numbers (like your birthday, phone number, or the binary code of an image) mathematically appears somewhere in its decimals if you search far enough.",
+                h_art: "The Visualization (Chords)", p3: "In this graph, we have placed the digits 0 to 9 around a circle. We draw a line from the position of decimal n to decimal n+1. The result is a complex mathematical 'web' that displays the beauty of chaos.",
+                h_dl: "Download Data Files",
+                p_dl: "Here you can download a file with 1 million decimals or one with 10 million decimals to search for more complex patterns yourself.",
+                btn_dl_1m: "⬇ Download 1M (.txt)", btn_dl_10m: "⬇ Download 10M (.txt)",
+                legal: "Legal Notice", privacy: "Privacy Policy", cookies: "Cookies", contact: "Contact", coffee: "Buy me a coffee",
+                rights: "© 2026 Graphics Labs", ad_text: "Ad Space"
+            },
+            'ca': {
+                nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH",
+                title: "PROJECTE PI (π)", desc: "Cercador de patrons i visualització artística.",
+                lbl_search: "Cerca seqüència (ex: aniversari):", lbl_points: "Punts a dibuixar:",
+                btn_search: "CERCAR & VISUALITZAR", btn_reset: "NETEJAR", btn_save: "💾 PNG",
+                txt_ready: "Introdueix nombres per cercar als primers 10.000 dígits.",
+                msg_found: "Trobat! Posició {pos}", msg_not_found: "No trobat als primers 10.000 dígits.",
+                ph_search: "1415...", canvas_note: "Cada línia connecta un dígit amb el següent.",
+                h_how: "Com funciona aquest experiment",
+                p_how: "Aquest laboratori ha carregat a la memòria els primers 10.000 decimals del nombre Pi. Quan utilitzes el cercador, el sistema rastreja aquesta immensa cadena numèrica intentant trobar la teva seqüència exacta. Si la troba, apaga el soroll de fons i il·lumina exclusivament el camí que formen els teus números en connectar-se entre si.",
+                h_what: "Què és Pi?", p1: "Pi és la relació entre la longitud d'una circumferència i el seu diàmetre. És un nombre irracional, la qual cosa significa que té infinits decimals sense cap patró repetitiu periòdic conegut.",
+                h_normal: "La Normalitat de Pi", p2: "Se sospita que Pi és un nombre normal. Això significa que qualsevol seqüència finita de nombres (com la teva data de naixement, el teu número de telèfon o el codi binari d'una imatge) apareix matemàticament en algun lloc dels seus decimals si cerques prou lluny.",
+                h_art: "La Visualización (Cordes)", p3: "En aquest gràfic, hem col·locat els dígits del 0 al 9 al voltant d'un cercle. Tracem una línia des de la posició del decimal n fins al decimal n+1. El resultat és una complexa 'teranyina' matemàtica que mostra la bellesa del caos.",
+                h_dl: "Descarrega Fitxers de Dades",
+                p_dl: "Aquí tens la possibilitat de descarregar un fitxer amb 1 milió de decimals o un amb 10 milions de decimals perquè cerquis tu mateix patrons més complexos.",
+                btn_dl_1m: "⬇ Descarregar 1M (.txt)", btn_dl_10m: "⬇ Descarregar 10M (.txt)",
+                legal: "Avís Legal", privacy: "Política Privacitat", cookies: "Cookies", contact: "Contacte", coffee: "Convida'm a un cafè",
+                rights: "© 2026 Graphics Labs", ad_text: "Espai Publicitari"
+            },
+            'fr': {
+                nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH",
+                title: "PROJET PI (π)", desc: "Chercheur de motifs et visualisation artistique.",
+                lbl_search: "Chercher séquence (ex: anniversaire):", lbl_points: "Points à dessiner:",
+                btn_search: "CHERCHER & VISUALISER", btn_reset: "RÉINITIALISER", btn_save: "💾 PNG",
+                txt_ready: "Entrez des nombres à chercher dans les 10 000 premiers chiffres.",
+                msg_found: "Trouvé ! Position {pos}", msg_not_found: "Non trouvé dans les 10 000 premiers chiffres.",
+                ph_search: "1415...", canvas_note: "Chaque ligne connecte un chiffre au suivant sur le cercle.",
+                h_how: "Comment ça marche",
+                p_how: "Ce laboratoire a chargé les 10 000 premières décimales de Pi en mémoire. Lorsque vous utilisez la recherche, le système scanne cette immense chaîne numérique pour trouver votre séquence exacte. S'il la trouve, il atténue le bruit de fond et illumine uniquement le chemin formé par vos nombres lorsqu'ils se connectent entre eux.",
+                h_what: "Qu'est-ce que Pi ?", p1: "Pi est le rapport entre la circonférence d'un cercle et son diamètre. C'est un nombre irrationnel, ce qui signifie qu'il a une infinité de décimales sans aucun motif périodique répétitif connu.",
+                h_normal: "La Normalité de Pi", p2: "On soupçonne que Pi est un nombre normal. Cela signifie que toute séquence finite de nombres (comme votre date de naissance, votre numéro de téléphone ou le code binaire d'une image) apparaît mathématiquement quelque part dans ses décimales si l'on cherche assez loin.",
+                h_art: "La Visualisation (Cordes)", p3: "Dans ce graphique, nous avons placé les chiffres de 0 à 9 autour d'un cercle. Nous traçons une ligne depuis la position de la décimale n jusqu'à la décimale n+1. Le résultat est une toile mathématique complexe qui montre la beauté du chaos.",
+                h_dl: "Télécharger des Fichiers",
+                p_dl: "Ici vous pouvez télécharger un fichier avec 1 million de décimales ou un avec 10 millions de décimales pour rechercher vous-même des motifs.",
+                btn_dl_1m: "⬇ Télécharger 1M (.txt)", btn_dl_10m: "⬇ Télécharger 10M (.txt)",
+                legal: "Mentions Légales", privacy: "Confidentialité", cookies: "Cookies", contact: "Contact", coffee: "Offrez-moi un café",
+                rights: "© 2026 Graphics Labs", ad_text: "Espace Publicitaire"
+            },
+            'de': {
+                nav_main: "← HAUPT-HUB", nav_math: "← HUB MATH",
+                title: "PROJEKT PI (π)", desc: "Mustersuche und künstlerische Visualisierung.",
+                lbl_search: "Sequenz suchen (z.B. Geburtstag):", lbl_points: "Punkte zeichnen:",
+                btn_search: "SUCHEN & ANZEIGEN", btn_reset: "ZURÜCKSETZEN", btn_save: "💾 PNG",
+                txt_ready: "Geben Sie Zahlen ein, um in den ersten 10.000 Ziffern zu suchen.",
+                msg_found: "Gefunden! Position {pos}", msg_not_found: "In den ersten 10.000 Ziffern nicht gefunden.",
+                ph_search: "1415...", canvas_note: "Jede Linie verbindet eine Ziffer mit der nächsten.",
+                h_how: "Wie es funktioniert",
+                p_how: "Dieses Labor hat die ersten 10.000 Dezimalstellen von Pi in den Speicher geladen. Wenn Sie die Suche verwenden, scannt das System diese riesige Zahlenkette, um Ihre genaue Sequenz zu finden. Wenn sie gefunden wird, dimmt es das Hintergrundrauschen und beleuchtet ausschließlich den Pfad, den Ihre Zahlen bilden, wenn sie sich im Kreis verbinden.",
+                h_what: "Was ist Pi?", p1: "Pi ist das Verhältnis des Umfangs eines Kreises zu seinem Durchmesser. Es ist eine irrationale Zahl, was bedeutet, dass sie unendlich viele Nachkommastellen ohne bekanntes sich wiederholendes periodisches Muster hat.",
+                h_normal: "Die Normalität von Pi", p2: "Es wird vermutet, dass Pi eine normale Zahl ist. Das bedeutet, dass jede endliche Zahlenfolge (wie Ihr Geburtsdatum, Ihre Telefonnummer oder der Binärcode eines Bildes) mathematisch irgendwo in ihren Dezimalstellen erscheint, wenn man weit genug sucht.",
+                h_art: "Die Visualisierung (Sehnen)", p3: "In dieser Grafik haben wir die Ziffern 0 bis 9 um einen Kreis angeordnet. Wir ziehen eine Linie von der Position der Dezimalstelle n zur Dezimalstelle n+1. Das Ergebnis ist ein komplexes mathematisches Netz, das die Schönheit des Chaos zeigt.",
+                h_dl: "Dateien Herunterladen",
+                p_dl: "Hier können Sie eine Datei mit 1 Million Dezimalstellen oder eine mit 10 Millionen Dezimalstellen herunterladen, um selbst nach Mustern zu suchen.",
+                btn_dl_1m: "⬇ 1M Ziffern (.txt)", btn_dl_10m: "⬇ 10M Ziffern (.txt)",
+                legal: "Impressum", privacy: "Datenschutz", cookies: "Cookies", contact: "Kontakt", coffee: "Kauf mir einen Kaffee",
+                rights: "© 2026 Graphics Labs", ad_text: "Werbung"
+            },
+            'pt': {
+                nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH",
+                title: "PROJETO PI (π)", desc: "Buscador de padrões e visualização artística.",
+                lbl_search: "Buscar sequência (ex: aniversário):", lbl_points: "Pontos a desenhar:",
+                btn_search: "BUSCAR & VISUALIZAR", btn_reset: "LIMPAR", btn_save: "💾 PNG",
+                txt_ready: "Digite números para buscar nos primeiros 10.000 dígitos.",
+                msg_found: "Encontrado! Posição {pos}", msg_not_found: "Não encontrado nos primeiros 10.000 dígitos.",
+                ph_search: "1415...", canvas_note: "Cada linha conecta um dígito ao próximo no círculo.",
+                h_how: "Como funciona este Experimento",
+                p_how: "Este laboratório carregou na memória os primeiros 10.000 decimais de Pi. Quando você usa a busca, o sistema varre essa imensa cadeia numérica tentando encontrar sua sequência exata. Se a encontrar, apaga o 'ruído' de fundo e ilumina exclusivamente o caminho formado pelos seus números ao se conectarem entre si.",
+                h_what: "O que é Pi?", p1: "Pi é a razão entre a circunferência de um círculo e seu diâmetro. É um número irracional, lo que significa que tem infinitas casas decimais sem nenhum padrão repetitivo periódico conhecido.",
+                h_normal: "A Normalidade de Pi", p2: "Suspeita-se que Pi seja um número normal. Isso significa que qualquer sequência finita de números (como sua data de nascimento, seu número de telefone ou o código binario de uma imagem) aparece matematicamente em algum lugar de seus decimais se você procurar o suficiente.",
+                h_art: "A Visualização (Cordas)", p3: "Neste gráfico, colocamos os dígitos de 0 a 9 ao redor de um círculo. Traçamos uma linha da posição do decimal n até o decimal n+1. O resultado é uma complexa 'teia' matemática que mostra a beleza do caos.",
+                h_dl: "Baixar Arquivos",
+                p_dl: "Aqui você pode baixar um arquivo com 1 milhão de decimais ou um com 10 millones de decimais para pesquisar padrões você mesmo.",
+                btn_dl_1m: "⬇ Baixar 1M (.txt)", btn_dl_10m: "⬇ Baixar 10M (.txt)",
+                legal: "Aviso Legal", privacy: "Privacidade", cookies: "Cookies", contact: "Contato", coffee: "Pagar um café",
+                rights: "© 2026 Graphics Labs", ad_text: "Publicidade"
+            },
+            'it': {
+                nav_main: "← HUB PRINCIPALE", nav_math: "← HUB MATH",
+                title: "PROGETTO PI (π)", desc: "Ricerca di schemi e visualizzazione artistica.",
+                lbl_search: "Cerca sequenza (es: compleanno):", lbl_points: "Punti da disegnare:",
+                btn_search: "CERCA & VISUALIZZA", btn_reset: "RESET", btn_save: "💾 PNG",
+                txt_ready: "Inserisci numeri da cercare nelle prime 10.000 cifre.",
+                msg_found: "Trovato! Posizione {pos}", msg_not_found: "Non trovato nelle prime 10.000 cifre.",
+                ph_search: "1415...", canvas_note: "Ogni linea collega una cifra alla successiva.",
+                h_how: "Come funziona questo Esperimento",
+                p_how: "Questo laboratorio ha caricato in memoria i primi 10.000 decimali di Pi. Quando usi la ricerca, il sistema scansiona questa immensa catena numerica cercando di trovare la tua sequenza esatta. Se la trova, attenua il rumore di fondo e illumina esclusivamente il percorso formato dai tuoi numeri che si collegano tra loro.",
+                h_what: "Cos'è Pi?", p1: "Pi è il rapporto tra la circonferenza di un cerchio e il suo diametro. È un numero irrazionale, il che significa che ha infinite cifre decimali senza alcun modello periodico ripetitivo noto.",
+                h_normal: "La Normalità di Pi", p2: "Si sospetta che Pi sia un numero normale. Ciò significa che qualsiasi sequenza finita di numeri (come la tua data di nascita, il tuo numero di telefono o il codice binario di un'immagine) appare matematicamente da qualche parte nei suoi decimali se cerchi abbastanza lontano.",
+                h_art: "La Visualizzazione (Corde)", p3: "In questo grafico, abbiamo posizionato le cifre da 0 a 9 attorno a un cerchio. Tracciamo una linea dalla posizione del decimale n al decimale n+1. Il risultato è una complessa 'ragnatela' matematica che mostra la bellezza del caos.",
+                h_dl: "Scarica File Dati",
+                p_dl: "Qui puoi scaricare un file con 1 milione di decimali o uno con 10 milioni di decimali per cercare tu stesso schemi più complessi.",
+                btn_dl_1m: "⬇ Scarica 1M (.txt)", btn_dl_10m: "⬇ Scarica 10M (.txt)",
+                legal: "Note Legali", privacy: "Privacy", cookies: "Cookies", contact: "Contatto", coffee: "Offrimi un caffè",
+                rights: "© 2026 Graphics Labs", ad_text: "Pubblicità"
+            },
+            'nl': {
+                nav_main: "← HOOFDHUB", nav_math: "← HUB MATH",
+                title: "PROJECT PI (π)", desc: "Patroon zoeker en artistieke visualisatie.",
+                lbl_search: "Zoek reeks (bijv. verjaardag):", lbl_points: "Punten te tekenen:",
+                btn_search: "ZOEKEN & VISUALISEREN", btn_reset: "RESET", btn_save: "💾 PNG",
+                txt_ready: "Voer getallen in om te zoeken in de eerste 10.000 cijfers.",
+                msg_found: "Gevonden! Positie {pos}", msg_not_found: "Niet gevonden in de eerste 10.000 cijfers.",
+                ph_search: "1415...", canvas_note: "Elke lijn verbindt een cijfer met het volgende.",
+                h_how: "Hoe dit experiment werkt",
+                p_how: "Dit lab heeft de eerste 10.000 decimalen van Pi in het geheugen geladen. Wanneer u de zoekfunctie gebruikt, scant het systeem deze enorme numerieke keten om uw exacte reeks te vinden. Als deze wordt gevonden, wordt de achtergrondruis gedimd en wordt uitsluitend het pad verlicht dat door uw getallen wordt gevormd wanneer ze met elkaar verbinden.",
+                h_what: "Wat is Pi?", p1: "Pi is de verhouding tussen de omtrek van een cirkel en zijn diameter. Het is een irrationaal getal, wat betekent dat het oneindig veel decimalen heeft zonder bekend herhalend periodiek patroon.",
+                h_normal: "De Normaliteit van Pi", p2: "Men vermoedt dat Pi een normaal getal is. Dit betekent dat elke eindige reeks getallen (zoals uw geboortedatum, telefoonnummer of de binaire code van een afbeelding) wiskundig ergens in de decimalen voorkomt als u ver genoeg zoekt.",
+                h_art: "De Visualisatie (Snaren)", p3: "In deze grafiek hebben we de cijfers 0 tot 9 rond een cirkel geplaatst. We trekken een lijn van de positie van decimaal n naar decimaal n+1. Het resultaat is een complex wiskundig 'web' dat de schoonheid van chaos toont.",
+                h_dl: "Gegevensbestanden downloaden",
+                p_dl: "Hier kunt u een bestand downloaden met 1 miljoen decimalen of een met 10 miljoen decimalen om zelf naar patronen te zoeken.",
+                btn_dl_1m: "⬇ Download 1M (.txt)", btn_dl_10m: "⬇ Download 10M (.txt)",
+                legal: "Juridisch", privacy: "Privacy", cookies: "Cookies", contact: "Contact", coffee: "Koop koffie",
+                rights: "© 2026 Graphics Labs", ad_text: "Advertentie"
+            },
+            'ja': {
+                nav_main: "← メインハブ", nav_math: "← HUB MATH",
+                title: "プロジェクト π (パイ)", desc: "パターン検索と芸術的な視覚化。",
+                lbl_search: "シーケンス検索 (例: 誕生日):", lbl_points: "描画する点:",
+                btn_search: "検索して視覚化", btn_reset: "リセット", btn_save: "💾 PNG保存",
+                txt_ready: "最初の10,000桁の中から数字を検索します。",
+                msg_found: "発見！ 位置 {pos}", msg_not_found: "最初の10,000桁には見つかりませんでした。",
+                ph_search: "1415...", canvas_note: "各線は、ある数字とその次の数字をつなぎます。",
+                h_how: "この実験の仕組み",
+                p_how: "このラボでは、円周率の最初の10,000桁をメモリに読み込みました。検索機能を使用すると、システムはこの膨大な数字の連鎖をスキャンして、正確なシーケンスを見つけようとします。見つかった場合、背景のノイズを消し、円の中で数字同士がつながって形成されるパスのみを明るく照らし出します。",
+                h_what: "π（パイ）とは？", p1: "πは、円の周長と直径の比率です。これは無理数であり、既知の繰り返し周期パターンを持たない無限の小数展開を持つことを意味します。",
+                h_normal: "πの正規性", p2: "πは正規数であると疑われています。これは、あらゆる有限の数列（誕生日、電話番号、画像のバイナリコードなど）が、十分に探せばその小数のどこかに数学的に現れることを意味します。",
+                h_art: "視覚化（弦）", p3: "このグラフでは、0から9までの数字を円の周りに配置しました。小数第n位から小数第n+1位の位置まで線を引きます。その結果、カオスの美しさを示す複雑な数学的「クモの巣」が生まれます。",
+                h_dl: "データファイルのダウンロード",
+                p_dl: "ここでは、100万桁または1000万桁の小数が含まれるファイルをダウンロードして、より複雑なパターンを自分で検索できます。",
+                btn_dl_1m: "⬇ 1M (.txt)", btn_dl_10m: "⬇ 10M (.txt)",
+                legal: "法的通知", privacy: "プライバシー", cookies: "クッキー", contact: "連絡先", coffee: "コーヒーを奢る",
+                rights: "© 2026 Graphics Labs", ad_text: "広告スペース"
+            }
+        };
+
+        let currentLang = 'es';
+
+        function setLang(lang) {
+            localStorage.setItem('gl_lang', lang);
+            currentLang = lang;
+            const t = translations[lang] || translations['es'];
+            
+            document.getElementById('nav-main').innerText = t.nav_main;
+            document.getElementById('nav-math').innerText = t.nav_math;
+            document.getElementById('txt-title').innerText = t.title;
+            document.getElementById('txt-desc').innerText = t.desc;
+            document.getElementById('lbl-search').innerText = t.lbl_search;
+            document.getElementById('lbl-points').innerText = t.lbl_points;
+            document.getElementById('btn-search').innerText = t.btn_search;
+            document.getElementById('btn-reset').innerText = t.btn_reset;
+            document.getElementById('btn-save').innerText = t.btn_save;
+            
+            document.getElementById('inp-search').placeholder = t.ph_search;
+            
+            const resBox = document.getElementById('result-display');
+            if(!resBox.innerHTML.includes('visor-match') && !resBox.innerHTML.includes('color:#ff4444')) {
+                resBox.innerText = t.txt_ready;
+            }
+
+            document.getElementById('txt-canvas-note').innerText = t.canvas_note;
+
+            document.getElementById('info-h-how').innerText = t.h_how;
+            document.getElementById('info-p-how').innerText = t.p_how;
+            document.getElementById('info-h-what').innerText = t.h_what;
+            document.getElementById('info-p1').innerText = t.p1;
+            document.getElementById('info-h-normal').innerText = t.h_normal;
+            document.getElementById('info-p2').innerText = t.p2;
+            document.getElementById('info-h-art').innerText = t.h_art;
+            document.getElementById('info-p3').innerText = t.p3;
+
+            document.getElementById('info-h-dl').innerText = t.h_dl;
+            document.getElementById('info-p-dl').innerText = t.p_dl;
+            document.getElementById('btn-dl-1m').innerText = t.btn_dl_1m;
+            document.getElementById('btn-dl-10m').innerText = t.btn_dl_10m;
+
+            document.getElementById('link-legal').innerText = t.legal;
+            document.getElementById('link-privacy').innerText = t.privacy;
+            document.getElementById('link-cookies').innerText = t.cookies;
+            document.getElementById('link-contact').innerText = t.contact;
+            document.getElementById('btn-coffee').innerText = t.coffee;
+            
+            document.getElementById('footer-rights').innerText = t.rights;
+            document.querySelector('.ad-placeholder-text').innerText = t.ad_text;
+
+            document.querySelectorAll('.lang-switch button').forEach(b => {
+                b.classList.remove('active');
+                if(b.id === 'btn-' + lang) b.classList.add('active');
+            });
+        }
+
+        /* --- 5. MOTOR DE RENDERIZADO --- */
+        const bgCanvas = document.getElementById('bg-canvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        let particlesArray = [];
+        
+        function resizeBg() {
+            bgCanvas.width = window.innerWidth;
+            bgCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', () => { resizeBg(); initParticles(); });
+        resizeBg();
+
+        const mouse = { x: null, y: null, radius: 150 };
+        window.addEventListener('mousemove', (e) => { mouse.x = e.x; mouse.y = e.y; });
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * bgCanvas.width;
+                this.y = Math.random() * bgCanvas.height;
+                this.size = Math.random() * 12 + 8;
+                this.speedX = (Math.random() * 1) - 0.5;
+                this.speedY = (Math.random() * 1) - 0.5;
+                const symbols = ['π', '3', '1', '4', '1', '5', '9', '2', '6', '5', '3'];
+                this.text = symbols[Math.floor(Math.random() * symbols.length)];
+            }
+            draw() {
+                bgCtx.font = this.size + 'px monospace';
+                bgCtx.fillStyle = 'rgba(0, 255, 65, 0.15)'; 
+                bgCtx.fillText(this.text, this.x, this.y);
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+
+                if (mouse.x != null) {
+                    let dx = mouse.x - this.x;
+                    let dy = mouse.y - this.y;
+                    let distance = Math.sqrt(dx*dx + dy*dy);
+                    if (distance < mouse.radius) {
+                        const forceDirectionX = dx / distance;
+                        const forceDirectionY = dy / distance;
+                        const force = (mouse.radius - distance) / mouse.radius;
+                        this.x -= forceDirectionX * force * 5;
+                        this.y -= forceDirectionY * force * 5;
+                    }
+                }
+
+                if (this.x > bgCanvas.width) this.x = 0;
+                if (this.x < 0) this.x = bgCanvas.width;
+                if (this.y > bgCanvas.height) this.y = 0;
+                if (this.y < 0) this.y = bgCanvas.height;
+                this.draw();
+            }
+        }
+
+        function initParticles() {
+            particlesArray = [];
+            let n = (bgCanvas.height * bgCanvas.width) / 9000;
+            for (let i = 0; i < n; i++) particlesArray.push(new Particle());
+        }
+        
+        function animateParticles() {
+            bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+            for (let i = 0; i < particlesArray.length; i++) particlesArray[i].update();
+            requestAnimationFrame(animateParticles);
+        }
+        initParticles();
+        animateParticles();
+
+        /* --- 6. INIT --- */
+        const savedLang = localStorage.getItem('gl_lang') || 'es';
+        setLang(savedLang);
+        setTimeout(() => drawArt(null), 100);
+
+    </script>
+</body>
+</html>

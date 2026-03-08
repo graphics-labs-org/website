@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mandalas a Mano - Graphics Labs 2026</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Herramienta de dibujo de Mandalas a mano alzada con estabilizador. Crea arte zen con simetría radial, espejos y colores neón.">
+    
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3150277567590534" crossorigin="anonymous"></script>
+
+    <style>
+        :root {
+            --primary: #00ff41;
+            --glass: rgba(255, 255, 255, 0.05);
+            --nav-bg: rgba(0, 0, 0, 0.85);
+        }
+
+        body { 
+            margin: 0; background-color: #050505; font-family: 'Segoe UI', Roboto, sans-serif; color: #ddd; 
+            overflow-x: hidden; display: flex; flex-direction: column; 
+        }
+
+        /* --- SISTEMA DE NAVEGACIÓN SUPERIOR --- */
+        .top-nav {
+            position: fixed; top: 0; left: 0; width: 100%; height: 65px;
+            background: var(--nav-bg); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 20px; box-sizing: border-box; z-index: 1000;
+            border-bottom: 1px solid var(--glass);
+        }
+        .nav-left { display: flex; align-items: center; gap: 15px; }
+        .nav-brand { color: var(--primary); font-weight: 900; letter-spacing: 2px; font-size: 1.2em; text-decoration: none; }
+        .nav-btn { 
+            background: var(--glass); border: 1px solid #333; color: #fff; padding: 6px 12px; 
+            border-radius: 4px; text-decoration: none; font-size: 0.8em; font-weight: bold; transition: 0.3s;
+        }
+        .nav-btn:hover { background: var(--primary); color: #000; border-color: var(--primary); }
+
+        .lang-selector { display: flex; gap: 5px; }
+        .lang-btn { 
+            background: transparent; border: 1px solid #444; color: #888; padding: 4px 8px; 
+            border-radius: 3px; cursor: pointer; font-size: 0.7em; transition: 0.3s;
+        }
+        .lang-btn.active { border-color: var(--primary); color: var(--primary); background: rgba(0, 255, 65, 0.1); }
+
+        /* --- LAYOUT APP --- */
+        #app-wrapper { display: flex; width: 100%; height: 100vh; padding-top: 65px; box-sizing: border-box; }
+        
+        #canvas-container {
+            flex: 3; display: flex; justify-content: center; align-items: center;
+            background-color: #000; padding: 20px; overflow: hidden; position: relative;
+            cursor: crosshair; 
+        }
+        
+        canvas { 
+            box-shadow: 0 0 50px rgba(0, 255, 65, 0.1); 
+            border-radius: 50%; background-color: #000; touch-action: none; 
+        }
+        
+        #controls-container {
+            flex: 1.2; min-width: 340px; background-color: #080808; padding: 25px;
+            overflow-y: auto; box-shadow: -5px 0 30px rgba(0,0,0,0.8); border-left: 1px solid #222; z-index: 10;
+        }
+
+        h2 { color: var(--primary); margin: 0 0 15px 0; text-align: center; letter-spacing: 2px; text-transform: uppercase; text-shadow: 0 0 15px rgba(0, 255, 65, 0.3); }
+        
+        .btn-group { display: flex; gap: 10px; margin-bottom: 10px; }
+        .action-btn {
+            flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;
+            transition: 0.2s; color: #fff; text-transform: uppercase; font-size: 0.75em;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .action-btn:hover { filter: brightness(1.2); transform: translateY(-2px); }
+        .action-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        #btnUndo, #btnRedo { background-color: #222; border: 1px solid #444; }
+        #btnClear { background-color: #721c24; }
+        #btnPng { background-color: var(--primary); color: #000; } 
+        #btnJpg { background-color: #fff; color: #000; } 
+
+        .control-group { background: var(--glass); border: 1px solid #333; border-radius: 8px; padding: 15px; margin-bottom: 18px; }
+        .control-row { display: flex; align-items: center; margin-bottom: 12px; font-size: 0.9em; justify-content: space-between; }
+        .control-label { color: #ccc; font-weight: 500; flex: 1; }
+        
+        input[type=range] { flex: 2; cursor: pointer; accent-color: var(--primary); }
+        input[type=color] { border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; padding: 0; }
+        .value-display { width: 45px; text-align: right; font-family: monospace; color: var(--primary); font-weight: bold; }
+
+        /* --- ADS & CONTENT --- */
+        .ad-container {
+            border: 1px dashed #444; background: #0a0a0a; color: #555;
+            padding: 20px; margin: 40px auto; max-width: 900px; text-align: center;
+            font-family: 'Courier New', monospace; font-size: 0.8em; letter-spacing: 2px;
+        }
+
+        .content-section { max-width: 900px; margin: 0 auto; padding: 20px; background-color: #000; position: relative; z-index: 20; }
+        article h2 { color: var(--primary); border-left: 4px solid var(--primary); padding-left: 15px; margin-top: 60px; font-size: 1.8em; }
+        article h3 { color: #fff; margin-top: 40px; font-size: 1.4em; border-bottom: 1px solid #222; padding-bottom: 10px; }
+        article p { margin-bottom: 20px; font-size: 1.05em; color: #bbb; line-height: 1.8; text-align: justify; }
+        article ul { list-style: none; padding: 0; margin-bottom: 30px; }
+        article li { margin-bottom: 15px; padding-left: 20px; border-left: 2px solid var(--primary); color: #aaa; line-height: 1.6; }
+        article strong { color: #fff; }
+
+        table { width:100%; border-collapse: collapse; margin: 30px 0; background: var(--glass); }
+        th { text-align:left; padding:15px; color:var(--primary); border-bottom:2px solid #333; }
+        td { padding:15px; border-bottom:1px solid #222; color: #ccc; }
+
+        footer { background-color: #050505; padding: 60px 20px; text-align: center; border-top: 1px solid #222; font-size: 0.9em; color: #666; }
+        .paypal-btn {
+            display: inline-block; background: #0070ba; color: #fff; padding: 12px 25px; 
+            border-radius: 50px; text-decoration: none; font-weight: bold; margin-bottom: 30px;
+            transition: 0.3s; box-shadow: 0 4px 15px rgba(0, 112, 186, 0.3);
+        }
+        .footer-links { margin: 20px 0; }
+        .footer-links a { color: #888; text-decoration: none; margin: 0 10px; }
+        .footer-links a:hover { color: var(--primary); }
+
+        @media (max-width: 900px) {
+            #app-wrapper { flex-direction: column; height: auto; }
+            #canvas-container { height: 60vh; }
+            #controls-container { min-width: 100%; }
+            .lang-selector { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="top-nav">
+    <div class="nav-left">
+        <a href="../../index.html" class="nav-btn" data-i18n="nav_hub">HUB</a>
+        <a href="javascript:history.back()" class="nav-btn" data-i18n="nav_back">BACK</a>
+        <span class="nav-brand">GRAPHICS LABS</span>
+    </div>
+    <div class="lang-selector">
+        <button class="lang-btn active" onclick="changeLanguage('es')">ES</button>
+        <button class="lang-btn" onclick="changeLanguage('ca')">CA</button>
+        <button class="lang-btn" onclick="changeLanguage('en')">EN</button>
+        <button class="lang-btn" onclick="changeLanguage('fr')">FR</button>
+        <button class="lang-btn" onclick="changeLanguage('de')">DE</button>
+        <button class="lang-btn" onclick="changeLanguage('pt')">PT</button>
+        <button class="lang-btn" onclick="changeLanguage('it')">IT</button>
+        <button class="lang-btn" onclick="changeLanguage('nl')">NL</button>
+        <button class="lang-btn" onclick="changeLanguage('ja')">JA</button>
+    </div>
+</nav>
+
+<div id="app-wrapper">
+    <div id="canvas-container">
+        <canvas id="mandalaCanvas"></canvas>
+    </div>
+
+    <div id="controls-container">
+        <h2 data-i18n="sim_title">MANDALAS A MANO</h2>
+        
+        <div class="btn-group">
+            <button id="btnUndo" class="action-btn" data-i18n="btn_undo">↩ Deshacer</button>
+            <button id="btnRedo" class="action-btn" data-i18n="btn_redo">↪ Rehacer</button>
+            <button id="btnClear" class="action-btn" data-i18n="btn_clear">🗑️ Borrar</button>
+        </div>
+
+        <div class="btn-group" style="margin-bottom: 25px;">
+            <button id="btnPng" class="action-btn" data-i18n="btn_png">💾 PNG</button>
+            <button id="btnJpg" class="action-btn" data-i18n="btn_jpg">📸 JPG</button>
+        </div>
+
+        <div class="control-group">
+            <h3 style="margin:0 0 10px 0; color:#fff; font-size:0.9em; border-bottom:1px solid #444; padding-bottom:5px;" data-i18n="group_geometry">Simetría Sagrada</h3>
+            <div class="control-row">
+                <span class="control-label" data-i18n="label_axes">Ejes</span>
+                <input type="range" id="symmetryRange" min="2" max="36" value="12">
+                <span id="symmetryVal" class="value-display">12</span>
+            </div>
+            <div class="control-row">
+                <span class="control-label" data-i18n="label_mirror">Espejo</span>
+                <input type="checkbox" id="checkMirror" checked>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <h3 style="margin:0 0 10px 0; color:#fff; font-size:0.9em; border-bottom:1px solid #444; padding-bottom:5px;" data-i18n="group_brush">Pincel de Luz</h3>
+            <div class="control-row">
+                <span class="control-label" data-i18n="label_color">Color</span>
+                <input type="color" id="brushColor" value="#00ff41">
+            </div>
+            <div class="control-row">
+                <span class="control-label" data-i18n="label_size">Grosor</span>
+                <input type="range" id="sizeRange" min="1" max="50" value="2">
+                <span id="sizeVal" class="value-display">2</span>
+            </div>
+            <div class="control-row">
+                <span class="control-label" data-i18n="label_glow">Glow</span>
+                <input type="range" id="glowRange" min="0" max="30" value="10">
+            </div>
+            <div class="control-row" style="border-top: 1px solid #333; padding-top:10px; margin-top:5px;">
+                <span class="control-label" style="color:var(--primary);" data-i18n="label_smooth">Estabilizador</span>
+                <input type="range" id="smoothRange" min="0" max="95" value="60">
+                <span id="smoothVal" class="value-display">60%</span>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <h3 style="margin:0 0 10px 0; color:#fff; font-size:0.9em; border-bottom:1px solid #444; padding-bottom:5px;" data-i18n="group_canvas">Lienzo</h3>
+            <div class="control-row">
+                <span class="control-label" data-i18n="label_bg">Fondo</span>
+                <input type="color" id="bgColor" value="#000000">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="ad-container">--- AD SPACE ---</div>
+
+<section class="content-section">
+    <article>
+        <h2 data-i18n="art_title1">El Círculo Sagrado: Historia y Significado</h2>
+        <p data-i18n="art_p1">La palabra <strong>Mandala</strong> proviene del sánscrito clásico y significa literalmente "Círculo" o "Disco". Aunque hoy los asociamos con dibujos relajantes, su origen es profundamente espiritual y ancestral. Un mandala no es solo un dibujo; es un <strong>cosmograma</strong>: un mapa del universo y de la psique humana.</p>
+        
+        <h3 data-i18n="art_sub1">Un Viaje a través del Tiempo y la Geografía</h3>
+        <p data-i18n="art_p2">Aunque los mandalas nacieron en el corazón de la India dentro de las tradiciones <strong>hinduistas y budistas (Tantra)</strong> hace más de 2.000 años, la geometría radial es un arquetipo universal que aparece en todas las culturas:</p>
+        <ul>
+            <li data-i18n="art_li1"><strong>Tíbet:</strong> Los monjes crean intrincados mandalas de arena coloreada grano a grano durante semanas, para luego destruirlos en un instante, simbolizando la impermanencia de la vida.</li>
+            <li data-i18n="art_li2"><strong>Cristianismo Medieval:</strong> Los rosetones de las catedrales góticas son mandalas de luz que representan la armonía divina.</li>
+            <li data-i18n="art_li3"><strong>Cultura Azteca:</strong> La famosa "Piedra del Sol" es un mandala calendario que explica la cosmología mesoamericana.</li>
+            <li data-i18n="art_li4"><strong>Celtas:</strong> Sus nudos eternos y cruces anilladas siguen la misma lógica de centro y expansión.</li>
+        </ul>
+
+        <h2 data-i18n="art_title2">Beneficios Psicológicos: La "Curación por el Centro"</h2>
+        <p data-i18n="art_p3">Fue el famoso psicoanalista suizo <strong>Carl Gustav Jung</strong> quien introdujo el mandala en la psicología occidental. Jung descubrió que cuando sus pacientes dibujaban círculos, estaban intentando instintivamente ordenar su caos interior.</p>
+        <p data-i18n="art_p4">Utilizar nuestro <strong>Mandala Creator</strong> te aporta beneficios inmediatos:</p>
+        <ul>
+            <li data-i18n="art_li5"><strong>Sincronización Cerebral:</strong> La estructura geométrica activa el hemisferio izquierdo (lógica), mientras que el color y el flujo activan el derecho (creatividad).</li>
+            <li data-i18n="art_li6"><strong>Estado de Flujo (Flow):</strong> Al ver cómo el trazo se multiplica en tiempo real, tu mente entra en un estado hipnótico que silencia el diálogo interno y la ansiedad.</li>
+            <li data-i18n="art_li7"><strong>Centramiento:</strong> Todo mandala tiene un punto central (Bindu). Dibujar alrededor de él ayuda a la psique a encontrar su propio eje en momentos de estrés.</li>
+        </ul>
+
+        <h3 data-i18n="art_sub2">Significado de las Formas y Colores</h3>
+        <p data-i18n="art_p5">Cuando dibujes, observa qué patrones surgen naturalmente de tu mano, ya que pueden revelar tu estado emocional:</p>
+        
+        <table>
+            <thead>
+                <tr><th data-i18n="th1">Elemento</th><th data-i18n="th2">Significado Arquetípico</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><strong data-i18n="td_c">Círculo</strong></td><td data-i18n="td_c_v">La totalidad, lo absoluto, el "Yo" verdadero, protección.</td></tr>
+                <tr><td><strong data-i18n="td_q">Cuadrado</strong></td><td data-i18n="td_q_v">Estabilidad, equilibrio, la tierra y el mundo material.</td></tr>
+                <tr><td><strong data-i18n="td_t">Triángulo</strong></td><td data-i18n="td_t_v">Hacia arriba: aspiración, fuego. Hacia abajo: agua, inconsciente.</td></tr>
+                <tr><td><strong data-i18n="td_e">Espiral</strong></td><td data-i18n="td_e_v">Crecimiento, evolución y energía vital.</td></tr>
+            </tbody>
+        </table>
+
+        <h3 data-i18n="art_sub3">Guía rápida de color:</h3>
+        <ul style="columns: 2; -webkit-columns: 2; -moz-columns: 2;">
+            <li data-i18n="c_red">🔴 Rojo: Pasión, energía, raíz.</li>
+            <li data-i18n="c_ora">🟠 Naranja: Creatividad, transformación.</li>
+            <li data-i18n="c_yel">🟡 Amarillo: Luz, sabiduría, alegría.</li>
+            <li data-i18n="c_gre">🟢 Verde: Sanación, naturaleza, amor.</li>
+            <li data-i18n="c_blu">🔵 Azul: Paz, calma, infinito.</li>
+            <li data-i18n="c_pur">🟣 Violeta: Espiritualidad, magia.</li>
+            <li data-i18n="c_whi">⚪ Blanco: Pureza, iluminación.</li>
+            <li data-i18n="c_bla">⚫ Negro: Misterio, profundidad, el vacío fértil.</li>
+        </ul>
+    </article>
+</section>
+
+<div class="ad-container">--- AD SPACE ---</div>
+
+<footer>
+    <a href="https://www.paypal.com/paypalme/pbazan" target="_blank" class="paypal-btn" data-i18n="footer_coffee">☕ Invítame a un café</a>
+    <div class="footer-links">
+        <a href="../../legal.html#aviso" data-i18n="footer_legal">Aviso Legal</a>
+        <a href="../../legal.html#privacidad" data-i18n="footer_privacy">Privacidad</a>
+        <a href="../../legal.html#cookies" data-i18n="footer_cookies">Cookies</a>
+        <a href="mailto:pbazan@gmail.com" data-i18n="footer_contact">Contacto</a>
+    </div>
+    <p>Copyright © 2026 Graphics Labs. <span data-i18n="footer_rights">Todos los derechos reservados.</span></p>
+</footer>
+
+<script>
+    // --- OBJETO TRADUCCIONES ÍNTEGRO (ES & EN) ---
+const translations = {
+    es: {
+        nav_hub: "HUB", nav_back: "VOLVER", sim_title: "MANDALAS A MANO",
+        btn_undo: "↩ Deshacer", btn_redo: "↪ Rehacer", btn_clear: "🗑️ Borrar",
+        btn_png: "💾 PNG", btn_jpg: "📸 JPG", group_geometry: "Simetría Sagrada",
+        label_axes: "Ejes", label_mirror: "Espejo", group_brush: "Pincel de Luz",
+        label_color: "Color", label_size: "Grosor", label_glow: "Glow",
+        label_smooth: "Estabilizador", group_canvas: "Lienzo", label_bg: "Fondo",
+        art_title1: "El Círculo Sagrado: Historia y Significado",
+        art_p1: "La palabra Mandala proviene del sánscrito clásico y significa literalmente \"Círculo\" o \"Disco\". Aunque hoy los asociamos con dibujos relajantes, su origen es profundamente espiritual y ancestral. Un mandala no es solo un dibujo; es un cosmograma: un mapa del universo y de la psique humana.",
+        art_sub1: "Un Viaje a través del Tiempo y la Geografía",
+        art_p2: "Aunque los mandalas nacieron en el corazón de la India dentro de las tradiciones hinduistas y budistas (Tantra) hace más de 2.000 años, la geometría radial es un arquetipo universal que aparece en todas las culturas:",
+        art_li1: "Tíbet: Los monjes crean intrincados mandalas de arena coloreada grano a grano durante semanas, para luego destruirlos en un instante, simbolizando la impermanencia de la vida.",
+        art_li2: "Cristianismo Medieval: Los rosetones de las catedrales góticas son mandalas de luz que representan la armonía divina.",
+        art_li3: "Cultura Azteca: La famosa \"Piedra del Sol\" es un mandala calendario que explica la cosmología mesoamericana.",
+        art_li4: "Celtas: Sus nudos eternos y cruces anilladas siguen la misma lógica de centro y expansión.",
+        art_title2: "Beneficios Psicológicos: La \"Curación por el Centro\"",
+        art_p3: "Fue el famoso psicoanalista suizo Carl Gustav Jung quien introdujo el mandala en la psicología occidental. Jung descubrió que cuando sus pacientes dibujaban círculos, estaban intentando instintivamente ordenar su caos interior.",
+        art_p4: "Utilizar nuestro Mandala Creator te aporta beneficios inmediatos:",
+        art_li5: "Sincronización Cerebral: La estructura geométrica activa el hemisferio izquierdo (lógica), mientras que el color y el flujo activan el derecho (creatividad).",
+        art_li6: "Estado de Flujo (Flow): Al ver cómo el trazo se multiplica en tiempo real, tu mente entra en un estado hipnótico que silencia el diálogo interno y la ansiedad.",
+        art_li7: "Centramiento: Todo mandala tiene un punto central (Bindu). Dibujar alrededor de él ayuda a la psique a encontrar su propio eje en momentos de estrés.",
+        art_p5: "Cuando dibujes, observa qué patrones surgen naturalmente de tu mano, ya que pueden revelar tu estado emocional:",
+        th1: "Elemento", th2: "Significado Arquetípico",
+        td_c: "Círculo", td_c_v: "La totalidad, lo absoluto, el \"Yo\" verdadero, protección.",
+        td_q: "Cuadrado", td_q_v: "Estabilidad, equilibrio, la tierra y el mundo material.",
+        td_t: "Triángulo", td_t_v: "Hacia arriba: aspiración, fuego. Hacia abajo: agua, inconsciente.",
+        td_e: "Espiral", td_e_v: "Crecimiento, evolución y energía vital.",
+        art_sub2: "Significado de las Formas y Colores", art_sub3: "Guía rápida de color:",
+        c_red: "🔴 Rojo: Pasión, energía, raíz.", c_ora: "🟠 Naranja: Creatividad, transformación.",
+        c_yel: "🟡 Amarillo: Luz, sabiduría, alegría.", c_gre: "🟢 Verde: Sanación, naturaleza, amor.",
+        c_blu: "🔵 Azul: Paz, calma, infinito.", c_pur: "🟣 Violeta: Espiritualidad, magia.",
+        c_whi: "⚪ Blanco: Pureza, iluminación.", c_bla: "⚫ Negro: Misterio, profundidad, el vacío fértil.",
+        footer_coffee: "☕ Invítame a un café", footer_legal: "Aviso Legal", footer_privacy: "Privacidad",
+        footer_cookies: "Cookies", footer_contact: "Contacto", footer_rights: "Todos los derechos reservados."
+    },
+    ca: {
+        nav_hub: "HUB", nav_back: "TORNAR", sim_title: "MANDALES A MÀ",
+        btn_undo: "↩ Desfer", btn_redo: "↪ Refer", btn_clear: "🗑️ Esborrar",
+        btn_png: "💾 PNG", btn_jpg: "📸 JPG", group_geometry: "Simetria Sagrada",
+        label_axes: "Eixos", label_mirror: "Mirall", group_brush: "Pinzell de Llum",
+        label_color: "Color", label_size: "Gruix", label_glow: "Glow",
+        label_smooth: "Estabilitzador", group_canvas: "Lenç", label_bg: "Fons",
+        art_title1: "El Cercle Sagrat: Història i Significat",
+        art_p1: "La paraula Mandala prové del sànscrit clàssic i significa literalment \"Cercle\" o \"Disc\". Tot i que avui els associem amb dibuixos relaxants, el seu origen és profundament espiritual i ancestral. Un mandala no és només un dibuix; és un cosmograma: un mapa de l'univers i de la psique humana.",
+        art_sub1: "Un Viatge a través del Temps i la Geografia",
+        art_p2: "Encara que els mandales van néixer al cor de l'Índia dins de les tradicions hinduistes i budistes (Tantra) fa més de 2.000 anys, la geometria radial és un arquetip universal que apareix en totes les cultures:",
+        art_li1: "Tibet: Els monjos creen intricats mandales de sorraacolorida gra a gra durant setmanes, per després destruir-los en un instant, simbolitzant la impermanència de la vida.",
+        art_li2: "Cristianisme Medieval: Les rosasses de les catedrals gòtiques són mandales de llum que representen l'harmonia divina.",
+        art_li3: "Cultura Asteca: La famosa \"Pedra del Sol\" és un mandala calendari que explica la cosmologia mesoamericana.",
+        art_li4: "Celtes: Els seus nusos eterns i creus anellades segueixen la mateixa lògica de centre i expansió.",
+        art_title2: "Beneficis Psicològics: La \"Curació pel Centre\"",
+        art_p3: "Va ser el famós psicoanalista suís Carl Gustav Jung qui va introduir el mandala en la psicologia occidental. Jung va descobrir que quan els seus pacients dibuixaven cercles, estaven intentant instintivament ordenar el seu caos interior.",
+        art_p4: "Utilitzar el nostre Mandala Creator t'aporta beneficis immediats:",
+        art_li5: "Sincronització Cerebral: L'estructura geomètrica activa l'hemisferi esquerre (lògica), mentre que el color i el flux activen el dret (creativitat).",
+        art_li6: "Estat de Flux (Flow): En veure com el traç es multiplica en temps real, la teva ment entra en un estat hipnòtic que silencia el diàleg intern i l'ansietat.",
+        art_li7: "Centrament: Tot mandala té un punt central (Bindu). Dibuixar al seu voltant ajuda la psique a trobar el seu propi eix en moments d'estrès.",
+        art_p5: "Quan dibuixis, observa quins patrons sorgeixen naturalment de la teva mà, ja que poden revelar el teu estat emocional:",
+        th1: "Element", th2: "Significat Arquetípic",
+        td_c: "Cercle", td_c_v: "La totalitat, l'absolut, el \"Jo\" vertader, protecció.",
+        td_q: "Quadrat", td_q_v: "Estabilitat, equilibri, la terra i el món material.",
+        td_t: "Triangle", td_t_v: "Cap amunt: aspiració, foc. Cap avall: aigua, inconscient.",
+        td_e: "Espiral", td_e_v: "Creixement, evolució i energia vital.",
+        art_sub2: "Significat de les Formes i Colors", art_sub3: "Guia ràpida de color:",
+        c_red: "🔴 Vermell: Passió, energia, arrel.", c_ora: "🟠 Taronja: Creativitat, transformació.",
+        c_yel: "🟡 Groc: Llum, saviesa, alegria.", c_gre: "🟢 Verd: Sanació, natura, amor.",
+        c_blu: "🔵 Blau: Pau, calma, infinit.", c_pur: "🟣 Violeta: Espiritualitat, màgia.",
+        c_whi: "⚪ Blanc: Puresa, il·luminació.", c_bla: "⚫ Negre: Misteri, profunditat, el buit fèrtil.",
+        footer_coffee: "☕ Convida'm a un cafè", footer_legal: "Avís Legal", footer_privacy: "Privadesa",
+        footer_cookies: "Cookies", footer_contact: "Contacte", footer_rights: "Tots els drets reservats."
+    },
+    en: {
+        nav_hub: "HUB", nav_back: "BACK", sim_title: "HAND-DRAWN MANDALAS",
+        btn_undo: "↩ Undo", btn_redo: "↪ Redo", btn_clear: "🗑️ Clear",
+        btn_png: "💾 PNG", btn_jpg: "📸 JPG", group_geometry: "Sacred Symmetry",
+        label_axes: "Axes", label_mirror: "Mirror", group_brush: "Light Brush",
+        label_color: "Color", label_size: "Size", label_glow: "Glow",
+        label_smooth: "Stabilizer", group_canvas: "Canvas", label_bg: "Background",
+        art_title1: "The Sacred Circle: History and Meaning",
+        art_p1: "The word Mandala comes from classical Sanskrit and literally means \"Circle\" or \"Disk\". Although today we associate them with relaxing drawings, their origin is deeply spiritual and ancestral. A mandala is not just a drawing; it is a cosmogram: a map of the universe and the human psyche.",
+        art_sub1: "A Journey through Time and Geography",
+        art_p2: "Although mandalas were born in the heart of India within Hindu and Buddhist (Tantra) traditions more than 2,000 years ago, radial geometry is a universal archetype that appears in all cultures:",
+        art_li1: "Tibet: Monks create intricate mandalas of colored sand grain by grain for weeks, only to destroy them in an instant, symbolizing the impermanence of life.",
+        art_li2: "Medieval Christianity: The rose windows of Gothic cathedrals are mandalas of light representing divine harmony.",
+        art_li3: "Aztec Culture: The famous \"Sun Stone\" is a calendar mandala that explains Mesoamerican cosmology.",
+        art_li4: "Celts: Their eternal knots and ringed crosses follow the same logic of center and expansion.",
+        art_title2: "Psychological Benefits: \"Healing through the Center\"",
+        art_p3: "It was the famous Swiss psychoanalyst Carl Gustav Jung who introduced the mandala into Western psychology. Jung discovered that when his patients drew circles, they were instinctively trying to order their inner chaos.",
+        art_p4: "Using our Mandala Creator brings you immediate benefits:",
+        art_li5: "Brain Synchronization: The geometric structure activates the left hemisphere (logic), while color and flow activate the right (creativity).",
+        art_li6: "Flow State: By seeing how the stroke multiplies in real time, your mind enters a hypnotic state that silences internal dialogue and anxiety.",
+        art_li7: "Centering: Every mandala has a central point (Bindu). Drawing around it helps the psyche find its own axis in times of stress.",
+        art_p5: "When you draw, notice what patterns emerge naturally from your hand, as they can reveal your emotional state:",
+        th1: "Element", th2: "Archetypal Meaning",
+        td_c: "Circle", td_c_v: "Wholeness, the absolute, the true \"Self\", protection.",
+        td_q: "Square", td_q_v: "Stability, balance, the earth and the material world.",
+        td_t: "Triangle", td_t_v: "Upwards: aspiration, fire. Downwards: water, unconscious.",
+        td_e: "Spiral", td_e_v: "Growth, evolution and vital energy.",
+        art_sub2: "Meaning of Shapes and Colors", art_sub3: "Quick color guide:",
+        c_red: "🔴 Red: Passion, energy, root.", c_ora: "🟠 Orange: Creativity, transformation.",
+        c_yel: "🟡 Yellow: Light, wisdom, joy.", c_gre: "🟢 Green: Healing, nature, love.",
+        c_blu: "🔵 Blue: Peace, calm, infinity.", c_pur: "🟣 Violet: Spirituality, magic.",
+        c_whi: "⚪ White: Purity, enlightenment.", c_bla: "⚫ Black: Mystery, depth, the fertile void.",
+        footer_coffee: "☕ Buy me a coffee", footer_legal: "Legal Notice", footer_privacy: "Privacy",
+        footer_cookies: "Cookies", footer_contact: "Contact", footer_rights: "All rights reserved."
+    },
+    fr: {
+        nav_hub: "HUB", nav_back: "RETOUR", sim_title: "MANDALAS À LA MAIN",
+        btn_undo: "↩ Annuler", btn_redo: "↪ Rétablir", btn_clear: "🗑️ Effacer",
+        btn_png: "💾 PNG", btn_jpg: "📸 JPG", group_geometry: "Symétrie Sacrée",
+        label_axes: "Axes", label_mirror: "Miroir", group_brush: "Pinceau de Lumière",
+        label_color: "Couleur", label_size: "Épaisseur", label_glow: "Glow",
+        label_smooth: "Stabilisateur", group_canvas: "Canevas", label_bg: "Fond",
+        art_title1: "Le Cercle Sacré : Histoire et Signification",
+        art_p1: "Le mot Mandala vient du sanskrit classique et signifie littéralement \"Cercle\" ou \"Disque\". Bien qu'on les associe aujourd'hui à des dessins relaxants, leur origine est profondément spirituelle et ancestrale. Un mandala n'est pas qu'un dessin ; c'est un cosmogramme : une carte de l'univers et de la psyché humaine.",
+        art_sub1: "Un Voyage à travers le Temps et la Géographie",
+        art_p2: "Bien que les mandalas soient nés au cœur de l'Inde au sein des traditions hindouistes et bouddhistes (Tantra) il y a plus de 2 000 ans, la géométrie radiale est un archétype universel qui apparaît dans toutes les cultures :",
+        art_li1: "Tibet : Les moines créent des mandalas complexes en sable coloré grain par grain pendant des semaines, pour ensuite les détruire en un instant, symbolisant l'impermanence de la vie.",
+        art_li2: "Christianisme Médiéval : Les rosaces des cathédrales gothiques sont des mandalas de lumière représentant l'harmonie divine.",
+        art_li3: "Culture Aztèque : La célèbre \"Pierre du Soleil\" est un mandala calendrier qui explique la cosmologie mésoaméricaine.",
+        art_li4: "Celtes : Leurs nœuds éternels et croix cerclées suivent la même logique de centre et d'expansion.",
+        art_title2: "Bénéfices Psychologiques : La \"Guérison par le Centre\"",
+        art_p3: "C'est le célèbre psychanalyste suisse Carl Gustav Jung qui a introduit le mandala dans la psychologie occidentale. Jung a découvert que lorsque ses patients dessinaient des cercles, ils tentaient instinctivement d'ordonner leur chaos intérieur.",
+        art_p4: "Utiliser notre Mandala Creator vous apporte des bénéfices immédiats :",
+        art_li5: "Synchronisation Cérébrale : La structure géométrique active l'hémisphère gauche (logique), tandis que la couleur et le flux activent le droit (créativité).",
+        art_li6: "État de Flow : En voyant comment le trait se multiplie en temps réel, votre esprit entre dans un état hypnotique qui silence le dialogue interne et l'anxiété.",
+        art_li7: "Centrage : Chaque mandala a un point central (Bindu). Dessiner autour de lui aide la psyché à trouver son propre axe en moments de stress.",
+        art_p5: "Quand vous dessinez, observez quels motifs surgissent naturellement de votre main, car ils peuvent révéler votre état émotionnel :",
+        th1: "Élément", th2: "Signification Archétypale",
+        td_c: "Cercle", td_c_v: "La totalité, l'absolu, le \"Moi\" véritable, protection.",
+        td_q: "Carré", td_q_v: "Stabilité, équilibre, la terre et le monde matériel.",
+        td_t: "Triangle", td_t_v: "Vers le haut : aspiration, feu. Vers le bas : eau, inconscient.",
+        td_e: "Spirale", td_e_v: "Croissance, évolution et énergie vitale.",
+        art_sub2: "Signification des Formes et Couleurs", art_sub3: "Guide rapide des couleurs :",
+        c_red: "🔴 Rouge : Passion, énergie, racine.", c_ora: "🟠 Orange : Créativité, transformation.",
+        c_yel: "🟡 Jaune : Lumière, sagesse, joie.", c_gre: "🟢 Vert : Guérison, nature, amour.",
+        c_blu: "🔵 Bleu : Paix, calme, infini.", c_pur: "🟣 Violet : Spiritualité, magie.",
+        c_whi: "⚪ Blanc : Pureté, illumination.", c_bla: "⚫ Noir : Mystère, profondeur, le vide fertile.",
+        footer_coffee: "☕ Offrez-moi un café", footer_legal: "Mentions Légales", footer_privacy: "Confidentialité",
+        footer_cookies: "Cookies", footer_contact: "Contact", footer_rights: "Tous droits réservés."
+    },
+    de: {
+        nav_hub: "HUB", nav_back: "ZURÜCK", sim_title: "HANDGEZEICHNETE MANDALAS",
+        btn_undo: "↩ Rückgängig", btn_redo: "↪ Wiederholen", btn_clear: "🗑️ Löschen",
+        btn_png: "💾 PNG", btn_jpg: "📸 JPG", group_geometry: "Heilige Symmetrie",
+        label_axes: "Achsen", label_mirror: "Spiegel", group_brush: "Lichtpinsel",
+        label_color: "Farbe", label_size: "Größe", label_glow: "Glow",
+        label_smooth: "Stabilisator", group_canvas: "Leinwand", label_bg: "Hintergrund",
+        art_title1: "Der heilige Kreis: Geschichte und Bedeutung",
+        art_p1: "Das Wort Mandala stammt aus dem klassischen Sanskrit und bedeutet wörtlich \"Kreis\" oder \"Scheibe\". Obwohl wir sie heute mit entspannenden Zeichnungen assoziieren, ist ihr Ursprung tief spirituell und uralt. Ein Mandala ist nicht nur eine Zeichnung; es ist ein Kosmogramm: eine Karte des Universums und der menschlichen Psyche.",
+        art_sub1: "Eine Reise durch Zeit und Geografie",
+        art_p2: "Obwohl Mandalas vor mehr als 2.000 Jahren im Herzen Indiens innerhalb der hinduistischen und buddhistischen Traditionen (Tantra) entstanden sind, ist die radiale Geometrie ein universeller Archetyp, der in allen Kulturen vorkommt:",
+        art_li1: "Tibet: Mönche erschaffen wochenlang Korn für Korn komplizierte Mandalas aus farbigem Sand, um sie dann in einem Augenblick zu zerstören, was die Vergänglichkeit des Lebens symbolisiert.",
+        art_li2: "Mittelalterliches Christentum: Die Rosetten gotischer Kathedralen sind Lichtmandalas, die die göttliche Harmonie darstellen.",
+        art_li3: "Aztekische Kultur: Der berühmte \"Sonnenstein\" ist ein Kalendermandala, das die mesoamerikanische Kosmologie erklärt.",
+        art_li4: "Kelten: Ihre ewigen Knoten und Ringkreuze folgen der gleichen Logik von Zentrum und Ausdehnung.",
+        art_title2: "Psychologische Vorteile: Die \"Heilung durch die Mitte\"",
+        art_p3: "Es war der berühmte Schweizer Psychoanalytiker Carl Gustav Jung, der das Mandala in die westliche Psychologie einführte. Jung entdeckte, dass seine Patienten instinktiv versuchten, ihr inneres Chaos zu ordnen, wenn sie Kreise zeichneten.",
+        art_p4: "Die Nutzung unseres Mandala Creator bietet Ihnen sofortige Vorteile:",
+        art_li5: "Gehirnsynchronisation: Die geometrische Struktur aktiviert die linke Hemisphäre (Logik), während Farbe und Fluss die rechte (Kreativität) aktivieren.",
+        art_li6: "Flow-Zustand: Wenn Sie sehen, wie sich der Strich in Echtzeit vervielfacht, tritt Ihr Geist in einen hypnotischen Zustand ein, der den inneren Dialog und die Angst zum Schweigen bringt.",
+        art_li7: "Zentrierung: Jedes Mandala hat einen Mittelpunkt (Bindu). Das Zeichnen um ihn herum hilft der Psyche, in Momenten des Stresses ihre eigene Achse zu finden.",
+        art_p5: "Achten Sie beim Zeichnen darauf, welche Muster natürlich aus Ihrer Hand entstehen, da sie Ihren emotionalen Zustand offenbaren können:",
+        th1: "Element", th2: "Archetypische Bedeutung",
+        td_c: "Kreis", td_c_v: "Die Ganzheit, das Absolute, das wahre \"Ich\", Schutz.",
+        td_q: "Quadrat", td_q_v: "Stabilität, Gleichgewicht, die Erde und die materielle Welt.",
+        td_t: "Dreieck", td_t_v: "Nach oben: Bestrebung, Feuer. Nach unten: Wasser, Unbewusstes.",
+        td_e: "Spirale", td_e_v: "Wachstum, Entwicklung und Lebensenergie.",
+        art_sub2: "Bedeutung von Formen und Farben", art_sub3: "Kurze Farbanleitung:",
+        c_red: "🔴 Rot: Leidenschaft, Energie, Wurzel.", c_ora: "🟠 Orange: Kreativität, Transformation.",
+        c_yel: "🟡 Gelb: Licht, Weisheit, Freude.", c_gre: "🟢 Grün: Heilung, Natur, Liebe.",
+        c_blu: "🔵 Blau: Frieden, Ruhe, Unendlichkeit.", c_pur: "🟣 Violett: Spiritualität, Magie.",
+        c_whi: "⚪ Weiß: Reinheit, Erleuchtung.", c_bla: "⚫ Schwarz: Geheimnis, Tiefe, die fruchtbare Leere.",
+        footer_coffee: "☕ Spendier mir einen Kaffee", footer_legal: "Impressum", footer_privacy: "Datenschutz",
+        footer_cookies: "Cookies", footer_contact: "Kontakt", footer_rights: "Alle Rechte vorbehalten."
+    },
+    pt: {
+        nav_hub: "HUB", nav_back: "VOLTAR", sim_title: "MANDALAS À MÃO",
+        btn_undo: "↩ Desfazer", btn_redo: "↪ Refazer", btn_clear: "🗑️ Apagar",
+        btn_png: "💾 PNG", btn_jpg: "📸 JPG", group_geometry: "Simetria Sagrada",
+        label_axes: "Eixos", label_mirror: "Espelho", group_brush: "Pincel de Luz",
+        label_color: "Cor", label_size: "Tamanho", label_glow: "Glow",
+        label_smooth: "Estabilizador", group_canvas: "Tela", label_bg: "Fundo",
+        art_title1: "O Círculo Sagrado: História e Significado",
+        art_p1: "A palavra Mandala provém do sânscrito clássico e significa literalmente \"Círculo\" ou \"Disco\". Embora hoje as associemos a desenhos relaxantes, a sua origem é profundamente espiritual e ancestral. Uma mandala não é apenas um desenho; é um cosmograma: um mapa do universo e da psique humana.",
+        art_sub1: "Uma Viagem através do Tempo e da Geografia",
+        art_p2: "Embora as mandalas tenham nascido no coração da Índia dentro das tradições hinduístas e budistas (Tantra) há mais de 2.000 anos, a geometria radial é um arquétipo universal que aparece em todas as culturas:",
+        art_li1: "Tibete: Os monges criam mandalas intrincadas de areia colorida grão a grão durante semanas, para depois as destruírem num instante, simbolizando a impermanência da vida.",
+        art_li2: "Cristianismo Medieval: As rosáceas das catedrais góticas são mandalas de luz que representam a harmonia divina.",
+        art_li3: "Cultura Azteca: A famosa \"Pedra do Sol\" é uma mandala calendário que explica a cosmologia mesoamericana.",
+        art_li4: "Celtas: Os seus nós eternos e cruzes aneladas seguem a mesma lógica de centro e expansão.",
+        art_title2: "Benefícios Psicológicos: A \"Cura pelo Centro\"",
+        art_p3: "Foi o famoso psicanalista suíço Carl Gustav Jung quem introduziu a mandala na psicologia ocidental. Jung descobriu que quando os seus pacientes desenhavam círculos, estavam a tentar instintivamente ordenar o seu caos interior.",
+        art_p4: "Utilizar o nosso Mandala Creator traz-lhe benefícios imediatos:",
+        art_li5: "Sincronização Cerebral: A estrutura geométrica ativa o hemisfério esquerdo (lógica), enquanto a cor e o fluxo ativam o direito (criatividade).",
+        art_li6: "Estado de Fluxo (Flow): Ao ver como o traço se multiplica em tempo real, a sua mente entra num estado hipnótico que silencia o diálogo interno e a ansiedade.",
+        art_li7: "Centramento: Toda a mandala tem um ponto central (Bindu). Desenhar à volta dele ajuda a psique a encontrar o seu próprio eixo em momentos de stress.",
+        art_p5: "Quando desenhar, observe que padrões surgem naturalmente da sua mão, pois podem revelar o seu estado emocional:",
+        th1: "Elemento", th2: "Significado Arquetípico",
+        td_c: "Círculo", td_c_v: "A totalidade, o absoluto, o \"Eu\" verdadeiro, proteção.",
+        td_q: "Quadrado", td_q_v: "Estabilidade, equilíbrio, a terra e o mundo material.",
+        td_t: "Triângulo", td_t_v: "Para cima: aspiração, fogo. Para baixo: água, inconsciente.",
+        td_e: "Espiral", td_e_v: "Crescimento, evolução e energia vital.",
+        art_sub2: "Significado das Formas e Coores", art_sub3: "Guia rápido de cores:",
+        c_red: "🔴 Vermelho: Paixão, energia, raiz.", c_ora: "🟠 Laranja: Criatividade, transformação.",
+        c_yel: "🟡 Amarelo: Luz, sabedoria, alegria.", c_gre: "🟢 Verde: Cura, natureza, amor.",
+        c_blu: "🔵 Azul: Paz, calma, infinito.", c_pur: "🟣 Violeta: Espiritualidade, magia.",
+        c_whi: "⚪ Branco: Pureza, iluminação.", c_bla: "⚫ Preto: Mistério, profundidade, o vazio fértil.",
+        footer_coffee: "☕ Pague-me um café", footer_legal: "Aviso Legal", footer_privacy: "Privacidade",
+        footer_cookies: "Cookies", footer_contact: "Contacto", footer_rights: "Todos os direitos reservados."
+    },
+    it: {
+        nav_hub: "HUB", nav_back: "INDIETRO", sim_title: "MANDALA A MANO",
+        btn_undo: "↩ Annulla", btn_redo: "↪ Ripristina", btn_clear: "🗑️ Cancella",
+        btn_png: "💾 PNG", btn_jpg: "📸 JPG", group_geometry: "Simmetria Sacra",
+        label_axes: "Assi", label_mirror: "Specchio", group_brush: "Pennello di Luce",
+        label_color: "Colore", label_size: "Spessore", label_glow: "Glow",
+        label_smooth: "Stabilizzatore", group_canvas: "Tela", label_bg: "Sfondo",
+        art_title1: "Il Cerchio Sacro: Storia e Significato",
+        art_p1: "La parola Mandala deriva dal sanscrito classico e significa letteralmente \"Cerchio\" o \"Disco\". Sebbene oggi li associamo a disegni rilassanti, la loro origine è profondamente spirituale e ancestrale. Un mandala non è solo un disegno; è un cosmogramma: una mappa dell'universo e della psiche umana.",
+        art_sub1: "Un Viaggio attraverso il Tempo e la Geografia",
+        art_p2: "Sebbene i mandala siano nati nel cuore dell'India all'interno delle tradizioni induiste e buddiste (Tantra) più di 2.000 anni fa, la simmetria radiale è un archetipo universale che appare in tutte le culture:",
+        art_li1: "Tibet: I monaci creano intricati mandala di sabbia colorata granello dopo granello per settimane, per poi distruggerli in un istante, simboleggiando l'impermanenza della vita.",
+        art_li2: "Cristianesimo Medievale: I rosoni delle cattedrali gotiche sono mandala di luce che rappresentano l'armonia divina.",
+        art_li3: "Cultura Azteca: La famosa \"Pietra del Sole\" è un mandala calendario che spiega la cosmologia mesoamericana.",
+        art_li4: "Celti: I loro nodi eterni e le croci cerchiate seguono la stessa logica di centro ed espansione.",
+        art_title2: "Benefici Psicologici: La \"Guarigione attraverso il Centro\"",
+        art_p3: "Fu il famoso psicoanalista svizzero Carl Gustav Jung a introdurre il mandala nella psicologia occidentale. Jung scoprì che quando i suoi pazienti disegnavano cerchi, stavano istintivamente cercando di ordinare il loro caos interiore.",
+        art_p4: "Utilizzare il nostro Mandala Creator ti apporta benefici immediati:",
+        art_li5: "Sincronizzazione Cerebrale: La struttura geometrica attiva l'emisfero sinistro (logica), mentre il colore e il flusso attivano quello destro (creatività).",
+        art_li6: "Stato di Flow: Vedendo come il tratto si moltiplica in tempo reale, la tua mente entra in uno stato ipnotico che mette a tacere il dialogo interiore e l'ansia.",
+        art_li7: "Centratura: Ogni mandala ha un punto centrale (Bindu). Disegnare intorno ad esso aiuta la psiche a trovare il proprio asse nei momenti di stress.",
+        art_p5: "Quando disegni, osserva quali schemi emergono naturalmente dalla tua mano, poiché possono rivelare il tuo stato emotivo:",
+        th1: "Elemento", th2: "Significato Archetipico",
+        td_c: "Cerchio", td_c_v: "La totalità, l'assoluto, il vero \"Io\", protezione.",
+        td_q: "Quadrato", td_q_v: "Stabilità, equilibrio, la terra e il mondo materiale.",
+        td_t: "Triangolo", td_t_v: "Verso l'alto: aspirazione, fuoco. Verso il basso: acqua, inconscio.",
+        td_e: "Spirale", td_e_v: "Crescita, evoluzione ed energia vitale.",
+        art_sub2: "Significato delle Forme e dei Colori", art_sub3: "Guida rapida ai colori:",
+        c_red: "🔴 Rosso: Passione, energia, radice.", c_ora: "🟠 Arancione: Creatività, trasformazione.",
+        c_yel: "🟡 Giallo: Luce, saggezza, gioia.", c_gre: "🟢 Verde: Guarigione, natura, amore.",
+        c_blu: "🔵 Blu: Pace, calma, infinito.", c_pur: "🟣 Viola: Spiritualità, magia.",
+        c_whi: "⚪ Bianco: Purezza, illuminazione.", c_bla: "⚫ Nero: Mistero, profondità, il vuoto fertile.",
+        footer_coffee: "☕ Offrimi un caffè", footer_legal: "Avviso Legale", footer_privacy: "Privacy",
+        footer_cookies: "Cookies", footer_contact: "Contatto", footer_rights: "Tutti i diritti riservati."
+    },
+    nl: {
+        nav_hub: "HUB", nav_back: "TERUG", sim_title: "MANDALA'S MET DE HAND",
+        btn_undo: "↩ Ongedaan maken", btn_redo: "↪ Opnieuw", btn_clear: "🗑️ Wissen",
+        btn_png: "💾 PNG", btn_jpg: "📸 JPG", group_geometry: "Heilige Symmetrie",
+        label_axes: "Assen", label_mirror: "Spiegel", group_brush: "Lichtpenseel",
+        label_color: "Kleur", label_size: "Dikte", label_glow: "Glow",
+        label_smooth: "Stabilisator", group_canvas: "Canvas", label_bg: "Achtergrond",
+        art_title1: "De heilige cirkel: geschiedenis en betekenis",
+        art_p1: "Het woord Mandala komt uit het klassieke Sanskriet en betekent letterlijk \"Cirkel\" of \"Schijf\". Hoewel we ze tegenwoordig associëren met ontspannende tekeningen, is hun oorsprong diep spiritueel en eeuwenoud. Een mandala is niet zomaar een tekening; het is een kosmogram: een kaart van het universum en de menselijke psyche.",
+        art_sub1: "Een reis door tijd en geografie",
+        art_p2: "Hoewel mandala's meer dan 2.000 jaar geleden ontstonden in het hart van India binnen de hindoeïstische en boeddhistische tradities (Tantra), is de radiale geometrie een universeel archetype dat in alle culturen voorkomt:",
+        art_li1: "Tibet: Monniken maken wekenlang korrel voor korrel ingewikkelde mandala's van gekleurd zand, om ze vervolgens in een oogwenk te vernietigen, wat de vergankelijkheid van het leven symboliseert.",
+        art_li2: "Middeleeuws christendom: De roosvensters van gotische kathedralen zijn lichtmandala's die de goddelijke harmonie vertegenwoordigen.",
+        art_li3: "Azteekse cultuur: De beroemde \"Zonnesteen\" is een kalendermandala die de Meso-Amerikaanse kosmologie verklaart.",
+        art_li4: "Kelten: Hun eeuwige knopen en ringkruisen volgen dezelfde logica van centrum en expansie.",
+        art_title2: "Psychologische voordelen: De \"Genezing door het Centrum\"",
+        art_p3: "Het was de beroemde Zwitserse psychoanalyticus Carl Gustav Jung die de mandala introduceerde in de westerse psychologie. Jung ontdekte dat wanneer zijn patiënten cirkels tekenden, ze instinctief probeerden hun innerlijke chaos te ordenen.",
+        art_p4: "Het gebruik van onze Mandala Creator biedt u onmiddellijke voordelen:",
+        art_li5: "Hersensynchronisatie: De geometrische structuur activeert de linkerhersenhelft (logica), terwijl de kleur en de stroom de rechterhersenhelft (creativiteit) activeren.",
+        art_li6: "Flow-toestand: Door te zien hoe de streek zich in realtime vermenigvuldigt, komt uw geest in een hypnotische toestand die de interne dialoog en angst het zwijgen oplegt.",
+        art_li7: "Centreren: Elke mandala heeft een centraal punt (Bindu). Tekenen eromheen helpt de psyche om haar eigen as te vinden in momenten van stress.",
+        art_p5: "Let bij het tekenen op welke patronen op natuurlijke wijze uit uw hand ontstaan, omdat ze uw emotionele toestand kunnen onthullen:",
+        th1: "Element", th2: "Archetypische betekenis",
+        td_c: "Cirkel", td_c_v: "Het geheel, het absolute, het ware \"Ik\", bescherming.",
+        td_q: "Vierkant", td_q_v: "Stabiliteit, evenwicht, de aarde en de materiële wereld.",
+        td_t: "Driehoek", td_t_v: "Omhoog: aspiratie, vuur. Omlaag: water, onbewuste.",
+        td_e: "Spiraal", td_e_v: "Groei, evolutie en vitale energie.",
+        art_sub2: "Betekenis van vormen en kleuren", art_sub3: "Snelle kleurengids:",
+        c_red: "🔴 Rood: Passie, energie, wortel.", c_ora: "🟠 Oranje: Creativiteit, transformatie.",
+        c_yel: "🟡 Geel: Licht, wijsheid, vreugde.", c_gre: "🟢 Groen: Genezing, natuur, liefde.",
+        c_blu: "🔵 Blauw: Vrede, kalmte, oneindigheid.", c_pur: "🟣 Paars: Spiritualitat, magie.",
+        c_whi: "⚪ Wit: Zuiverheid, verlichting.", c_bla: "⚫ Zwart: Mysterie, diepte, de vruchtbare leegte.",
+        footer_coffee: "☕ Trakteer me op een koffie", footer_legal: "Juridische kennisgeving", footer_privacy: "Privacy",
+        footer_cookies: "Cookies", footer_contact: "Contact", footer_rights: "Alle rechten voorbehouden."
+    },
+    ja: {
+        nav_hub: "ハブ", nav_back: "戻る", sim_title: "手描きマンダラ",
+        btn_undo: "↩ 元に戻す", btn_redo: "↪ やり直し", btn_clear: "🗑️ 消去",
+        btn_png: "💾 PNG", btn_jpg: "📸 JPG", group_geometry: "神聖幾何学",
+        label_axes: "軸", label_mirror: "鏡面", group_brush: "光のブラシ",
+        label_color: "色", label_size: "太さ", label_glow: "グロー",
+        label_smooth: "スタビライザー", group_canvas: "キャンバス", label_bg: "背景",
+        art_title1: "聖なる円：歴史と意味",
+        art_p1: "マンダラという言葉は古典的なサンスクリット語に由来し、文字通り「円」または「円盤」を意味します。今日ではリラックスするための絵として親しまれていますが、その起源は深く精神的で、古来のものです。マンダラは単なる絵ではありません。それはコスモグラムであり、宇宙と人間の精神の地図なのです。",
+        art_sub1: "時空と地理を越える旅",
+        art_p2: "マンダラは2,000年以上前、ヒンドゥー教や仏教（タントラ）の伝統の中でインドの中心部で誕生しましたが、放射状の幾何学はあらゆる文化に現れる普遍的な原型です。",
+        art_li1: "チベット：僧侶たちは何週間もかけて一粒一粒着色された砂で複雑な砂曼荼羅を作り、その後一瞬にしてそれを破壊します。これは人生の無常を象徴しています。",
+        art_li2: "中世キリスト教：ゴシック様式の大聖堂のバラ窓は、神聖な調和を表す光のマンダラです。",
+        art_li3: "アステカ文化：有名な「太陽の石」は、メソアメリカの宇宙観を説明するカレンダーのマンダラです。",
+        art_li4: "ケルト：彼らの永遠の結び目や円環の十字架は、中心と拡大という同じ論理に従っています。",
+        art_title2: "心理学的メリット：「中心による癒やし」",
+        art_p3: "西洋心理学にマンダラを導入したのは、有名なスイスの精神分析医カール・グスタフ・ユングでした。ユングは、患者が円を描くとき、本能的に内面の混乱を整理しようとしていることを発見しました。",
+        art_p4: "私たちの Mandala Creator を使用すると、すぐに次のようなメリットが得られます：",
+        art_li5: "脳の同期：幾何学的な構造が左脳（論理）を活性化し、色と流れが右脳（創造性）を活性化します。",
+        art_li6: "フロー状態：ストロークがリアルタイムで増殖していくのを見ることで、心は催眠状態に入り、内なる対話や不安が静まります。",
+        art_li7: "センタリング：すべてのマンダラには中心点（ビンドゥ）があります。その周りに描くことで、ストレスの多い時に精神が自らの軸を見つけるのを助けます。",
+        art_p5: "描くとき、手から自然に生まれるパターンを観察してください。それらはあなたの感情的な状態を明らかにすることがあります：",
+        th1: "要素", th2: "原型の意味",
+        td_c: "円", td_c_v: "全体性、絶対、真の「自己」、保護。",
+        td_q: "正方形", td_q_v: "安定、均衡、大地、物質世界。",
+        td_t: "三角形", td_t_v: "上向き：向上心、火。下向き：水、無意識。",
+        td_e: "螺旋", td_e_v: "成長、進化、生命エネルギー。",
+        art_sub2: "形と色の意味", art_sub3: "クイックカラーガイド：",
+        c_red: "🔴 赤：情熱、エネルギー、根。", c_ora: "🟠 オレンジ：創造性、変容。",
+        c_yel: "🟡 黄：光、知恵、喜び。", c_gre: "🟢 緑：癒やし、自然、愛。",
+        c_blu: "🔵 青：平和、静寂、無限。", c_pur: "🟣 紫：精神性、魔法。",
+        c_whi: "⚪ 白：純粋、悟り。", c_bla: "⚫ 黒：神秘、深淵、豊かな空（くう）。",
+        footer_coffee: "☕ コーヒーを一杯おごる", footer_legal: "法的通知", footer_privacy: "プライバシー",
+        footer_cookies: "クッキー", footer_contact: "お問い合わせ", footer_rights: "無断複写・転載を禁じます。"
+    }
+};
+
+    function changeLanguage(lang) {
+        document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+        event?.target?.classList?.add('active');
+        const texts = translations[lang] || translations['en'];
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (texts[key]) el.innerHTML = texts[key];
+        });
+    }
+
+    // --- LÓGICA DEL SIMULADOR (SIN CAMBIOS) ---
+    const canvas = document.getElementById('mandalaCanvas');
+    const ctx = canvas.getContext('2d');
+    const container = document.getElementById('canvas-container');
+
+    let state = {
+        isMouseDown: false, symmetry: 12, mirror: true,
+        smoothFactor: 0.6, color: '#ff0099', bgColor: '#000000',
+        size: 2, glow: 10
+    };
+
+    let pointer = { x: 0, y: 0 }; 
+    let brush = { x: 0, y: 0 };
+    let history = []; let redoStack = []; const MAX_HISTORY = 30;
+    let cx, cy;
+
+    function init() {
+        resizeCanvas();
+        setupListeners();
+        drawLoop();
+        saveState();
+    }
+
+    function resizeCanvas() {
+        if (!container) return;
+        const size = Math.min(container.offsetWidth, container.offsetHeight) * 0.95;
+        if (canvas.width !== size) {
+            let tempImg = null;
+            if (history.length > 0) { tempImg = new Image(); tempImg.src = canvas.toDataURL(); }
+            canvas.width = size; canvas.height = size;
+            cx = size / 2; cy = size / 2;
+            pointer.x = cx; pointer.y = cy; brush.x = cx; brush.y = cy;
+            ctx.fillStyle = state.bgColor; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            if (tempImg) tempImg.onload = () => ctx.drawImage(tempImg, 0, 0, size, size);
+        }
+    }
+    window.addEventListener('resize', () => setTimeout(resizeCanvas, 100));
+
+    function drawLoop() {
+        if (state.isMouseDown) {
+            const dx = pointer.x - brush.x; const dy = pointer.y - brush.y;
+            if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
+                const speed = 1 - state.smoothFactor; 
+                const newX = brush.x + dx * speed; const newY = brush.y + dy * speed;
+                drawSymmetry(brush.x, brush.y, newX, newY);
+                brush.x = newX; brush.y = newY;
+            }
+        }
+        requestAnimationFrame(drawLoop);
+    }
+
+    function drawSymmetry(x1, y1, x2, y2) {
+        ctx.lineWidth = state.size; ctx.lineCap = 'round';
+        ctx.strokeStyle = state.color; ctx.shadowBlur = state.glow; ctx.shadowColor = state.color;
+        const angleStep = (Math.PI * 2) / state.symmetry;
+        ctx.save(); ctx.translate(cx, cy);
+        for (let i = 0; i < state.symmetry; i++) {
+            ctx.rotate(angleStep);
+            drawStroke(x1 - cx, y1 - cy, x2 - cx, y2 - cy);
+            if (state.mirror) {
+                ctx.save(); ctx.scale(1, -1);
+                drawStroke(x1 - cx, y1 - cy, x2 - cx, y2 - cy);
+                ctx.restore();
+            }
+        }
+        ctx.restore();
+    }
+
+    function drawStroke(x1, y1, x2, y2) {
+        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    }
+
+    function updatePointer(e) {
+        const rect = canvas.getBoundingClientRect();
+        let clientX, clientY;
+        if(e.type.includes('touch')) {
+            clientX = e.touches[0].clientX; clientY = e.touches[0].clientY; e.preventDefault();
+        } else {
+            clientX = e.clientX; clientY = e.clientY;
+        }
+        pointer.x = clientX - rect.left; pointer.y = clientY - rect.top;
+    }
+
+    function startPosition(e) {
+        state.isMouseDown = true; saveState(); redoStack = [];
+        updateButtons(); updatePointer(e);
+        brush.x = pointer.x; brush.y = pointer.y;
+    }
+
+    function endPosition() { state.isMouseDown = false; ctx.beginPath(); }
+
+    function saveState() {
+        if (history.length >= MAX_HISTORY) history.shift();
+        history.push(canvas.toDataURL());
+    }
+
+    function undo() {
+        if (history.length > 0) {
+            redoStack.push(canvas.toDataURL());
+            const previousState = history.pop();
+            restoreState(previousState); updateButtons();
+        }
+    }
+
+    function redo() {
+        if (redoStack.length > 0) {
+            history.push(canvas.toDataURL());
+            const nextState = redoStack.pop();
+            restoreState(nextState); updateButtons();
+        }
+    }
+
+    function restoreState(dataUrl) {
+        if(!dataUrl) return;
+        const img = new Image(); img.src = dataUrl;
+        img.onload = () => { ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.drawImage(img, 0, 0); };
+    }
+
+    function updateButtons() {
+        document.getElementById('btnUndo').disabled = history.length === 0;
+        document.getElementById('btnRedo').disabled = redoStack.length === 0;
+    }
+
+    function setupListeners() {
+        canvas.addEventListener('mousedown', startPosition);
+        window.addEventListener('mouseup', endPosition);
+        canvas.addEventListener('mousemove', updatePointer);
+        canvas.addEventListener('touchstart', startPosition, {passive: false});
+        canvas.addEventListener('touchmove', updatePointer, {passive: false});
+
+        document.getElementById('symmetryRange').oninput = (e) => { 
+            state.symmetry = parseInt(e.target.value); 
+            document.getElementById('symmetryVal').innerText = state.symmetry;
+        };
+        document.getElementById('checkMirror').onchange = (e) => state.mirror = e.target.checked;
+        document.getElementById('smoothRange').oninput = (e) => {
+            const val = parseInt(e.target.value);
+            state.smoothFactor = val / 100;
+            document.getElementById('smoothVal').innerText = val + '%';
+        };
+        document.getElementById('brushColor').oninput = (e) => state.color = e.target.value;
+        document.getElementById('sizeRange').oninput = (e) => {
+            state.size = parseInt(e.target.value);
+            document.getElementById('sizeVal').innerText = state.size;
+        };
+        document.getElementById('glowRange').oninput = (e) => state.glow = parseInt(e.target.value);
+        document.getElementById('btnUndo').onclick = undo;
+        document.getElementById('btnRedo').onclick = redo;
+        document.getElementById('btnClear').onclick = () => { if(confirm("¿Borrar?")) { ctx.fillStyle = state.bgColor; ctx.fillRect(0,0,canvas.width,canvas.height); saveState(); } };
+        document.getElementById('btnPng').onclick = () => download('png');
+        document.getElementById('btnJpg').onclick = () => download('jpeg');
+    }
+
+    function download(ext) {
+        const link = document.createElement('a');
+        link.download = `mandala_${Date.now()}.${ext}`;
+        link.href = canvas.toDataURL('image/' + ext, 0.9);
+        link.click();
+    }
+
+    init();
+</script>
+</body>
+</html>
