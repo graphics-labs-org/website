@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script>
+    // --- i18n URL Router ---
+    (function() {
+        window.__GL_LANG = 'en';
+        window.__GL_LANG_UPPER = 'EN';
+        window.__GL_LANGS = ['es', 'ca', 'en', 'fr', 'de', 'pt', 'it', 'nl', 'ja'];
+        
+        // Override localStorage to always use URL-based language
+        localStorage.setItem('gl_lang', 'en');
+        
+        // Language switcher: navigate to the equivalent page in the target language folder
+        window.switchLangUrl = function(targetLang) {
+            var path = window.location.pathname;
+            // Replace current lang segment with target lang
+            var newPath = path.replace(/^\/(es|ca|en|fr|de|pt|it|nl|ja)\//, '/' + targetLang.toLowerCase() + '/');
+            if (newPath === path) {
+                // Fallback: prepend lang
+                newPath = '/' + targetLang.toLowerCase() + '/';
+            }
+            window.location.href = newPath + window.location.hash;
+        };
+        
+        // Auto-call setLang on DOMContentLoaded to apply translations
+        // Some labs use uppercase keys (ES/EN), others lowercase (es/en)
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof setLang === 'function') {
+                // Try uppercase first (used by most lab pages with inline translations)
+                try { setLang('EN'); } catch(e) {}
+                // Also try lowercase (used by magic-square style pages)
+                try { setLang('en'); } catch(e) {}
+            }
+        });
+    })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Interactive sacred geometry explorer: Sri Yantra, Flower of Life, Metatron, Platonic Solids and more.">
+    <title>Sacred Geometry | Graphics Labs</title>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3150277567590534"
+     crossorigin="anonymous"></script>
+    <script src="../../languages.js"></script>
+    <script src="../../translations/geometry-world.js"></script>
+    <style>
+        :root {
+            --primary: #00ff41; 
+            --secondary: #00e5ff; 
+            --glass: rgba(10, 10, 10, 0.75); 
+            --border: rgba(255, 255, 255, 0.1);
+            --text: #ffffff;
+            --muted: #aaaaaa;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
+        
+        body {
+            background-color: #050505;
+            color: var(--text);
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+
+        .container {
+            position: relative;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            z-index: 1;
+            flex: 1;
+        }
+
+        nav { 
+            display: flex;
+            justify-content: space-between;
+            align-items: center; 
+            padding: 30px 0; 
+        }
+
+        .nav-left { display: flex; align-items: center; gap: 25px; }
+
+        .back-btn {
+            text-decoration: none;
+            color: var(--muted);
+            border: 1px solid var(--border);
+            min-width: 100px;
+            padding: 0 15px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            background: rgba(255,255,255,0.05);
+            text-transform: uppercase;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .back-btn:hover { color: var(--primary); border-color: var(--primary); }
+
+        .brand-title { 
+            font-size: 1.2rem; 
+            font-weight: 900; 
+            letter-spacing: 2px; 
+            color: var(--primary); 
+            text-transform: uppercase;
+        }
+
+        .lang-switch { display: flex; gap: 4px; }
+        .lang-switch button { 
+            background: rgba(0,0,0,0.5); 
+            border: 1px solid var(--border); 
+            color: var(--muted); 
+            width: 42px; height: 32px; 
+            cursor: pointer; 
+            border-radius: 4px; 
+            font-size: 0.75rem; font-weight: 700;
+        }
+        .lang-switch button.active { background: var(--primary); color: #000; border-color: var(--primary); }
+
+        header { text-align: center; margin-bottom: 50px; }
+        h1 { font-size: 3rem; text-transform: uppercase; letter-spacing: 6px; margin-bottom: 10px; color: #fff; }
+        .subtitle { color: var(--muted); font-size: 1.1rem; max-width: 800px; margin: 0 auto; line-height: 1.6; }
+
+        .description-section {
+            max-width: 800px;
+            margin: 30px auto 0;
+            color: #ccc;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            text-align: left;
+            background: rgba(10, 10, 10, 0.4);
+            padding: 25px 35px;
+            border-left: 3px solid #ff00ff;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .description-section p {
+            margin-bottom: 15px;
+        }
+        .description-section p:last-child {
+            margin-bottom: 0;
+        }
+
+        .labs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+            gap: 25px;
+            padding: 40px 0;
+        }
+
+        .card {
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--border); 
+            border-radius: 15px; 
+            overflow: hidden;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: column;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .card:hover { 
+            border-color: var(--primary); 
+            transform: translateY(-8px); 
+            box-shadow: 0 10px 30px rgba(0, 255, 65, 0.15);
+        }
+
+        .card-img { width: 100%; height: 180px; overflow: hidden; background: #000; }
+        .card-img img { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; transition: 0.4s; }
+        .card:hover .card-img img { opacity: 1; transform: scale(1.05); }
+
+        .card-body { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; }
+        .card h3 { color: var(--primary); font-size: 1.2rem; margin-bottom: 10px; text-transform: uppercase; }
+        .card p { color: #ccc; font-size: 0.9rem; line-height: 1.5; margin-bottom: 15px; }
+        .tag { font-size: 0.65rem; padding: 2px 8px; border-radius: 4px; background: var(--border); color: #fff; align-self: flex-start; }
+
+        .ad-container {
+            width: 100%;
+            max-width: 728px;
+            margin: 40px auto;
+            min-height: 90px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px dashed var(--border);
+            border-radius: 12px;
+            background: rgba(0,0,0,0.2);
+        }
+        .ad-placeholder-text { color: rgba(255,255,255,0.2); font-size: 0.7rem; letter-spacing: 3px; }
+
+        .content-wrapper { max-width: 900px; margin: 40px auto; padding: 40px; background: var(--glass); border-radius: 20px; border: 1px solid var(--border); }
+        article h2 { color: var(--primary); margin: 40px 0 20px; font-size: 1.8rem; border-left: 4px solid var(--primary); padding-left: 20px; }
+        article h3 { color: #fff; margin: 30px 0 15px; }
+        article p { margin-bottom: 20px; line-height: 1.8; color: #ddd; text-align: justify; }
+
+        footer {
+            background: rgba(0,0,0,0.9); border-top: 1px solid var(--border);
+            padding: 50px 20px; text-align: center; display: flex;
+            flex-direction: column; gap: 25px; align-items: center;
+            margin-top: 60px;
+        }
+        .legal-links { display: flex; gap: 25px; justify-content: center; flex-wrap: wrap; }
+        .legal-links a { color: var(--muted); text-decoration: none; font-size: 0.85rem; }
+        .legal-links a:hover { color: var(--primary); }
+        .coffee-btn { background: #FFDD00; color: #000; padding: 12px 25px; border-radius: 30px; text-decoration: none; font-weight: 800; display: inline-flex; align-items: center; gap: 8px; transition: 0.3s; }
+        .coffee-btn:hover { transform: scale(1.05); box-shadow: 0 5px 15px rgba(255, 221, 0, 0.3); }
+
+        @media (max-width: 900px) { 
+            h1 { font-size: 2.2rem; }
+            nav { flex-direction: column; gap: 20px; }
+            .lang-switch { width: 100%; justify-content: center; flex-wrap: wrap; }
+        }
+    </style>
+    <link rel="canonical" href="https://graphics-labs.org/en/labs/geometria-sagrada-index.html" />
+
+    <link rel="alternate" hreflang="es" href="https://graphics-labs.org/es/labs/geometria-sagrada-index.html" />
+    <link rel="alternate" hreflang="ca" href="https://graphics-labs.org/ca/labs/geometria-sagrada-index.html" />
+    <link rel="alternate" hreflang="en" href="https://graphics-labs.org/en/labs/geometria-sagrada-index.html" />
+    <link rel="alternate" hreflang="fr" href="https://graphics-labs.org/fr/labs/geometria-sagrada-index.html" />
+    <link rel="alternate" hreflang="de" href="https://graphics-labs.org/de/labs/geometria-sagrada-index.html" />
+    <link rel="alternate" hreflang="pt" href="https://graphics-labs.org/pt/labs/geometria-sagrada-index.html" />
+    <link rel="alternate" hreflang="it" href="https://graphics-labs.org/it/labs/geometria-sagrada-index.html" />
+    <link rel="alternate" hreflang="nl" href="https://graphics-labs.org/nl/labs/geometria-sagrada-index.html" />
+    <link rel="alternate" hreflang="ja" href="https://graphics-labs.org/ja/labs/geometria-sagrada-index.html" />
+    <link rel="alternate" hreflang="x-default" href="https://graphics-labs.org/es/labs/geometria-sagrada-index.html" />
+</head>
+<body oncontextmenu="return false;">
+    <canvas id="bg-canvas"></canvas>
+    
+    <div class="container">
+        <nav>
+            <div class="nav-left">
+                <a onclick="if(history.length > 1) { history.back(); } else { window.location.href='../index.html'; }" class="back-btn">HUB</a>
+                <div class="brand-title">GRAPHICS LABS</div>
+            </div>
+            <div class="lang-switch">
+                <button onclick="switchLangUrl('es')" id="btn-es">ES</button>
+                <button onclick="switchLangUrl('ca')" id="btn-ca">CA</button>
+                <button onclick="switchLangUrl('en')" id="btn-en">EN</button>
+                <button onclick="switchLangUrl('fr')" id="btn-fr">FR</button>
+                <button onclick="switchLangUrl('de')" id="btn-de">DE</button>
+                <button onclick="switchLangUrl('pt')" id="btn-pt">PT</button>
+                <button onclick="switchLangUrl('it')" id="btn-it">IT</button>
+                <button onclick="switchLangUrl('nl')" id="btn-nl">NL</button>
+                <button onclick="switchLangUrl('ja')" id="btn-ja">JP</button>
+            </div>
+        </nav>
+
+        <header>
+            <h1 data-i18n="labs.geometry.header_title"></h1>
+            <p class="subtitle" data-i18n="labs.geometry.header_subtitle"></p>
+            <div class="description-section">
+                <p data-i18n="labs.geometry.header_desc1"></p>
+                <p data-i18n="labs.geometry.header_desc2"></p>
+            </div>
+        </header>
+
+        <div class="labs-grid">
+            <a href="sri-yantra/index.html" class="card">
+                <div class="card-img"><img src="../../labs/thumbnail-sri.png" alt="Sri Yantra"></div>
+                <div class="card-body">
+                    <h3 data-i18n="labs.geometry.card_sri_title"></h3>
+                    <p data-i18n="labs.geometry.card_sri_desc"></p>
+                    <span class="tag">V8.0</span>
+                </div>
+            </a>
+
+            <a href="flor-vida/index.html" class="card">
+                <div class="card-img"><img src="../../labs/thumbnail-flor-vida.png" alt="Flor de la Vida"></div>
+                <div class="card-body">
+                    <h3 data-i18n="labs.geometry.card_flower_title"></h3>
+                    <p data-i18n="labs.geometry.card_flower_desc"></p>
+                    <span class="tag">V4.0</span>
+                </div>
+            </a>
+
+            <a href="arbol-vida/index.html" class="card">
+                <div class="card-img"><img src="../../labs/thumbnail-arbol-vida.png" alt="Árbol de la Vida"></div>
+                <div class="card-body">
+                    <h3 data-i18n="labs.geometry.card_tree_title"></h3>
+                    <p data-i18n="labs.geometry.card_tree_desc"></p>
+                    <span class="tag">NEW</span>
+                </div>
+            </a>
+
+            <a href="toroide-vortex/index.html" class="card">
+                <div class="card-img"><img src="../../labs/thumbnail-toroide-vortex.png" alt="Toroide"></div>
+                <div class="card-body">
+                    <h3 data-i18n="labs.geometry.card_toroid_title"></h3>
+                    <p data-i18n="labs.geometry.card_toroid_desc"></p>
+                    <span class="tag">3D</span>
+                </div>
+            </a>
+
+            <a href="solidos-platonicos/index.html" class="card">
+                <div class="card-img"><img src="../../labs/thumbnail-solidos-platonicos.png" alt="Sólidos"></div>
+                <div class="card-body">
+                    <h3 data-i18n="labs.geometry.card_solids_title"></h3>
+                    <p data-i18n="labs.geometry.card_solids_desc"></p>
+                    <span class="tag">3D</span>
+                </div>
+            </a>
+
+            <a href="metatron-cube/index.html" class="card">
+                <div class="card-img"><img src="../../labs/thumbnail-metatron.png" alt="Metatrón"></div>
+                <div class="card-body">
+                    <h3 data-i18n="labs.geometry.card_metatron_title"></h3>
+                    <p data-i18n="labs.geometry.card_metatron_desc"></p>
+                    <span class="tag">MASTER</span>
+                </div>
+            </a>
+
+            <a href="cymatics-lab/index.html" class="card">
+                <div class="card-img"><img src="../../labs/thumbnail-cymatics.png" alt="Cimática"></div>
+                <div class="card-body">
+                    <h3 data-i18n="labs.geometry.card_cymatics_title"></h3>
+                    <p data-i18n="labs.geometry.card_cymatics_desc"></p>
+                    <span class="tag">SOUND</span>
+                </div>
+            </a>
+
+            <a href="fractal-explorer/index.html" class="card">
+                <div class="card-img"><img src="../../labs/thumbnail-fractal.png" alt="Fractales"></div>
+                <div class="card-body">
+                    <h3 data-i18n="labs.geometry.card_fractal_title"></h3>
+                    <p data-i18n="labs.geometry.card_fractal_desc"></p>
+                    <span class="tag">COSMIC</span>
+                </div>
+            </a>
+        </div>
+
+        <div class="content-wrapper">
+            <article>
+                <h2 data-i18n="labs.geometry.seo_h2_1"></h2>
+                <p data-i18n="labs.geometry.seo_p_1"></p>
+                <p data-i18n="labs.geometry.seo_p_2"></p>
+                
+                <div class="ad-container">
+                    <span class="ad-placeholder-text">AD SPACE</span>
+                </div>
+
+                <h2 data-i18n="labs.geometry.seo_h2_2"></h2>
+                
+                <h3 data-i18n="labs.geometry.seo_h3_1"></h3>
+                <p data-i18n="labs.geometry.seo_p_3"></p>
+                
+                <h3 data-i18n="labs.geometry.seo_h3_2"></h3>
+                <p data-i18n="labs.geometry.seo_p_4"></p>
+
+                <h3 data-i18n="labs.geometry.seo_h3_3"></h3>
+                <p data-i18n="labs.geometry.seo_p_5"></p>
+
+                <div class="ad-container">
+                    <span class="ad-placeholder-text">AD SPACE</span>
+                </div>
+
+                <h2 data-i18n="labs.geometry.seo_author_title"></h2>
+                <p data-i18n="labs.geometry.seo_author_desc"></p>
+            </article>
+        </div>
+    </div>
+
+    <footer>
+        <div class="legal-links">
+            <a href="../legal.html" data-i18n="legal.terms"></a>
+            <a href="../privacy.html" data-i18n="legal.privacy"></a>
+            <a href="../cookies.html" data-i18n="legal.cookies"></a>
+            <a href="mailto:pbazan@gmail.com" data-i18n="ui.contact"></a>
+        </div>
+        <span>© 2026 Graphics Labs - Sacred Geometry Department</span>
+        <a href="https://paypal.me/pbazan" target="_blank" class="coffee-btn">☕ <span data-i18n="ui.coffee"></span></a>
+    </footer>
+
+    <script>
+        function setLang(lang) {
+            localStorage.setItem('gl_lang', lang);
+            document.querySelectorAll('.lang-switch button').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.id === `btn-${lang}`) btn.classList.add('active');
+            });
+            const fullDict = {...translations[lang], ...geometryWorld[lang]};
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const path = el.getAttribute('data-i18n').split('.');
+                let translation = fullDict;
+                path.forEach(key => { if (translation) translation = translation[key]; });
+                if (translation) el.innerHTML = translation;
+            });
+        }
+        document.addEventListener('DOMContentLoaded', () => { setLang(localStorage.getItem('gl_lang') || 'es'); });
+
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let particlesArray;
+        let mouse = { x: null, y: null, radius: 150 };
+
+        function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        resizeCanvas();
+
+        window.addEventListener('mousemove', (e) => { mouse.x = e.x; mouse.y = e.y; });
+        
+        const symbols = ['Φ', '∆', '⬡', '∞', '⚛', '✺', '✧', '❂'];
+
+        class Particle {
+            constructor(x, y, dx, dy, size) {
+                this.x = x; this.y = y; this.dx = dx; this.dy = dy; this.size = size;
+                this.text = symbols[Math.floor(Math.random() * symbols.length)];
+            }
+            draw() { 
+               ctx.font = this.size + 'px serif';
+               ctx.fillStyle = 'rgba(0, 255, 65, 0.25)';
+               ctx.fillText(this.text, this.x, this.y);
+            }
+            update() {
+                if(this.x > canvas.width || this.x < 0) this.dx = -this.dx;
+                if(this.y > canvas.height || this.y < 0) this.dy = -this.dy;
+                
+                let dx = mouse.x - this.x;
+                let dy = mouse.y - this.y;
+                let dist = Math.sqrt(dx*dx + dy*dy);
+                if(dist < mouse.radius){
+                    this.x -= (dx/dist) * 3;
+                    this.y -= (dy/dist) * 3;
+                }
+                
+                this.x += this.dx * 0.5;
+                this.y += this.dy * 0.5;
+                this.draw();
+            }
+        }
+
+        function init(){
+            particlesArray = [];
+            let n = (canvas.height * canvas.width) / 15000;
+            for(let i=0; i<n; i++){
+                particlesArray.push(new Particle(Math.random()*canvas.width, Math.random()*canvas.height, (Math.random()*1)-0.5, (Math.random()*1)-0.5, Math.random()*20 + 10));
+            }
+        }
+
+        function animate(){
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particlesArray.forEach(p => p.update());
+            requestAnimationFrame(animate);
+        }
+        
+        init(); animate();
+        window.addEventListener('resize', () => { resizeCanvas(); init(); });
+    </script>
+</body>
+</html>

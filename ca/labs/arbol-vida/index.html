@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <script>
+    // --- i18n URL Router ---
+    (function() {
+        window.__GL_LANG = 'ca';
+        window.__GL_LANG_UPPER = 'CA';
+        window.__GL_LANGS = ['es', 'ca', 'en', 'fr', 'de', 'pt', 'it', 'nl', 'ja'];
+        
+        // Override localStorage to always use URL-based language
+        localStorage.setItem('gl_lang', 'ca');
+        
+        // Language switcher: navigate to the equivalent page in the target language folder
+        window.switchLangUrl = function(targetLang) {
+            var path = window.location.pathname;
+            // Replace current lang segment with target lang
+            var newPath = path.replace(/^\/(es|ca|en|fr|de|pt|it|nl|ja)\//, '/' + targetLang.toLowerCase() + '/');
+            if (newPath === path) {
+                // Fallback: prepend lang
+                newPath = '/' + targetLang.toLowerCase() + '/';
+            }
+            window.location.href = newPath + window.location.hash;
+        };
+        
+        // Auto-call setLang on DOMContentLoaded to apply translations
+        // Some labs use uppercase keys (ES/EN), others lowercase (es/en)
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof setLang === 'function') {
+                // Try uppercase first (used by most lab pages with inline translations)
+                try { setLang('CA'); } catch(e) {}
+                // Also try lowercase (used by magic-square style pages)
+                try { setLang('ca'); } catch(e) {}
+            }
+        });
+    })();
+    </script>
+    <title>Arbol Vida | Graphics Labs</title>
+     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3150277567590534"
+     crossorigin="anonymous"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Laboratori interactiu de Arbol Vida. Experimenta amb art generatiu i matemàtiques visuals a Graphics Labs.">
+    
+    <script>
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.onkeydown = function(e) {
+            if(event.keyCode == 123) return false;
+            if(e.ctrlKey && e.shiftKey && (e.keyCode == 'I'.charCodeAt(0) || e.keyCode == 'C'.charCodeAt(0))) return false;
+            if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) return false;
+        }
+    </script>
+
+    <style>
+        :root {
+            --primary: #00ff41;
+            --glass: rgba(10, 10, 10, 0.7);
+            --border: rgba(255, 255, 255, 0.08);
+        }
+        body { margin: 0; background-color: #050505; font-family: 'Segoe UI', sans-serif; color: #ddd; overflow-x: hidden; display: flex; flex-direction: column; }
+        
+        /* --- NUEVO MENÚ SUPERIOR --- */
+        nav { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 10px 20px; background: #000; border-bottom: 1px solid var(--border);
+            height: 60px; position: sticky; top: 0; z-index: 1000;
+        }
+        .nav-left { display: flex; align-items: center; gap: 15px; }
+        .nav-btn {
+            text-decoration: none; color: #888; border: 1px solid var(--border);
+            padding: 6px 12px; border-radius: 4px; font-size: 0.7rem;
+            background: rgba(255,255,255,0.05); text-transform: uppercase; font-weight: 700; cursor: pointer;
+        }
+        .nav-btn:hover { color: var(--primary); border-color: var(--primary); }
+        .brand-title { font-size: 1.1rem; font-weight: 900; letter-spacing: 2px; color: var(--primary); text-transform: uppercase; }
+        
+        .lang-switch { display: flex; gap: 4px; }
+        .lang-switch button { 
+            background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: #888; 
+            width: 32px; height: 28px; cursor: pointer; border-radius: 4px; font-size: 0.65rem; font-weight: 700;
+        }
+        .lang-switch button.active { background: var(--primary); color: #000; border-color: var(--primary); }
+
+        /* --- ESTILOS ORIGINALES DEL APP --- */
+        #app-wrapper { display: flex; width: 100%; height: calc(100vh - 60px); border-bottom: 2px solid #222; }
+        #canvas-container {
+            flex: 3; display: flex; justify-content: center; align-items: center;
+            background-color: #000; padding: 20px; overflow: hidden; position: relative;
+        }
+        canvas { 
+            box-shadow: 0 0 80px rgba(255, 215, 0, 0.05); 
+            border-radius: 12px;
+            max-width: 98%; max-height: 98%; 
+        }
+        #controls-container {
+            flex: 2; min-width: 340px; background-color: #111; padding: 20px;
+            overflow-y: auto; box-shadow: -5px 0 20px rgba(0,0,0,0.5); border-left: 1px solid #222;
+        }
+        h2 { color: #FFD700; margin-bottom: 20px; text-align: center; letter-spacing: 2px; text-shadow: 0 0 15px rgba(255, 215, 0, 0.4); }
+        .btn-group { display: flex; gap: 10px; margin-bottom: 25px; }
+        .export-btn { flex: 1; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: transform 0.1s, filter 0.2s; }
+        .export-btn:hover { filter: brightness(1.2); }
+        #btnPng { background-color: #FFD700; color: #000; } 
+        #btnJpg { background-color: #444; color: #fff; border: 1px solid #777; } 
+        .control-group { background: rgba(255,255,255,0.03); border: 1px solid #333; border-radius: 8px; padding: 15px; margin-bottom: 18px; }
+        .control-row { display: flex; align-items: center; margin-bottom: 12px; font-size: 0.9em; }
+        .control-label { flex: 1; color: #ccc; font-weight: 500; }
+        input[type=range] { flex-grow: 2; cursor: pointer; margin-right: 10px; accent-color: #FFD700; }
+        input[type=color] { border: none; width: 40px; height: 30px; border-radius: 4px; cursor: pointer; padding: 0; }
+        input[type=checkbox] { transform: scale(1.3); accent-color: #FFD700; cursor: pointer; }
+        .value-display { width: 35px; text-align: center; font-family: monospace; font-weight: bold; color: #fff; }
+        #playEmanation { background: none; border: 1px solid #FFD700; color: #FFD700; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; margin-right: 10px; display: flex; align-items: center; justify-content: center; font-size: 12px; transition: all 0.2s; }
+        #playEmanation:hover { background: #FFD700; color: #000; }
+
+        /* --- CONTENIDO SEO Y ADS --- */
+        .content-section { max-width: 900px; margin: 0 auto; padding: 60px 20px; }
+        .ad-container { width: 100%; max-width: 728px; margin: 40px auto; min-height: 90px; display: flex; align-items: center; justify-content: center; border: 1px dashed var(--border); border-radius: 12px; color: rgba(255,255,255,0.2); font-size: 0.7rem; letter-spacing: 3px; }
+        article h2 { color: #FFD700; border-left: 4px solid #FFD700; padding-left: 15px; margin-top: 50px; font-size: 1.8em;}
+        article p { margin-bottom: 20px; font-size: 1.1em; color: #ccc; line-height: 1.8; text-align: justify; }
+
+        /* --- FOOTER 2026 --- */
+        footer { background-color: #000; padding: 60px 20px; text-align: center; border-top: 1px solid #222; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+        .footer-links { display: flex; gap: 25px; justify-content: center; flex-wrap: wrap; }
+        .footer-links a { color: #888; text-decoration: none; font-size: 0.85rem; }
+        .footer-links a:hover { color: var(--primary); }
+        .coffee-btn { background-color: #FFDD00; color: #000; padding: 10px 20px; border-radius: 30px; text-decoration: none; font-weight: 800; display: inline-flex; align-items: center; gap: 8px; font-size: 0.9em; }
+
+        @media (max-width: 800px) {
+            #app-wrapper { flex-direction: column; height: auto; }
+            #canvas-container { height: 60vh; }
+            #controls-container { height: auto; }
+        }
+    </style>
+    <link rel="canonical" href="https://graphics-labs.org/ca/labs/arbol-vida/" />
+
+    <link rel="alternate" hreflang="es" href="https://graphics-labs.org/es/labs/arbol-vida/" />
+    <link rel="alternate" hreflang="ca" href="https://graphics-labs.org/ca/labs/arbol-vida/" />
+    <link rel="alternate" hreflang="en" href="https://graphics-labs.org/en/labs/arbol-vida/" />
+    <link rel="alternate" hreflang="fr" href="https://graphics-labs.org/fr/labs/arbol-vida/" />
+    <link rel="alternate" hreflang="de" href="https://graphics-labs.org/de/labs/arbol-vida/" />
+    <link rel="alternate" hreflang="pt" href="https://graphics-labs.org/pt/labs/arbol-vida/" />
+    <link rel="alternate" hreflang="it" href="https://graphics-labs.org/it/labs/arbol-vida/" />
+    <link rel="alternate" hreflang="nl" href="https://graphics-labs.org/nl/labs/arbol-vida/" />
+    <link rel="alternate" hreflang="ja" href="https://graphics-labs.org/ja/labs/arbol-vida/" />
+    <link rel="alternate" hreflang="x-default" href="https://graphics-labs.org/es/labs/arbol-vida/" />
+</head>
+<body>
+
+<nav>
+    <div class="nav-left">
+        <a href="../../index.html" class="nav-btn" data-i18n="ui_hub">HUB PRINCIPAL</a>
+        <a onclick="if(history.length > 1) { history.back(); } else { window.location.href='../../index.html'; }" class="nav-btn" data-i18n="ui_back">Volver atrás</a>
+        <div class="brand-title">GRAPHICS LABS</div>
+    </div>
+    <div class="lang-switch">
+        <button onclick="switchLangUrl('es')" id="btn-es">ES</button>
+        <button onclick="switchLangUrl('ca')" id="btn-ca">CA</button>
+        <button onclick="switchLangUrl('en')" id="btn-en">EN</button>
+        <button onclick="switchLangUrl('fr')" id="btn-fr">FR</button>
+        <button onclick="switchLangUrl('de')" id="btn-de">DE</button>
+        <button onclick="switchLangUrl('pt')" id="btn-pt">PT</button>
+        <button onclick="switchLangUrl('it')" id="btn-it">IT</button>
+        <button onclick="switchLangUrl('nl')" id="btn-nl">NL</button>
+        <button onclick="switchLangUrl('ja')" id="btn-ja">JP</button>
+    </div>
+</nav>
+
+<div id="app-wrapper">
+    <div id="canvas-container">
+        <canvas id="yantraCanvas"></canvas>
+    </div>
+
+    <div id="controls-container">
+        <h2 data-i18n="lab_title">ÁRBOL DE LA VIDA LAB</h2>
+        <div class="btn-group">
+            <button id="btnPng" class="export-btn">💾 PNG</button>
+            <button id="btnJpg" class="export-btn">📸 JPG</button>
+        </div>
+
+        <div id="sliders-dock">
+            <div class="control-group">
+                <h3 style="margin-top:0; color:#eee; font-size:1em; border-bottom:1px solid #444; padding-bottom:5px;" data-i18n="title_creacion">El Rayo de Creación</h3>
+                <div class="control-row">
+                    <button id="playEmanation" title="Animar">▶</button>
+                    <span class="control-label" data-i18n="label_flujo">Flujo Divino:</span>
+                    <input type="range" id="emanationRange" min="0" max="100" value="100">
+                    <span id="emanationVal" class="value-display">100%</span>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3 style="margin-top:0; color:#eee; font-size:1em; border-bottom:1px solid #444; padding-bottom:5px;" data-i18n="title_energia">Energía & Luz</h3>
+                <div class="control-row"><span class="control-label" data-i18n="label_fondo">Fondo:</span><input type="color" id="bgColor" value="#000000"></div>
+                <div class="control-row"><span class="control-label" data-i18n="label_esferas">Esferas:</span><input type="color" id="sphereColor" value="#FFD700"></div>
+                <div class="control-row"><span class="control-label" data-i18n="label_senderos">Senderos:</span><input type="color" id="pathColor" value="#00BFFF"></div>
+                <div class="control-row"><span class="control-label" data-i18n="label_glow">Glow:</span><input type="range" id="glowRange" min="0" max="50" value="20"></div>
+            </div>
+
+            <div class="control-group">
+                <h3 style="margin-top:0; color:#eee; font-size:1em; border-bottom:1px solid #444; padding-bottom:5px;" data-i18n="title_estructura">Estructura</h3>
+                <div class="control-row"><span class="control-label" data-i18n="label_tam_esferas">Tamaño Esferas:</span><input type="range" id="sizeRange" min="5" max="40" value="15"></div>
+                <div class="control-row"><span class="control-label" data-i18n="label_grosor">Grosor Senderos:</span><input type="range" id="widthRange" min="1" max="20" value="3"></div>
+            </div>
+
+            <div class="control-group">
+                <h3 style="margin-top:0; color:#eee; font-size:1em; border-bottom:1px solid #444; padding-bottom:5px;" data-i18n="title_geometria">Geometría Oculta</h3>
+                <div class="control-row"><span class="control-label" data-i18n="label_nombres">Mostrar Nombres:</span><input type="checkbox" id="checkNames" checked></div>
+                <div class="control-row"><span class="control-label" data-i18n="label_daat">Mostrar Da'at:</span><input type="checkbox" id="checkDaat"></div>
+                <div class="control-row"><span class="control-label" data-i18n="label_pilares">Pilares:</span><input type="checkbox" id="checkPillars"></div>
+                <div class="control-row" style="border-top:1px solid #333; padding-top:10px; margin-top:5px;">
+                    <span class="control-label" style="color:#00FFFF; font-weight:bold;" data-i18n="label_matriz">Matriz Flor de la Vida:</span>
+                    <input type="checkbox" id="checkFlower">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content-section">
+    <div class="ad-container">
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-3150277567590534"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+    <article>
+        <h2 data-i18n="seo_h2_1">El Código Fuente del Alma: ¿Qué es el Árbol de la Vida?</h2>
+        <p data-i18n="seo_p_1">El <strong>Árbol de la Vida</strong> (<em>Etz Chaim</em> en hebreo) es el glifo central de la Cábala Hermética y el misticismo occidental. No es simplemente un dibujo antiguo; es un mapa multidimensional que explica la estructura del universo y de la psique humana. Describe el camino que recorre la energía divina desde lo inmanifestado hasta la materia física.</p>
+        <h3 data-i18n="seo_h3_1">La Estructura: 10 Luces y 22 Caminos</h3>
+        <p data-i18n="seo_p_2">El diagrama se compone de 10 esferas llamadas <strong>Sephirot</strong> (emanaciones), que representan estados de conciencia o atributos divinos, unidas por 22 senderos. Juntos forman los "32 Caminos de Sabiduría".</p>
+        <ul data-i18n="seo_list_1">
+            <li><strong>Los 3 Pilares:</strong> Observa las líneas verticales en el laboratorio. El pilar izquierdo es la <em>Severidad</em> (Forma/Restricción), el derecho es la <em>Misericordia</em> (Fuerza/Expansión) y el central es el <em>Equilibrio</em>.</li>
+            <li><strong>La Tríada Superior:</strong> Kether (Corona), Chokmah (Sabiduría) y Binah (Entendimiento) existen más allá de nuestra percepción ordinaria.</li>
+            <li><strong>Da'at (La Esfera Invisible):</strong> En nuestro Lab puedes activar la casilla "Mostrar Da'at". Es el abismo, el conocimiento oculto que conecta lo divino con lo humano.</li>
+        </ul>
+
+        <div class="ad-container">
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-3150277567590534"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+
+        <h2 data-i18n="seo_h2_2">La Geometría Oculta: La Conexión con la Flor de la Vida</h2>
+        <p data-i18n="seo_p_3">Aquí es donde la magia matemática se revela. Durante siglos, místicos y geómetras han sabido que el Árbol de la Vida no es una invención arbitraria, sino que surge orgánicamente de la <strong>Flor de la Vida</strong>.</p>
+        <p data-i18n="seo_p_4"><strong>Pruébalo ahora en el Lab:</strong> Activa la casilla <span style="color:#00FFFF">"Matriz Flor de la Vida"</span>. Verás algo asombroso:</p>
+        <p data-i18n="seo_p_5">Cada una de las Sephirot encaja con precisión milimétrica en los centros o intersecciones de la red hexagonal de la Flor. Esto demuestra que el Árbol de la Vida es una extracción, una "sub-rutina" dentro del patrón geométrico fundamental del universo. La Flor es la matriz femenina (el campo de posibilidades) y el Árbol es la estructura masculina (la manifestación concreta).</p>
+
+        <h3 data-i18n="seo_h3_2">Meditación con el Rayo Relampagueante</h3>
+        <p data-i18n="seo_p_6">El Árbol se activa mediante el "Rayo Relampagueante" (<em>Kav</em>), un zigzag de luz que baja desde Kether hasta Malkuth. Usa el deslizador de <strong>"Flujo Divino"</strong> o el botón de animación para visualizar este descenso.</p>
+        <p data-i18n="seo_p_7"><strong>Ejercicio sugerido:</strong> Respira profundamente. Al inhalar, visualiza la luz llenando la esfera superior. Al exhalar, observa cómo desciende sendero a sendero hasta la tierra. Esta práctica ayuda a "aterrizar" ideas, trayendo la inspiración espiritual al plano físico.</p>
+    </article>
+</section>
+
+<footer>
+    <div class="footer-links">
+        <a href="../legal.html" data-i18n="link_legal">Aviso Legal</a>
+        <a href="../privacy.html" data-i18n="link_privacidad">Privacidad</a>
+        <a href="../cookies.html" data-i18n="link_cookies">Cookies</a>
+        <a href="mailto:pbazan@gmail.com" data-i18n="link_contacto">Contacto</a>
+    </div>
+    <a href="https://www.paypal.com/paypalme/pbazan" target="_blank" class="coffee-btn">
+        ☕ <span data-i18n="btn_coffee">Invítame a un café (PayPal)</span>
+    </a>
+    <p>© 2026 Graphics Labs - Sacred Geometry Dept.</p>
+</footer>
+
+<script>
+    // --- OBJETO DE TRADUCCIONES ---
+const translations = {
+        es: {
+            ui_hub: "HUB", ui_back: "BACK", lab_title: "ÁRBOL DE LA VIDA LAB", title_creacion: "El Rayo de Creación", label_flujo: "Flujo Divino:", title_energia: "Energía & Luz", label_fondo: "Fondo:", label_esferas: "Esferas:", label_senderos: "Senderos:", label_glow: "Glow:", title_estructura: "Estructura", label_tam_esferas: "Tamaño Esferas:", label_grosor: "Grosor Senderos:", title_geometria: "Geometría Oculta", label_nombres: "Mostrar Nombres:", label_daat: "Mostrar Da'at:", label_pilares: "Pilares:", label_matriz: "Matriz Flor de la Vida:", seo_h2_1: "El Código Fuente del Alma: ¿Qué es el Árbol de la Vida?", seo_p_1: "El Árbol de la Vida (Etz Chaim en hebreo) es el glifo central de la Cábala Hermética y el misticismo occidental. No es simplemente un dibujo antiguo; es un mapa multidimensional que explica la estructura del universo y de la psique humana. Describe el camino que recorre la energía divina desde lo inmanifestado hasta la materia física.", seo_h3_1: "La Estructura: 10 Luces y 22 Caminos", seo_p_2: "El diagrama se compone de 10 esferas llamadas Sephirot (emanaciones), que representan estados de conciencia o atributos divinos, unidas por 22 senderos. Juntos forman los \"32 Caminos de Sabiduría\".", seo_list_1: "<li><strong>Los 3 Pilares:</strong> Observa las líneas verticales en el laboratorio. El pilar izquierdo es la <em>Severidad</em> (Forma/Restricción), el derecho es la <em>Misericordia</em> (Fuerza/Expansión) y el central es el <em>Equilibrio</em>.</li><li><strong>La Tríada Superior:</strong> Kether (Corona), Chokmah (Sabiduría) y Binah (Entendimiento) existen más allá de nuestra percepción ordinaria.</li><li><strong>Da'at (La Esfera Invisible):</strong> En nuestro Lab puedes activar la casilla \"Mostrar Da'at\". Es el abismo, el conocimiento oculto que conecta lo divino con lo humano.</li>", seo_h2_2: "La Geometría Oculta: La Conexión con la Flor de la Vida", seo_p_3: "Aquí es donde la magia matemática se revela. Durante siglos, místicos y geómetras han sabido que el Árbol de la Vida no es una invención arbitraria, sino que surge orgánicamente de la Flor de la Vida.", seo_p_4: "Pruébalo ahora en el Lab: Activa la casilla <span style=\"color:#00FFFF\">\"Matriz Flor de la Vida\"</span>. Verás algo asombroso:", seo_p_5: "Cada una de las Sephirot encaja con precisión milimétrica en los centros o intersecciones de la red hexagonal de la Flor. Esto demuestra que el Árbol de la Vida es una extracción, una \"sub-rutina\" dentro del patrón geométrico fundamental del universo. La Flor es la matriz femenina (el campo de posibilidades) y el Árbol es la estructura masculina (la manifestación concreta).", seo_h3_2: "Meditación con el Rayo Relampagueante", seo_p_6: "El Árbol se activa mediante el \"Rayo Relampagueante\" (Kav), un zigzag de luz que baja desde Kether hasta Malkuth. Usa el deslizador de \"Flujo Divino\" o el botón de animación para visualizar este descenso.", seo_p_7: "Ejercicio sugerido: Respira profundamente. Al inhalar, visualiza la luz llenando la esfera superior. Al exhalar, observa cómo desciende sendero a sendero hasta la tierra. Esta práctica ayuda a \"aterrizar\" ideas, trayendo la inspiración espiritual al plano físico.", link_legal: "Aviso Legal", link_privacidad: "Privacidad", link_cookies: "Cookies", link_contacto: "Contacto", btn_coffee: "Invítame a un café (PayPal)"
+        },
+        en: {
+            ui_hub: "HUB", ui_back: "BACK", lab_title: "TREE OF LIFE LAB", title_creacion: "The Ray of Creation", label_flujo: "Divine Flow:", title_energia: "Energy & Light", label_fondo: "Background:", label_esferas: "Spheres:", label_senderos: "Paths:", label_glow: "Glow:", title_estructura: "Structure", label_tam_esferas: "Sphere Size:", label_grosor: "Path Width:", title_geometria: "Hidden Geometry", label_nombres: "Show Names:", label_daat: "Show Da'at:", label_pilares: "Pillars:", label_matriz: "Flower of Life Matrix:", seo_h2_1: "The Source Code of the Soul: What is the Tree of Life?", seo_p_1: "The Tree of Life (Etz Chaim in Hebrew) is the central glyph of Hermetic Kabbalah and Western mysticism. It's not just an ancient drawing; it's a multidimensional map explaining the structure of the universe and the human psyche. It describes the path divine energy travels from the unmanifest to physical matter.", seo_h3_1: "The Structure: 10 Lights and 22 Paths", seo_p_2: "The diagram consists of 10 spheres called Sephirot (emanations), representing states of consciousness or divine attributes, joined by 22 paths. Together they form the '32 Paths of Wisdom'.", seo_list_1: "<li><strong>The 3 Pillars:</strong> Watch the vertical lines in the lab. The left pillar is Severity (Form/Restriction), the right is Mercy (Force/Expansion), and the center is Balance.</li><li><strong>The Upper Triad:</strong> Kether (Crown), Chokmah (Wisdom), and Binah (Understanding) exist beyond our ordinary perception.</li><li><strong>Da'at (The Invisible Sphere):</strong> You can activate 'Show Da'at' in our Lab. It is the abyss, the hidden knowledge connecting the divine with the human.</li>", seo_h2_2: "Hidden Geometry: The Connection with the Flower of Life", seo_p_3: "This is where mathematical magic is revealed. For centuries, mystics and geometers have known that the Tree of Life is not an arbitrary invention but emerges organically from the Flower of Life.", seo_p_4: "Try it now in the Lab: Activate the <span style=\"color:#00FFFF\">'Flower of Life Matrix'</span> checkbox. You will see something amazing:", seo_p_5: "Each of the Sephirot fits with millimeter precision into the centers or intersections of the Flower's hexagonal grid. This demonstrates that the Tree of Life is an extraction, a 'sub-routine' within the fundamental geometric pattern of the universe. The Flower is the feminine matrix (the field of possibilities) and the Tree is the masculine structure (the concrete manifestation).", seo_h3_2: "Meditation with the Lightning Flash", seo_p_6: "The Tree is activated by the 'Lightning Flash' (Kav), a zigzag of light descending from Kether to Malkuth. Use the 'Divine Flow' slider or the animation button to visualize this descent.", seo_p_7: "Suggested exercise: Breathe deeply. As you inhale, visualize light filling the upper sphere. As you exhale, watch it descend path by path to the earth. This practice helps to 'ground' ideas, bringing spiritual inspiration to the physical plane.", link_legal: "Legal Notice", link_privacidad: "Privacy", link_cookies: "Cookies", link_contacto: "Contact", btn_coffee: "Buy me a coffee (PayPal)"
+        },
+        ca: {
+            ui_hub: "HUB", ui_back: "BACK", lab_title: "ARBRE DE LA VIDA LAB", title_creacion: "El Raig de Creació", label_flujo: "Flux Diví:", title_energia: "Energia i Llum", label_fondo: "Fons:", label_esferas: "Esferes:", label_senderos: "Senders:", label_glow: "Glow:", title_estructura: "Estructura", label_tam_esferas: "Mida Esferes:", label_grosor: "Gruix Senders:", title_geometria: "Geometria Oculta", label_nombres: "Mostra Noms:", label_daat: "Mostra Da'at:", label_pilares: "Pilars:", label_matriz: "Matriu Flor de la Vida:", seo_h2_1: "El Codi Font de l'Ànima: Què és l'Arbre de la Vida?", seo_p_1: "L'Arbre de la Vida (Etz Chaim en hebreu) és el glif central de la Càbala Hermètica i el misticisme occidental. No és simplement un dibuix antic; és un mapa multidimensional que explica l'estructura de l'univers i de la psique humana. Descriu el camí que recorre l'energia divina des d'allò inmanifestat fins a la matèria física.", seo_h3_1: "L'Estructura: 10 Llums i 22 Camins", seo_p_2: "El diagrama es compon de 10 esferes anomenades Sephirot (emanacions), que representen estats de consciència o atributs divins, unides per 22 senders. Junts formen els \"32 Camins de Saviesa\".", seo_list_1: "<li><strong>Els 3 Pilars:</strong> Observa les línies verticals al laboratori. El pilar esquerre és la <em>Severitat</em> (Forma/Restricció), el dret és la <em>Misericòrdia</em> (Força/Expansió) i el central és l'<em>Equilibri</em>.</li><li><strong>La Tríada Superior:</strong> Kether (Corona), Chokmah (Saviesa) i Binah (Enteniment) existeixen més enllà de la nostra percepció ordinària.</li><li><strong>Da'at (L'Esfera Invisible):</strong> Al nostre Lab pots activar la casella \"Mostra Da'at\". És l'abisme, el coneixement ocult que connecta allò diví amb allò humà.</li>", seo_h2_2: "La Geometria Oculta: La Connexió amb la Flor de la Vida", seo_p_3: "Aquí és on la màgia matemàtica es revela. Durant segles, místics i geòmetres han sabut que l'Arbre de la Vida no és una invenció arbitrària, sinó que sorgeix orgànicament de la Flor de la Vida.", seo_p_4: "Prova-ho ara al Lab: Activa la casella <span style=\"color:#00FFFF\">\"Matriu Flor de la Vida\"</span>. Veuràs una cosa sorprenent:", seo_p_5: "Cadascuna de les Sephirot encaixa amb precisió mil·limètrica en els centres o interseccions de la xarxa hexagonal de la Flor. Això demostra que l'Arbre de la Vida és una extracció, una \"subrutina\" dins del patró geomètric fonamental de l'univers. La Flor és la matriu femenina (el camp de possibilitats) i l'Arbre és l'estructura masculina (la manifestació concreta).", seo_h3_2: "Meditació amb el Raig Llampec", seo_p_6: "L'Arbre s'activa mitjançant el \"Raig Llampec\" (Kav), un ziga-zaga de llum que baixa des de Kether fins a l'Arbre de la Vida. Utilitza el lliscador de \"Flux Diví\" o el botó d'animació per visualitzar aquest descens.", seo_p_7: "Exercici suggerit: Respira profundament. En inhalar, visualitza la llum omplint l'esfera superior. En exhalar, observa com baixa sender a sender fins a la terra. Aquesta pràctica ajuda a \"aterrar\" idees, portant la inspiració espiritual al pla físic.", link_legal: "Avís Legal", link_privacidad: "Privadesa", link_cookies: "Cookies", link_contacto: "Contacte", btn_coffee: "Convida'm a un cafè (PayPal)"
+        },
+        fr: {
+            ui_hub: "HUB", ui_back: "BACK", lab_title: "LABORATOIRE ARBRE DE VIE", title_creacion: "Le Rayon de la Création", label_flujo: "Flux Divin :", title_energia: "Énergie & Lumière", label_fondo: "Fond :", label_esferas: "Sphères :", label_senderos: "Sentiers :", label_glow: "Glow :", title_estructura: "Structure", label_tam_esferas: "Taille des Sphères :", label_grosor: "Épaisseur des Sentiers :", title_geometria: "Géométrie Cachée", label_nombres: "Afficher les Noms :", label_daat: "Afficher Da'at :", label_pilares: "Piliers :", label_matriz: "Matrice Fleur de Vie :", seo_h2_1: "Le Code Source de l'Âme : Qu'est-ce que l'Arbre de Vie ?", seo_p_1: "L'Arbre de Vie (Etz Chaim en hébreu) est le glyphe central de la Kabbale Hermétique et du mysticisme occidental. Ce n'est pas simplement un dessin ancien ; c'est une carte multidimensionnelle qui explique la structure de l'univers et de la psyché humaine. Il décrit le chemin parcouru par l'énergie divine de l'immanifesté à la matière physique.", seo_h3_1: "La Structure : 10 Lumières et 22 Chemins", seo_p_2: "Le diagramme est composé de 10 sphères appelées Sephirot (émanations), représentant des états de conscience ou des attributs divins, reliées par 22 sentiers. Ensemble, ils forment les \"32 Chemins de la Sagesse\".", seo_list_1: "<li><strong>Les 3 Piliers :</strong> Observez les lignes verticales dans le laboratoire. Le pilier gauche est la <em>Sévérité</em> (Forme/Restriction), le droit est la <em>Miséricorde</em> (Force/Expansion) et le central est l'<em>Équilibre</em>.</li><li><strong>La Triade Supérieure :</strong> Kether (Couronne), Chokmah (Sagesse) et Binah (Compréhension) existent au-delà de notre perception ordinaire.</li><li><strong>Da'at (La Sphère Invisible) :</strong> Dans notre Lab, vous pouvez activer la case \"Afficher Da'at\". C'est l'abîme, la connaissance cachée qui relie le divin à l'humain.</li>", seo_h2_2: "La Géométrie Cachée : La Connexion avec la Fleur de Vie", seo_p_3: "C'est ici que la magie mathématique se révèle. Depuis des siècles, mystiques et géomètres savent que l'Arbre de Vie n'est pas une invention arbitraire, mais qu'il émerge organiquement de la Fleur de Vie.", seo_p_4: "Essayez-le maintenant dans le Lab : Activez la case <span style=\"color:#00FFFF\">\"Matrice Fleur de Vie\"</span>. Vous verrez quelque chose d'étonnant :", seo_p_5: "Chacune des Sephirot s'insère avec une précision millimétrique dans les centres ou intersections du réseau hexagonal de la Fleur. Cela démontre que l'Arbre de Vie est une extraction, une \"sous-routine\" au sein du motif géométrique fondamental de l'univers. La Fleur est la matrice féminine (le champ des possibles) et l'Arbre est la structure masculine (la manifestation concrète).", seo_h3_2: "Méditation avec l'Éclair", seo_p_6: "L'Arbre est activé par l'\"Éclair\" (Kav), un zigzag de lumière descendant de Kether vers Malkuth. Utilisez le curseur \"Flux Divin\" ou le bouton d'animation pour visualiser cette descente.", seo_p_7: "Exercice suggéré : Respirez profondément. À l'inspiration, visualisez la lumière remplissant la sphère supérieure. À l'expiration, observez comment elle descend sentier par sentier jusqu'à la terre. Cette pratique aide à \"ancrer\" les idées, apportant l'inspiration spirituelle au plan physique.", link_legal: "Mentions Légales", link_privacidad: "Confidentialité", link_cookies: "Cookies", link_contacto: "Contact", btn_coffee: "Offrez-moi un café (PayPal)"
+        },
+        de: {
+            ui_hub: "HUB", ui_back: "BACK", lab_title: "BAUM DES LEBENS LAB", title_creacion: "Der Strahl der Schöpfung", label_flujo: "Göttlicher Fluss:", title_energia: "Energie & Licht", label_fondo: "Hintergrund:", label_esferas: "Sphären:", label_senderos: "Pfade:", label_glow: "Glow:", title_estructura: "Struktur", label_tam_esferas: "Größe der Sphären:", label_grosor: "Dicke der Pfade:", title_geometria: "Verborgene Geometrie", label_nombres: "Namen anzeigen:", label_daat: "Da'at anzeigen:", label_pilares: "Säulen:", label_matriz: "Blume des Lebens Matrix:", seo_h2_1: "Der Quellcode der Seele: Was ist der Baum des Lebens?", seo_p_1: "Der Baum des Lebens (hebräisch Etz Chaim) ist die zentrale Glyphe der hermetischen Kabbala und der westlichen Mystik. Er ist nicht nur eine antike Zeichnung; er ist eine multidimensionale Karte, die die Struktur des Universums und der menschlichen Psyche erklärt. Er beschreibt den Weg, den die göttliche Energie vom Unmanifestierten bis zur physischen Materie zurücklegt.", seo_h3_1: "Die Struktur: 10 Lichter und 22 Pfade", seo_p_2: "Das Diagramm besteht aus 10 Sphären namens Sephiroth (Emanationen), die Bewusstseinszustände oder göttliche Attribute darstellen und durch 22 Pfade verbunden sind. Zusammen bilden sie die \"32 Pfade der Weisheit\".", seo_list_1: "<li><strong>Die 3 Säulen:</strong> Achten Sie auf die vertikalen Linien im Labor. Die linke Säule ist die <em>Strenge</em> (Form/Einschränkung), die rechte ist die <em>Gnade</em> (Kraft/Expansion) und die mittlere ist das <em>Gleichgewicht</em>.</li><li><strong>Die obere Triade:</strong> Kether (Krone), Chokmah (Weisheit) und Binah (Verständnis) existieren jenseits unserer gewöhnlichen Wahrnehmung.</li><li><strong>Da'at (Die unsichtbare Sphäre):</strong> In unserem Lab können Sie das Kästchen \"Da'at anzeigen\" aktivieren. Es ist der Abgrund, das verborgene Wissen, das das Göttliche mit dem Menschlichen verbindet.</li>", seo_h2_2: "Verborgene Geometrie: Die Verbindung mit der Blume des Lebens", seo_p_3: "Hier offenbart sich die mathematische Magie. Seit Jahrhunderten wissen Mystiker und Geometer, dass der Baum des Lebens keine willkürliche Erfindung ist, sondern organisch aus der Blume des Lebens hervorgeht.", seo_p_4: "Probieren Sie es jetzt im Lab aus: Aktivieren Sie das Kästchen <span style=\"color:#00FFFF\">\"Blume des Lebens Matrix\"</span>. Sie werden etwas Erstaunliches sehen:", seo_p_5: "Jede der Sephiroth fügt sich mit millimetergenauer Präzision in die Zentren oder Schnittpunkte des hexagonalen Netzes der Blume ein. Dies zeigt, dass der Baum des Lebens eine Extraktion ist, eine \"Subroutine\" innerhalb des grundlegenden geometrischen Musters des Universums. Die Blume ist die weibliche Matrix (das Feld der Möglichkeiten) und der Baum ist die männliche Struktur (die konkrete Manifestation).", seo_h3_2: "Meditation mit dem Blitzstrahl", seo_p_6: "Der Baum wird durch den \"Blitzstrahl\" (Kav) aktiviert, ein Zickzack aus Licht, das von Kether nach Malkuth herabsteigt. Nutzen Sie den Schieberegler \"Göttlicher Fluss\" oder den Animationsbutton, um diesen Abstieg zu visualisieren.", seo_p_7: "Empfohlene Übung: Atmen Sie tief ein. Stellen Sie sich beim Einatmen vor, wie Licht die oberste Sphäre füllt. Beobachten Sie beim Ausatmen, wie es Pfad für Pfad zur Erde herabsinkt. Diese Praxis hilft, Ideen zu \"erden\" und spirituelle Inspiration in die physische Ebene zu bringen.", link_legal: "Impressum", link_privacidad: "Datenschutz", link_cookies: "Cookies", link_contacto: "Kontakt", btn_coffee: "Spendier mir einen Kaffee (PayPal)"
+        },
+        pt: {
+            ui_hub: "HUB", ui_back: "BACK", lab_title: "LABORATÓRIO ÁRVORE DA VIDA", title_creacion: "O Raio da Criação", label_flujo: "Fluxo Divino:", title_energia: "Energia & Luz", label_fondo: "Fundo:", label_esferas: "Esferas:", label_senderos: "Caminhos:", label_glow: "Glow:", title_estructura: "Estrutura", label_tam_esferas: "Tamanho das Esferas:", label_grosor: "Espessura dos Caminhos:", title_geometria: "Geometria Oculta", label_nombres: "Mostrar Nomes:", label_daat: "Mostrar Da'at:", label_pilares: "Pilares:", label_matriz: "Matriz Flor da Vida:", seo_h2_1: "O Código Fonte da Alma: O que é a Árvore da Vida?", seo_p_1: "A Árvore da Vida (Etz Chaim em hebraico) é o glifo central da Cabala Hermética e do misticismo ocidental. Não é simplesmente um desenho antigo; é um mapa multidimensional que explica a estrutura do universo e da psique humana. Descreve o caminho que a energia divina percorre desde o imanifesto até a matéria física.", seo_h3_1: "A Estrutura: 10 Luzes e 22 Caminhos", seo_p_2: "O diagrama é composto por 10 esferas chamadas Sephirot (emanações), que representam estados de consciência ou atributos divinos, unidas por 22 caminhos. Juntos, formam os \"32 Caminhos da Sabedoria\".", seo_list_1: "<li><strong>Os 3 Pilares:</strong> Observe as linhas verticais no laboratório. O pilar esquerdo é a <em>Severidade</em> (Forma/Restrição), o direito é a <em>Misericórdia</em> (Força/Expansão) e o central é o <em>Equilíbrio</em>.</li><li><strong>A Tríade Superior:</strong> Kether (Coroa), Chokmah (Sabedoria) e Binah (Entendimento) existem além da nossa percepção ordinária.</li><li><strong>Da'at (A Esfera Invisível):</strong> No nosso Lab pode ativar a caixa \"Mostrar Da'at\". É o abismo, o conhecimento oculto que conecta o divino ao humano.</li>", seo_h2_2: "A Geometria Oculta: A Conexão com a Flor da Vida", seo_p_3: "É aqui que a magia matemática se revela. Durante séculos, místicos e geómetras souberam que a Árvore da Vida não é uma invenção arbitrária, mas surge organicamente da Flor da Vida.", seo_p_4: "Experimente agora no Lab: Ative a caixa <span style=\"color:#00FFFF\">\"Matriz Flor da Vida\"</span>. Verá algo surpreendente:", seo_p_5: "Cada uma das Sephirot encaixa com precisão milimétrica nos centros ou interseções da rede hexagonal da Flor. Isto demonstra que a Árvore da Vida é uma extração, uma \"sub-rotina\" dentro do padrão geométrico fundamental do universo. A Flor é a matriz feminina (o campo de possibilidades) e a Árvore é a estrutura masculina (a manifestação concreta).", seo_h3_2: "Meditação com o Raio Relampejante", seo_p_6: "A Árvore é ativada pelo \"Raio Relampejante\" (Kav), um zigue-zague de luz que desce de Kether até Malkuth. Use o cursor de \"Fluxo Divino\" ou o botão de animação para visualizar esta descida.", seo_p_7: "Exercício sugerido: Respire profundamente. Ao inspirar, visualize a luz preenchendo a esfera superior. Ao expirar, observe como ela desce caminho a caminho até a terra. Esta prática ajuda a \"aterrar\" ideias, trazendo a inspiração espiritual para o plano físico.", link_legal: "Aviso Legal", link_privacidad: "Privacidade", link_cookies: "Cookies", link_contacto: "Contacto", btn_coffee: "Pague-me um café (PayPal)"
+        },
+        it: {
+            ui_hub: "HUB", ui_back: "BACK", lab_title: "ALBERO DELLA VITA LAB", title_creacion: "Il Raggio della Creazione", label_flujo: "Flusso Divino:", title_energia: "Energia & Luce", label_fondo: "Sfondo:", label_esferas: "Sfere:", label_senderos: "Sentieri:", label_glow: "Glow:", title_estructura: "Struttura", label_tam_esferas: "Dimensione Sfere:", label_grosor: "Spessore Sentieri:", title_geometria: "Geometria Nascosta", label_nombres: "Mostra Nomi:", label_daat: "Mostra Da'at:", label_pilares: "Pilastri:", label_matriz: "Matrice Fiore della Vita:", seo_h2_1: "Il Codice Sorgente dell'Anima: Cos'è l'Albero della Vita?", seo_p_1: "L'Albero della Vita (Etz Chaim in ebraico) è il glifo centrale della Cabala Ermetica e del misticismo occidentale. Non è semplicemente un disegno antico; è una mappa multidimensionale che spiega la struttura dell'universo e della psiche umana. Descrive il percorso compiuto dall'energia divina dall'immanifestato alla materia fisica.", seo_h3_1: "La Struttura: 10 Luci e 22 Sentieri", seo_p_2: "Il diagramma è composto da 10 sfere chiamate Sephirot (emanazioni), che rappresentano stati di coscienza o attributi divini, uniti da 22 sentieri. Insieme formano i \"32 Sentieri della Sapienza\".", seo_list_1: "<li><strong>I 3 Pilastri:</strong> Osserva le linee verticali nel laboratorio. Il pilastro sinistro è la <em>Severità</em> (Forma/Restrizione), quello destro è la <em>Misericordia</em> (Forza/Espansione) e quello centrale è l'<em>Equilibrio</em>.</li><li><strong>La Triade Superiore:</strong> Kether (Corona), Chokmah (Sapienza) e Binah (Comprensione) esistono oltre la nostra percezione ordinaria.</li><li><strong>Da'at (La Sfera Invisibile):</strong> Nel nostro Lab puoi attivare la casella \"Mostra Da'at\". È l'abisso, la conoscenza nascosta che connette il divino con l'umano.</li>", seo_h2_2: "La Geometria Nascosta: La Connessione con il Fiore della Vita", seo_p_3: "Qui è dove la magia matematica si rivela. Per secoli, mistici e geometri hanno saputo che l'Albero della Vita non è un'invenzione arbitraria, ma sorge organicamente dal Fiore della Vita.", seo_p_4: "Provalo ora nel Lab: Attiva la casella <span style=\"color:#00FFFF\">\"Matrice Fiore della Vita\"</span>. Vedrai qualcosa di sorprendente:", seo_p_5: "Ciascuna delle Sephirot si inserisce con precisione millimetrica nei centri o nelle intersezioni della rete esagonale del Fiore. Questo dimostra che l'Albero della Vita è un'estrazione, una \"sub-routine\" all'interno del modello geometrico fondamentale dell'universo. Il Fiore è la matrice femminile (il campo delle possibilità) e l'Albero è la struttura maschile (la manifestazione concreta).", seo_h3_2: "Meditazione con il Fulmine", seo_p_6: "L'Albero si attiva attraverso il \"Fulmine\" (Kav), uno zigzag di luce che scende da Kether a Malkuth. Usa il cursore \"Flusso Divino\" o il pulsante di animazione per visualizzare questa discesa.", seo_p_7: "Esercizio suggerito: Respira profondamente. Inspirando, visualizza la luce che riempie la sfera superiore. Espirando, osserva come scende sentiero dopo sentiero fino alla terra. Questa pratica aiuta a \"radicare\" le idee, portando l'ispirazione spirituale sul piano fisico.", link_legal: "Note Legali", link_privacidad: "Privacy", link_cookies: "Cookies", link_contacto: "Contatto", btn_coffee: "Offrimi un caffè (PayPal)"
+        },
+        nl: {
+            ui_hub: "HUB", ui_back: "BACK", lab_title: "LEVENSBOOM LAB", title_creacion: "De Straal van Creatie", label_flujo: "Goddelijke Stroom:", title_energia: "Energie & Licht", label_fondo: "Achtergrond:", label_esferas: "Sferen:", label_senderos: "Paden:", label_glow: "Glow:", title_estructura: "Structuur", label_tam_esferas: "Grootte Sferen:", label_grosor: "Dikte Paden:", title_geometria: "Verborgen Geometrie", label_nombres: "Namen Tonen:", label_daat: "Da'at Tonen:", label_pilares: "Pilaren:", label_matriz: "Bloem des Levens Matrix:", seo_h2_1: "De Broncode van de Ziel: Wat is de Levensboom?", seo_p_1: "De Levensboom (Etz Chaim in het Hebreeuws) is het centrale symbool van de Hermetische Kabbala en de westerse mystiek. Het is niet louter een oude tekening; het is een multidimensionale kaart die de structuur van het universum en de menselijke psyche verklaart. Het beschrijft het pad dat goddelijke energie aflegt van het ongemani-festeerde naar de fysieke materie.", seo_h3_1: "De Structuur: 10 Lichten en 22 Paden", seo_p_2: "Het diagram bestaat uit 10 sferen genaamd Sephirot (emanaties), die staten van bewustzijn of goddelijke attributen vertegenwoordigen, verbonden door 22 paden. Samen vormen ze de \"32 Paden van Wijsheid\".", seo_list_1: "<li><strong>De 3 Pilaren:</strong> Let op de verticale lijnen in het laboratorium. De linkerpilaar is <em>Strengheid</em> (Vorm/Beperking), de rechter is <em>Genade</em> (Kracht/Expansie) en de middelste is <em>Evenwicht</em>.</li><li><strong>De Bovenste Triade:</strong> Kether (Kroon), Chokmah (Wijsheid) en Binah (Begrip) bestaan voorbij onze gewone waarneming.</li><li><strong>Da'at (De Onzichtbare Sfeer):</strong> In ons Lab kun je het vakje \"Da'at Tonen\" activeren. Het is de afgrond, de verborgen kennis die het goddelijke met het menselijke verbindt.</li>", seo_h2_2: "Verborgen Geometrie: De Verbinding met de Bloem des Levens", seo_p_3: "Hier wordt de wiskundige magie onthuld. Eeuwenlang weten mystici en meetkundigen dat de Levensboom geen willekeurige uitvinding is, maar organisch voortkomt uit de Bloem des Levens.", seo_p_4: "Probeer het nu in het Lab: Activeer het vakje <span style=\"color:#00FFFF\">\"Bloem des Levens Matrix\"</span>. Je zult iets verbazingwekkends zien:", seo_p_5: "Elk van de Sephirot past met millimeterprecisie in de centra of snijpunten van het hexagonale netwerk van de Bloem. Dit toont aan dat de Levensboom een extractie is, een \"subroutine\" binnen het fundamentele geometrische patroon van het universum. De Bloem is de vrouwelijke matrix (het veld van mogelijkheden) en de Boom is de mannelijke structuur (de concrete manifestatie).", seo_h3_2: "Meditatie met de Bliksemstraal", seo_p_6: "De Boom wordt geactiveerd door de \"Bliksemstraal\" (Kav), een zigzag van licht die afdaalt van Kether naar Malkuth. Gebruik de schuifregelaar \"Goddelijke Stroom\" of de animatieknop om deze afdaling te visualiseren.", seo_p_7: "Suggestie voor oefening: Adem diep in. Visualiseer bij het inademen hoe licht de bovenste sfeer vult. Observeer bij het uitademen hoe het pad voor pad afdaalt naar de aarde. Deze praktijk helpt om ideeën te \"gronden\" en spirituele inspiratie naar het fysieke vlak te brengen.", link_legal: "Juridische Kennisgeving", link_privacidad: "Privacy", link_cookies: "Cookies", link_contacto: "Contact", btn_coffee: "Trakteer me op koffie (PayPal)"
+        },
+        ja: {
+            ui_hub: "ハブ", ui_back: "戻る", lab_title: "生命の樹ラボ", title_creacion: "創造の光線", label_flujo: "神聖な流れ:", title_energia: "エネルギーと光", label_fondo: "背景:", label_esferas: "セフィラ:", label_senderos: "小径:", label_glow: "グロウ:", title_estructura: "構造", label_tam_esferas: "セフィラのサイズ:", label_grosor: "小径の太さ:", title_geometria: "隠された幾何学", label_nombres: "名称を表示:", label_daat: "ダアトを表示:", label_pilares: "柱:", label_matriz: "フラワー・オブ・ライフ行列:", seo_h2_1: "魂のソースコード：生命の樹とは何か？", seo_p_1: "生命の樹（ヘブライ語でエツ・ハイム）は、ヘルメス・カバラと西洋神秘主義の中心的な象徴です。それは単なる古代の図面ではなく、宇宙の構造と人間の精神を説明する多次元的な地図です。神聖なエネルギーが未顕現から物理的な物質へと至る道筋を描いています。", seo_h3_1: "構造：10の光と22の小径", seo_p_2: "この図は、意識の状態や神の属性を表す「セフィロト」と呼ばれる10の球体と、それらを結ぶ22の小径で構成されています。これらは合わせて「32の知恵の道」を形成します。", seo_list_1: "<li><strong>3つの柱：</strong>ラボの垂直線に注目してください。左の柱は「峻厳」（形/制限）、右の柱は「慈悲」（力/拡大）、中央の柱は「均衡」を表します。</li><li><strong>至高の三角形：</strong>ケテル（王冠）、コクマー（知恵）、ビナー（理解）は、通常の知覚を超えた次元に存在します。</li><li><strong>ダアト（目に見えない球体）：</strong>ラボの「ダアトを表示」をオンにしてみてください。それは深淵であり、神聖なものと人間を結びつける隠された知識です。</li>", seo_h2_2: "隠された幾何学：フラワー・オブ・ライフとの繋がり", seo_p_3: "ここで数学的な魔法が明らかになります。何世紀にもわたり、神秘家や幾何学者は、生命の樹が恣意的な発明ではなく、フラワー・オブ・ライフから有機的に生じることを知っていました。", seo_p_4: "ラボで試してみてください：<span style=\"color:#00FFFF\">「フラワー・オブ・ライフ行列」</span>をオンにします。驚くべき光景が見えるはずです：", seo_p_5: "各セフィラは、フラワーの六角形ネットワークの中心や交点にミリ単位の精度で収まります。これは、生命の樹が宇宙の根本的な幾何学パターンの中の「サブルーチン」であることを証明しています。フラワーは女性的な行列（可能性の場）であり、樹は男性的な構造（具体的な顕現）なのです。", seo_h3_2: "稲妻の閃光による瞑想", seo_p_6: "生命の樹は、ケテルからマルクトへと下降するジグザグの光である「稲妻の閃光」（カヴ）によって活性化されます。「神聖な流れ」のスライダーまたはアニメーションボタンを使用して、この下降を視覚化してください。", seo_p_7: "推奨エクササイズ：深く呼吸します。息を吸いながら、光が一番上の球体を満たすのを視覚化します。息を吐きながら、光が小径を通って大地へと降りていく様子を観察してください。この練習は、アイデアを「接地」させ、精神的なインスピレーションを物理的な平面にもたらすのに役立ちます。", link_legal: "法的通知", link_privacidad: "プライバシー", link_cookies: "クッキー", link_contacto: "連絡先", btn_coffee: "コーヒーを奢る (PayPal)"
+        }
+    };
+
+    function setLang(lang) {
+        localStorage.setItem('gl_lang', lang);
+        document.querySelectorAll('.lang-switch button').forEach(btn => btn.classList.toggle('active', btn.id === 'btn-' + lang));
+        const tr = translations[lang] || translations['es'];
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (tr[key]) el.innerHTML = tr[key];
+        });
+    }
+
+    // --- LÓGICA ORIGINAL DEL SIMULADOR (COPIADA ÍNTEGRA) ---
+    const canvas = document.getElementById('yantraCanvas');
+    const ctx = canvas.getContext('2d');
+    const canvasContainer = document.getElementById('canvas-container');
+
+    const sephirotDefs = [
+        { id: 1, name: "Kether", nameES: "Corona", gx: 0, gy: -4, color: "#fff" },       
+        { id: 2, name: "Chokmah", nameES: "Sabiduría", gx: 1, gy: -3, color: "#888" },   
+        { id: 3, name: "Binah", nameES: "Entendimiento", gx: -1, gy: -3, color: "#222" }, 
+        { id: 11, name: "Da'at", nameES: "Conocimiento", gx: 0, gy: -2, color: "#9932CC", hidden: true }, 
+        { id: 4, name: "Chesed", nameES: "Misericordia", gx: 1, gy: -1, color: "#00f" }, 
+        { id: 5, name: "Gevurah", nameES: "Severidad", gx: -1, gy: -1, color: "#f00" },  
+        { id: 6, name: "Tiferet", nameES: "Belleza", gx: 0, gy: 0, color: "#FFD700" },   
+        { id: 7, name: "Netzach", nameES: "Victoria", gx: 1, gy: 1, color: "#0f0" },     
+        { id: 8, name: "Hod", nameES: "Gloria", gx: -1, gy: 1, color: "#FF8C00" },       
+        { id: 9, name: "Yesod", nameES: "Fundamento", gx: 0, gy: 2, color: "#9400D3" },  
+        { id: 10, name: "Malkuth", nameES: "Reino", gx: 0, gy: 4, color: "#8B4513" }     
+    ];
+    const paths = [[1,2],[1,3],[2,3],[2,4],[3,5],[2,6],[3,6],[4,5],[4,6],[5,6],[4,7],[5,8],[6,7],[6,8],[6,9],[7,8],[7,9],[8,9],[9,10]];
+    let state = { bg: '#000000', sphereColor: '#FFD700', pathColor: '#00BFFF', emanation: 100, sphereSize: 15, pathWidth: 3, glow: 20, showNames: true, showDaat: false, showPillars: false, showFlower: false };
+    let w, h, cx, cy, R, animationId = null;
+
+    function init() { setupListeners(); resizeCanvas(); }
+    function resizeCanvas() {
+        if (!canvasContainer) return;
+        w = canvas.width = canvasContainer.offsetWidth;
+        h = canvas.height = canvasContainer.offsetHeight;
+        cx = w / 2; cy = h / 2; R = (h * 0.9) / 8; requestAnimationFrame(drawScene);
+    }
+    window.addEventListener('resize', () => { setTimeout(resizeCanvas, 50); });
+
+    function drawScene() {
+        ctx.fillStyle = state.bg; ctx.fillRect(0, 0, w, h);
+        if (state.showFlower) {
+            ctx.shadowBlur = 0; ctx.lineWidth = 1; ctx.strokeStyle = "rgba(255, 255, 255, 0.19)"; 
+            const stepY = Math.sqrt(3)/2 * R, stepX = R; 
+            const cols = Math.ceil(w / stepX) + 3, rows = Math.ceil(h / stepY) + 3;
+            ctx.beginPath(); 
+            for (let r = -rows; r <= rows; r++) {
+                const offsetX = (Math.abs(r) % 2 === 1) ? (stepX / 2) : 0, cy_grid = cy + (r * stepY);
+                for (let q = -cols; q <= cols; q++) {
+                    const cx_grid = cx + (q * stepX) + offsetX;
+                    if (cx_grid > -100 && cx_grid < w + 100 && cy_grid > -100 && cy_grid < h + 100) {
+                        ctx.moveTo(cx_grid + R, cy_grid); ctx.arc(cx_grid, cy_grid, R, 0, Math.PI * 2);
+                    }
+                }
+            }
+            ctx.stroke(); 
+        }
+        const coords = {}; sephirotDefs.forEach(s => { coords[s.id] = { x: cx + (s.gx * 1.5 * R), y: cy + (s.gy * 0.866 * R), visible: isSephiraVisible(s.id), def: s }; });
+        ctx.shadowBlur = state.glow;
+        if (state.showPillars) {
+            ctx.shadowBlur = 0; ctx.fillStyle = "rgba(255,255,255,0.05)";
+            [coords[3].x, coords[2].x, coords[1].x].forEach(x => ctx.fillRect(x - 20, 0, 40, h));
+            ctx.shadowBlur = state.glow;
+        }
+        ctx.strokeStyle = state.pathColor; ctx.lineWidth = state.pathWidth; ctx.lineCap = "round"; ctx.shadowColor = state.pathColor;
+        paths.forEach(p => { const s1 = coords[p[0]], s2 = coords[p[1]]; if (s1.visible && s2.visible) { ctx.beginPath(); ctx.moveTo(s1.x, s1.y); ctx.lineTo(s2.x, s2.y); ctx.stroke(); } });
+        ctx.shadowColor = state.sphereColor;
+        Object.values(coords).forEach(c => {
+            if ((c.def.hidden && !state.showDaat) || !c.visible) return;
+            ctx.fillStyle = state.sphereColor; ctx.beginPath(); ctx.arc(c.x, c.y, state.sphereSize, 0, Math.PI*2); ctx.fill();
+            const grad = ctx.createRadialGradient(c.x, c.y, state.sphereSize*0.2, c.x, c.y, state.sphereSize);
+            grad.addColorStop(0, "rgba(255,255,255,0.9)"); grad.addColorStop(1, "rgba(255,255,255,0)"); ctx.fillStyle = grad; ctx.fill();
+            if (state.showNames) {
+                ctx.shadowBlur = 0; ctx.fillStyle = "#fff"; ctx.font = "bold 14px Segoe UI"; ctx.textAlign = "left";
+                ctx.fillText(c.def.nameES.toUpperCase(), c.x + state.sphereSize + 8, c.y + 4);
+                ctx.fillStyle = "#888"; ctx.font = "12px Segoe UI"; ctx.fillText(c.def.name, c.x + state.sphereSize + 8, c.y - 10);
+                ctx.shadowBlur = state.glow;
+            }
+        });
+    }
+
+    function isSephiraVisible(id) {
+        let order = {1:10, 2:20, 3:30, 11:35, 4:40, 5:50, 6:60, 7:70, 8:80, 9:90, 10:100};
+        return state.emanation >= order[id];
+    }
+
+    function toggleAnimation() {
+        if (animationId) { cancelAnimationFrame(animationId); animationId = null; document.getElementById('playEmanation').innerText = "▶"; }
+        else { document.getElementById('playEmanation').innerText = "⏸"; if (state.emanation >= 100) state.emanation = 0; animateLoop(); }
+    }
+
+    let lastTime = 0;
+    function animateLoop(timestamp) {
+        if (!lastTime) lastTime = timestamp;
+        if (timestamp - lastTime > 30) {
+            if (state.emanation < 100) { state.emanation += 0.5; document.getElementById('emanationRange').value = Math.floor(state.emanation); document.getElementById('emanationVal').innerText = Math.floor(state.emanation) + '%'; drawScene(); lastTime = timestamp; animationId = requestAnimationFrame(animateLoop); }
+            else toggleAnimation();
+        } else animationId = requestAnimationFrame(animateLoop);
+    }
+
+    function setupListeners() {
+        const bind = (id, prop, type) => {
+            document.getElementById(id).addEventListener('input', (e) => {
+                state[prop] = (type === 'int') ? parseInt(e.target.value) : e.target.value;
+                if(id === 'emanationRange') document.getElementById('emanationVal').innerText = state[prop] + '%';
+                requestAnimationFrame(drawScene);
+            });
+        };
+        bind('bgColor', 'bg'); bind('sphereColor', 'sphereColor'); bind('pathColor', 'pathColor'); bind('emanationRange', 'emanation', 'int'); bind('glowRange', 'glow', 'int'); bind('sizeRange', 'sphereSize', 'int'); bind('widthRange', 'pathWidth', 'int');
+        document.getElementById('checkNames').onchange = e => { state.showNames = e.target.checked; drawScene(); };
+        document.getElementById('checkDaat').onchange = e => { state.showDaat = e.target.checked; drawScene(); };
+        document.getElementById('checkPillars').onchange = e => { state.showPillars = e.target.checked; drawScene(); };
+        document.getElementById('checkFlower').onchange = e => { state.showFlower = e.target.checked; drawScene(); };
+        document.getElementById('playEmanation').onclick = toggleAnimation;
+        document.getElementById('btnPng').onclick = () => download('png');
+        document.getElementById('btnJpg').onclick = () => download('jpeg');
+    }
+
+    function download(ext) {
+        ctx.save(); ctx.globalCompositeOperation = 'destination-over'; ctx.fillStyle = state.bg; ctx.fillRect(0, 0, w, h);
+        const link = document.createElement('a'); link.download = `arbol_vida.${ext}`; link.href = canvas.toDataURL('image/' + ext, 0.9); link.click();
+        ctx.restore(); drawScene();
+    }
+
+    init();
+    setLang(localStorage.getItem('gl_lang') || 'es');
+</script>
+</body>
+</html>

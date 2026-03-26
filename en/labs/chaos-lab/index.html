@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script>
+    // --- i18n URL Router ---
+    (function() {
+        window.__GL_LANG = 'en';
+        window.__GL_LANG_UPPER = 'EN';
+        window.__GL_LANGS = ['es', 'ca', 'en', 'fr', 'de', 'pt', 'it', 'nl', 'ja'];
+        
+        // Override localStorage to always use URL-based language
+        localStorage.setItem('gl_lang', 'en');
+        
+        // Language switcher: navigate to the equivalent page in the target language folder
+        window.switchLangUrl = function(targetLang) {
+            var path = window.location.pathname;
+            // Replace current lang segment with target lang
+            var newPath = path.replace(/^\/(es|ca|en|fr|de|pt|it|nl|ja)\//, '/' + targetLang.toLowerCase() + '/');
+            if (newPath === path) {
+                // Fallback: prepend lang
+                newPath = '/' + targetLang.toLowerCase() + '/';
+            }
+            window.location.href = newPath + window.location.hash;
+        };
+        
+        // Auto-call setLang on DOMContentLoaded to apply translations
+        // Some labs use uppercase keys (ES/EN), others lowercase (es/en)
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof setLang === 'function') {
+                // Try uppercase first (used by most lab pages with inline translations)
+                try { setLang('EN'); } catch(e) {}
+                // Also try lowercase (used by magic-square style pages)
+                try { setLang('en'); } catch(e) {}
+            }
+        });
+    })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chaos Lab | Graphics Labs</title>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3150277567590534"
+     crossorigin="anonymous"></script>
+    <meta name="description" content="Interactive Chaos Lab laboratory. Experiment with generative art and visual mathematics at Graphics Labs.">
+    <style>
+        /* --- ESTILOS BASE --- */
+        :root {
+            --primary: #00ff41; 
+            --primary-dim: rgba(0, 255, 65, 0.3);
+            --secondary: #bd00ff;
+            --highlight: #ffee00;
+            --glass: rgba(20, 20, 20, 0.7);
+            --glass-text: rgba(30, 30, 30, 0.8);
+            --border: rgba(255, 255, 255, 0.1);
+            --text: #ffffff;
+            --muted: #aaaaaa;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', monospace, sans-serif; }
+        
+        body {
+            background-color: #050505;
+            color: var(--text);
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            user-select: none;
+            overscroll-behavior: none;
+        }
+
+        #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- CONTROLES --- */
+        .controls {
+            background: var(--glass);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin: 20px auto;
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .slider-row {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .slider-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            min-width: 150px;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            appearance: none;         /* Propiedad estándar para eliminar la advertencia */
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            outline: none;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--primary);
+            transition: 0.2s;
+        }
+
+        .value-display { font-family: 'Courier New', monospace; color: var(--highlight); font-weight: bold; font-size: 0.9rem; }
+
+        .buttons-row { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; margin-top: 10px; }
+
+        button.action-btn {
+            background: var(--primary); color: #000; border: none; padding: 10px 20px; border-radius: 5px;
+            cursor: pointer; font-weight: bold; transition: 0.3s; text-transform: uppercase; font-size: 0.9rem;
+        }
+        
+        button.secondary-btn {
+            background: transparent; border: 1px solid var(--secondary); color: var(--secondary);
+            padding: 8px 15px; border-radius: 5px; cursor: pointer; transition: 0.3s; font-size: 0.9rem;
+            display: flex; align-items: center; gap: 5px;
+        }
+
+        #canvas-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        #chaos-canvas {
+            background: #000;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            box-shadow: 0 0 30px rgba(0, 255, 65, 0.1);
+            max-width: 100%;
+            touch-action: none;
+        }
+
+        /* --- INFO --- */
+        .info-section {
+            background: var(--glass-text);
+            padding: 40px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin: 40px auto;
+            max-width: 900px;
+            text-align: left;
+            line-height: 1.8;
+            color: #ddd;
+        }
+        .info-section h2 { color: var(--primary); margin-bottom: 20px; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-top: 40px; }
+        .math-box {
+            background: rgba(0,0,0,0.5);
+            border-left: 4px solid var(--primary);
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            color: var(--primary);
+            font-size: 1.1rem;
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        .dl-section { margin-top: 30px; border-top: 1px dashed var(--border); padding-top: 20px; text-align: center; }
+        .btn-txt-dl {
+            display: inline-block; background: rgba(255, 255, 255, 0.1); color: var(--muted); text-decoration: none;
+            padding: 15px 25px; border: 1px solid var(--muted); border-radius: 4px;
+            font-size: 0.9rem; transition: 0.3s; cursor: pointer;
+        }
+
+        .ad-container {
+            width: 100%; max-width: 728px; margin: 30px auto; min-height: 90px;
+            display: flex; justify-content: center; align-items: center;
+            border: 1px dashed rgba(255,255,255,0.1); border-radius: 8px; background: rgba(0,0,0,0.2);
+        }
+        .ad-placeholder-text { color: var(--border); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; }
+
+        /* Nav & Footer */
+        nav { display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .nav-links { display: flex; gap: 15px; }
+        .nav-btn { text-decoration: none; color: var(--muted); font-size: 0.8rem; border: 1px solid var(--border); padding: 6px 15px; border-radius: 4px; transition: 0.3s; background: rgba(0,0,0,0.5); font-weight: 700; text-transform: uppercase; }
+        .nav-btn:hover { color: var(--primary); border-color: var(--primary); }
+        .logo { font-size: 1.2rem; font-weight: bold; color: var(--primary); text-decoration: none; letter-spacing: 2px; }
+        .lang-switch button { background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: var(--muted); padding: 5px 10px; cursor: pointer; border-radius: 4px; margin-left: 2px;}
+        .lang-switch button.active { background-color: var(--primary) !important; color: #000 !important; border-color: var(--primary) !important; font-weight: bold; }
+        
+        footer { margin-top: auto; background: rgba(0,0,0,0.9); backdrop-filter: blur(5px); border-top: 1px solid var(--border); padding: 40px 20px; text-align: center; font-size: 0.8rem; color: var(--muted); display: flex; flex-direction: column; gap: 20px; align-items: center; position: relative; z-index: 20; }
+        .legal-links { display: flex; gap: 25px; flex-wrap: wrap; justify-content: center; }
+        .legal-links a { color: var(--muted); text-decoration: none; transition: 0.3s; }
+        .legal-links a:hover { color: var(--primary); }
+        .coffee-btn { background: #FFDD00; color: #000; padding: 10px 20px; border-radius: 30px; text-decoration: none; font-weight: bold; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 8px; }
+
+    </style>
+    <link rel="canonical" href="https://graphics-labs.org/en/labs/chaos-lab/" />
+
+    <link rel="alternate" hreflang="es" href="https://graphics-labs.org/es/labs/chaos-lab/" />
+    <link rel="alternate" hreflang="ca" href="https://graphics-labs.org/ca/labs/chaos-lab/" />
+    <link rel="alternate" hreflang="en" href="https://graphics-labs.org/en/labs/chaos-lab/" />
+    <link rel="alternate" hreflang="fr" href="https://graphics-labs.org/fr/labs/chaos-lab/" />
+    <link rel="alternate" hreflang="de" href="https://graphics-labs.org/de/labs/chaos-lab/" />
+    <link rel="alternate" hreflang="pt" href="https://graphics-labs.org/pt/labs/chaos-lab/" />
+    <link rel="alternate" hreflang="it" href="https://graphics-labs.org/it/labs/chaos-lab/" />
+    <link rel="alternate" hreflang="nl" href="https://graphics-labs.org/nl/labs/chaos-lab/" />
+    <link rel="alternate" hreflang="ja" href="https://graphics-labs.org/ja/labs/chaos-lab/" />
+    <link rel="alternate" hreflang="x-default" href="https://graphics-labs.org/es/labs/chaos-lab/" />
+</head>
+<body oncontextmenu="return false;">
+
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="container">
+        <nav>
+            <div class="nav-links">
+                <a href="../../index.html" class="nav-btn" id="nav-main">← HUB PRINCIPAL</a>
+                <a href="../index.html" class="nav-btn" id="nav-math-smart">← HUB MATH</a>
+            </div>
+            <div class="logo">GRAPHICS LABS</div>
+            <div class="lang-switch">
+                <button onclick="switchLangUrl('es')" id="btn-es">ES</button>
+                <button onclick="switchLangUrl('ca')" id="btn-ca">CA</button>
+                <button onclick="switchLangUrl('en')" id="btn-en">EN</button>
+                <button onclick="switchLangUrl('fr')" id="btn-fr">FR</button>
+                <button onclick="switchLangUrl('de')" id="btn-de">DE</button>
+                <button onclick="switchLangUrl('pt')" id="btn-pt">PT</button>
+                <button onclick="switchLangUrl('it')" id="btn-it">IT</button>
+                <button onclick="switchLangUrl('nl')" id="btn-nl">NL</button>
+                <button onclick="switchLangUrl('ja')" id="btn-ja">JP</button>
+            </div>
+        </nav>
+
+        <h1 id="txt-title">PROYECTO CAOS</h1>
+        <p style="color:var(--muted); margin-bottom: 20px;" id="txt-desc">Simulación del Atractor de Lorenz y el Efecto Mariposa.</p>
+
+        <div class="controls">
+            <div class="slider-row">
+                <div class="slider-group">
+                    <label>Sigma (σ)</label>
+                    <input type="range" id="sl-sigma" min="1" max="30" step="0.1" value="10">
+                    <div class="value-display" id="val-sigma">10.0</div>
+                </div>
+                <div class="slider-group">
+                    <label>Rho (ρ)</label>
+                    <input type="range" id="sl-rho" min="1" max="50" step="0.1" value="28">
+                    <div class="value-display" id="val-rho">28.0</div>
+                </div>
+                <div class="slider-group">
+                    <label>Beta (β)</label>
+                    <input type="range" id="sl-beta" min="0.1" max="5" step="0.1" value="2.6">
+                    <div class="value-display" id="val-beta">2.6</div>
+                </div>
+            </div>
+
+            <div class="slider-group" style="width:100%">
+                <label id="lbl-speed">Velocidad de Simulación:</label>
+                <input type="range" id="sl-speed" min="1" max="10" step="1" value="3">
+            </div>
+
+            <div class="buttons-row">
+                <button class="action-btn" onclick="restartSim()" id="btn-restart">REINICIAR</button>
+                <button class="secondary-btn" onclick="saveImage()" id="btn-save">💾 IMG</button>
+            </div>
+        </div>
+
+        <div id="canvas-container">
+            <canvas id="chaos-canvas" width="800" height="600"></canvas>
+            <p style="color:var(--muted); font-size: 0.8rem; margin-top:5px;" id="txt-note">Arrastra el ratón sobre el canvas para rotar la vista 3D.</p>
+        </div>
+
+        <div class="info-section">
+            <h2 id="info-h-history">La Historia: Un "Error" Meteorológico</h2>
+            <p id="info-p-history">En 1963, Edward Lorenz, un meteorólogo del MIT, intentaba predecir el clima con una computadora primitiva. Un día, repitió una simulación introduciendo 0.506 en lugar de 0.506127. Pensó que esa milésima no importaría, pero al volver del café, la simulación era totalmente distinta. Acababa de descubrir el Caos Determinista: sistemas donde reglas exactas producen resultados impredecibles si cambias mínimamente el inicio.</p>
+
+            <h2 id="info-h-eq">Las Ecuaciones Diferenciales (El Motor)</h2>
+            <p id="info-p-eq">El sistema de Lorenz se define por tres ecuaciones diferenciales ordinarias que dictan la velocidad y dirección del cambio en cada instante:</p>
+            <div class="math-box">dx/dt = σ (y - x)<br>dy/dt = x (ρ - z) - y<br>dz/dt = x y - β z</div>
+            
+            <h2 id="info-h-vars">Variables del Mundo Real</h2>
+            <ul id="info-list-vars">
+                <li><strong>x:</strong> Velocidad de rotación del fluido (convección).</li>
+                <li><strong>y:</strong> Diferencia de temperatura entre corrientes ascendentes y descendentes.</li>
+                <li><strong>z:</strong> Desviación de la temperatura vertical respecto al equilibrio.</li>
+            </ul>
+
+            <h2 id="info-h-const">Las Constantes (Tus Sliders)</h2>
+            <ul id="info-list-const">
+                <li><strong>Sigma (σ):</strong> Viscosidad del fluido. En tu lab es 10. Si sube, es más espeso (miel vs agua).</li>
+                <li><strong>Rho (ρ):</strong> Diferencia de temperatura base-tope. Si ρ > 24.74, nace el Caos.</li>
+                <li><strong>Beta (β):</strong> Proporción geométrica del espacio. Normalmente 8/3.</li>
+            </ul>
+
+            <h2 id="info-h-butterfly">¿Por qué tiene forma de Mariposa?</h2>
+            <p id="info-p-butterfly">Cuando el sistema es caótico (Rho=28), el punto nunca se queda quieto. Gira alrededor de un "ala", se vuelve inestable y salta a la otra. Lo increíble es que nunca se cruza consigo mismo y nunca repite la misma trayectoria exacta, dibujando una estructura fractal infinita en un espacio finito.</p>
+            
+            <div class="dl-section">
+                <h3 style="color:var(--primary); margin-bottom:15px;" id="h-dl-data">Descarga de Datos (Cálculo)</h3>
+                <p id="p-dl-data" style="font-size:0.9rem;">Descarga las coordenadas (X, Y, Z) generadas por la simulación en formato CSV para utilizarlas en software matemático externo.</p>
+                <button onclick="downloadData()" class="btn-txt-dl" id="btn-dl-data">⬇ Descargar Coordenadas (.csv)</button>
+            </div>
+        </div>
+
+        <div class="ad-container">
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-3150277567590534"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+    </div>
+
+    <footer>
+        <div class="legal-links">
+            <a href="../../legal.html" id="link-legal">Aviso Legal</a>
+            <a href="../../privacy.html" id="link-privacy">Política de Privacidad</a>
+            <a href="../../cookies.html" id="link-cookies">Política de Cookies</a>
+            <a href="mailto:pbazan@gmail.com" id="link-contact">Contacto</a>
+        </div>
+        <span id="footer-rights">© 2026 Graphics Labs</span>
+        <a href="https://paypal.me/pbazan" target="_blank" class="coffee-btn">☕ <span id="btn-coffee">Invítame a un café</span></a>
+    </footer>
+
+    <script>
+        /* --- 1. CONFIGURACIÓN --- */
+        const canvas = document.getElementById('chaos-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let x = 0.1, y = 0, z = 0;
+        let sigma = 10, rho = 28, beta = 8/3;
+        let points = [];
+        let angleX = 0, angleY = 0;
+        
+        const slSigma = document.getElementById('sl-sigma');
+        const slRho = document.getElementById('sl-rho');
+        const slBeta = document.getElementById('sl-beta');
+        const slSpeed = document.getElementById('sl-speed');
+        
+        slSigma.oninput = () => { sigma = parseFloat(slSigma.value); document.getElementById('val-sigma').innerText = sigma.toFixed(1); restartSim(false); };
+        slRho.oninput = () => { rho = parseFloat(slRho.value); document.getElementById('val-rho').innerText = rho.toFixed(1); restartSim(false); };
+        slBeta.oninput = () => { beta = parseFloat(slBeta.value); document.getElementById('val-beta').innerText = beta.toFixed(1); restartSim(false); };
+
+        /* --- 2. LÓGICA DE SIMULACIÓN --- */
+        function calculate() {
+            let dt = 0.01;
+            const steps = parseInt(slSpeed.value) * 2;
+            for(let i=0; i<steps; i++) {
+                let dx = (sigma * (y - x)) * dt;
+                let dy = (x * (rho - z) - y) * dt;
+                let dz = (x * y - beta * z) * dt;
+                x = x + dx; y = y + dy; z = z + dz;
+                points.push({x, y, z});
+                if(points.length > 3000) points.shift();
+            }
+        }
+
+        /* --- 3. DIBUJADO (PROYECCIÓN 3D) --- */
+        function draw() {
+            ctx.fillStyle = "rgba(0, 0, 0, 1)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            calculate();
+            const cx = canvas.width / 2, cy = canvas.height / 2 + 50, scale = 12;
+            if (points.length < 2) { requestAnimationFrame(draw); return; }
+            for (let i = 0; i < points.length - 1; i++) {
+                let p = points[i], nextP = points[i+1];
+                let rotX = p.x * Math.cos(angleY) - p.z * Math.sin(angleY), rotZ = p.x * Math.sin(angleY) + p.z * Math.cos(angleY), rotY = p.y * Math.cos(angleX) - rotZ * Math.sin(angleX);
+                let nRotX = nextP.x * Math.cos(angleY) - nextP.z * Math.sin(angleY), nRotZ = nextP.x * Math.sin(angleY) + nextP.z * Math.cos(angleY), nRotY = nextP.y * Math.cos(angleX) - nRotZ * Math.sin(angleX);
+                let px = cx + rotX * scale, py = cy - rotY * scale, npx = cx + nRotX * scale, npy = cy - nRotY * scale;
+                let ratio = i / points.length;
+                ctx.strokeStyle = `rgb(${ratio * 189},${255 - ratio * 255},${65 + ratio * 190})`;
+                ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(npx, npy); ctx.stroke();
+            }
+            requestAnimationFrame(draw);
+        }
+
+        /* --- 4. INTERACTIVIDAD --- */
+        let isDragging = false, lastMouseX = 0, lastMouseY = 0;
+        canvas.addEventListener('mousedown', e => { isDragging = true; lastMouseX = e.offsetX; lastMouseY = e.offsetY; });
+        window.addEventListener('mouseup', () => isDragging = false);
+        canvas.addEventListener('mousemove', e => { if(isDragging) { angleY += (e.offsetX - lastMouseX) * 0.01; angleX += (e.offsetY - lastMouseY) * 0.01; lastMouseX = e.offsetX; lastMouseY = e.offsetY; }});
+        canvas.addEventListener('touchstart', e => { e.preventDefault(); isDragging = true; const rect = canvas.getBoundingClientRect(); lastMouseX = e.touches[0].clientX - rect.left; lastMouseY = e.touches[0].clientY - rect.top; }, { passive: false });
+        window.addEventListener('touchend', () => isDragging = false);
+        canvas.addEventListener('touchmove', e => { e.preventDefault(); if(isDragging) { const rect = canvas.getBoundingClientRect(); const touchX = e.touches[0].clientX - rect.left, touchY = e.touches[0].clientY - rect.top; angleY += (touchX - lastMouseX) * 0.01; angleX += (touchY - lastMouseY) * 0.01; lastMouseX = touchX; lastMouseY = touchY; } }, { passive: false });
+
+        function restartSim(clear = true) { x = 0.1; y = 0; z = 0; if(clear) points = []; }
+        function saveImage() { const link = document.createElement('a'); link.download = 'chaos.png'; link.href = canvas.toDataURL(); link.click(); }
+        function downloadData() { let csv = "Step,X,Y,Z\n"; points.forEach((p, i) => csv += `${i},${p.x},${p.y},${p.z}\n`); const blob = new Blob([csv], {type: 'text/csv'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'lorenz.csv'; a.click(); }
+
+        /* --- 5. NAVEGACIÓN INTELIGENTE --- */
+        document.addEventListener('DOMContentLoaded', () => {
+            const navMath = document.getElementById('nav-math-smart');
+            if (document.referrer && document.referrer.includes(window.location.hostname)) {
+                navMath.addEventListener('click', (e) => { e.preventDefault(); history.back(); });
+            }
+        });
+
+        /* --- 6. MULTI-IDIOMA --- */
+        const translations = {
+            'es': { nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH", title: "PROYECTO CAOS", desc: "Simulación del Atractor de Lorenz y el Efecto Mariposa.", lbl_speed: "Velocidad de Simulación:", btn_restart: "REINICIAR", btn_save: "💾 IMG", txt_note: "Arrastra el ratón sobre el canvas para rotar la vista 3D.", h_history: "La Historia: Un \"Error\" Meteorológico", p_history: "En 1963, Edward Lorenz descubrió el Caos Determinista al repetir una simulación meteorológica con una mínima variación en los datos iniciales, produciendo resultados totalmente divergentes.", h_eq: "Las Ecuaciones Diferenciales (El Motor)", p_eq: "El sistema de Lorenz se define por tres ecuaciones diferenciales ordinarias que dictan la velocidad y dirección del cambio en cada instante:", h_vars: "Variables del Mundo Real", list_vars: "<li><strong>x:</strong> Velocidad de rotación del fluido (convección).</li><li><strong>y:</strong> Diferencia de temperatura entre corrientes.</li><li><strong>z:</strong> Desviación vertical.</li>", h_const: "Las Constantes (Tus Sliders)", list_const: "<li><strong>Sigma (σ):</strong> Viscosidad del fluido.</li><li><strong>Rho (ρ):</strong> Diferencia de temperatura base-tope.</li><li><strong>Beta (β):</strong> Proporción geométrica.</li>", h_butterfly: "¿Por qué tiene forma de Mariposa?", p_butterfly: "Cuando el sistema es caótico, el punto gira alrededor de un \"ala\", se vuelve inestable y salta a la otra.", h_dl_data: "Descarga de Datos", p_dl_data: "Descarga las coordenadas (X, Y, Z) generadas por la simulación en formato CSV.", btn_dl_data: "⬇ Descargar Coordenadas (.csv)", legal: "Aviso Legal", privacy: "Privacidad", cookies: "Cookies", contact: "Contacto", coffee: "Invítame a un café", rights: "© 2026 Graphics Labs" },
+            'en': { nav_main: "← MAIN HUB", nav_math: "← MATH HUB", title: "PROJECT CHAOS", desc: "Lorenz Attractor Simulation and the Butterfly Effect.", lbl_speed: "Simulation Speed:", btn_restart: "RESTART", btn_save: "💾 IMG", txt_note: "Drag mouse over canvas to rotate the 3D view.", h_history: "The History: A Meteorological \"Error\"", p_history: "In 1963, Edward Lorenz discovered Deterministic Chaos by repeating a simulation with a tiny decimal difference, resulting in completely different patterns.", h_eq: "The Differential Equations (The Engine)", p_eq: "The Lorenz system is defined by three ordinary differential equations:", h_vars: "Real World Variables", list_vars: "<li><strong>x:</strong> Rate of fluid rotation.</li><li><strong>y:</strong> Temperature difference.</li><li><strong>z:</strong> Vertical temperature deviation.</li>", h_const: "The Constants (Your Sliders)", list_const: "<li><strong>Sigma (σ):</strong> Fluid viscosity.</li><li><strong>Rho (ρ):</strong> Temp difference base-top.</li><li><strong>Beta (β):</strong> Geometric proportion.</li>", h_butterfly: "Why the Butterfly Shape?", p_butterfly: "In a chaotic state, the point orbits one \"wing\", becomes unstable, and jumps to the other.", h_dl_data: "Data Download", p_dl_data: "Download the (X, Y, Z) coordinates generated by the simulation in CSV format.", btn_dl_data: "⬇ Download Coordinates (.csv)", legal: "Legal Notice", privacy: "Privacy", cookies: "Cookies", contact: "Contact", coffee: "Buy me a coffee", rights: "© 2026 Graphics Labs" },
+            'ca': { nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH", title: "PROJECTE CAOS", desc: "Simulació de l'Atractor de Lorenz i l'Efecte Papallona.", lbl_speed: "Velocitat de Simulació:", btn_restart: "REINICIAR", btn_save: "💾 IMG", txt_note: "Arrossega el ratolí sobre el canvas per rotar la vista 3D.", h_history: "La Història: Un \"Error\" Meteorològic", p_history: "El 1963, Edward Lorenz va descobrir el Caos Determinista al repetir una simulació meteorològica amb una mínima variació inicial.", h_eq: "Les Equacions Diferencials (El Motor)", p_eq: "El sistema de Lorenz es defineix per tres equacions diferencials ordinàries:", h_vars: "Variables del Món Real", list_vars: "<li><strong>x:</strong> Velocitat de rotació.</li><li><strong>y:</strong> Diferència de temperatura.</li><li><strong>z:</strong> Desviació vertical.</li>", h_const: "Les Constants (Els teus Sliders)", list_const: "<li><strong>Sigma (σ):</strong> Viscositat.</li><li><strong>Rho (ρ):</strong> Diferència de temperatura.</li><li><strong>Beta (β):</strong> Proporció geomètrica.</li>", h_butterfly: "Per què té forma de Papallona?", p_butterfly: "Quan el sistema és caòtic, el punt gira al voltant d'una \"ala\", es torna inestable i salta a l'altra.", h_dl_data: "Descàrrega de Dades", p_dl_data: "Descarrega les coordenades (X, Y, Z) en format CSV.", btn_dl_data: "⬇ Descarregar Coordenades (.csv)", legal: "Avís Legal", privacy: "Privacitat", cookies: "Cookies", contact: "Contacte", coffee: "Convida'm a un cafè", rights: "© 2026 Graphics Labs" },
+            'fr': { nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH", title: "PROJET CHAOS", desc: "Simulation de l'Attracteur de Lorenz et Effet Papillon.", lbl_speed: "Vitesse de Simulation:", btn_restart: "REDÉMARRER", btn_save: "💾 IMG", txt_note: "Faites glisser la souris sur le canevas pour faire pivoter la vue 3D.", h_history: "L'Histoire : Une \"Erreur\" Météorologique", p_history: "En 1963, Edward Lorenz a découvert le Chaos Déterministe en répétant une simulation avec une variation infime.", h_eq: "Les Équations Différentielles (Le Moteur)", p_eq: "Le système de Lorenz est défini par trois équations différentielles ordinaires :", h_vars: "Variables du Monde Réel", list_vars: "<li><strong>x:</strong> Vitesse de rotation du fluide.</li><li><strong>y:</strong> Différence de température.</li><li><strong>z:</strong> Déviation verticale.</li>", h_const: "Les Constantes (Vos Sliders)", list_const: "<li><strong>Sigma (σ):</strong> Viscosité.</li><li><strong>Rho (ρ):</strong> Différence de température.</li><li><strong>Beta (β):</strong> Proportion géométrique.</li>", h_butterfly: "Pourquoi une forme de Papillon ?", p_butterfly: "Quand le système est chaotique, le point tourne autour d'une \"aile\", devient instable et saute vers l'autre.", h_dl_data: "Téléchargement de Données", p_dl_data: "Téléchargez les coordonnées (X, Y, Z) au format CSV.", btn_dl_data: "⬇ Télécharger Coordonnées (.csv)", legal: "Mentions Légales", privacy: "Confidentialité", cookies: "Cookies", contact: "Contact", coffee: "Offrez-moi un café", rights: "© 2026 Graphics Labs" },
+            'de': { nav_main: "← HAUPT-HUB", nav_math: "← MATH HUB", title: "PROJEKT CHAOS", desc: "Lorenz-Attraktor-Simulation und der Schmetterlingseffekt.", lbl_speed: "Simulationsgeschwindigkeit:", btn_restart: "NEUSTART", btn_save: "💾 IMG", txt_note: "Ziehen Sie die Maus über die Leinwand, um die 3D-Ansicht zu drehen.", h_history: "Die Geschichte: Ein meteorologischer \"Fehler\"", p_history: "1963 entdeckte Edward Lorenz das deterministische Chaos durch Wiederholung einer Simulation mit minimaler Abweichung.", h_eq: "Die Differentialgleichungen (Der Motor)", p_eq: "Das Lorenz-System wird durch drei gewöhnliche Differentialgleichungen definiert:", h_vars: "Variablen der realen Welt", list_vars: "<li><strong>x:</strong> Rotationsgeschwindigkeit.</li><li><strong>y:</strong> Temperaturunterschied.</li><li><strong>z:</strong> Vertikale Abweichung.</li>", h_const: "Die Konstanten (Ihre Regler)", list_const: "<li><strong>Sigma (σ):</strong> Viskosität.</li><li><strong>Rho (ρ):</strong> Temperaturdifferenz.</li><li><strong>Beta (β):</strong> Geometrische Proportion.</li>", h_butterfly: "Warum die Schmetterlingsform?", p_butterfly: "Wenn das System chaotisch ist, umkreist der Punkt einen \"Flügel\" und springt zum anderen.", h_dl_data: "Daten-Download", p_dl_data: "Laden Sie die (X, Y, Z) Koordinaten im CSV-Format herunter.", btn_dl_data: "⬇ Koordinaten herunterladen (.csv)", legal: "Impressum", privacy: "Datenschutz", cookies: "Cookies", contact: "Kontakt", coffee: "Kauf mir einen Kaffee", rights: "© 2026 Graphics Labs" },
+            'pt': { nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH", title: "PROJETO CAOS", desc: "Simulação do Atrator de Lorenz e o Efeito Borboleta.", lbl_speed: "Velocidade da Simulação:", btn_restart: "REINICIAR", btn_save: "💾 IMG", txt_note: "Arraste o mouse sobre o canvas para girar a visualização 3D.", h_history: "A História: Um \"Erro\" Meteorológico", p_history: "Em 1963, Edward Lorenz descobriu o Caos Determinístico ao repetir uma simulação com uma mínima variação inicial.", h_eq: "As Equações Diferenciais (O Motor)", p_eq: "O sistema de Lorenz é definido por três equações diferenciais ordinárias:", h_vars: "Variáveis do Mundo Real", list_vars: "<li><strong>x:</strong> Velocidade de rotação.</li><li><strong>y:</strong> Diferença de temperatura.</li><li><strong>z:</strong> Desvio vertical.</li>", h_const: "As Constantes (Seus Sliders)", list_const: "<li><strong>Sigma (σ):</strong> Viscosidade.</li><li><strong>Rho (ρ):</strong> Diferença de temperatura.</li><li><strong>Beta (β):</strong> Proporção geométrica.</li>", h_butterfly: "Por que a forma de Borboleta?", p_butterfly: "Quando o sistema é caótico, o ponto gira em torno de uma \"asa\", torna-se instável e salta para a outra.", h_dl_data: "Download de Dados", p_dl_data: "Baixe as coordenadas (X, Y, Z) em formato CSV.", btn_dl_data: "⬇ Baixar Coordenadas (.csv)", legal: "Aviso Legal", privacy: "Privacidade", cookies: "Cookies", contact: "Contato", coffee: "Pagar um café", rights: "© 2026 Graphics Labs" },
+            'it': { nav_main: "← HUB PRINCIPALE", nav_math: "← HUB MATH", title: "PROGETTO CAOS", desc: "Simulazione dell'Attrattore di Lorenz ed Effetto Farfalla.", lbl_speed: "Velocità di Simulazione:", btn_restart: "RIAVVIA", btn_save: "💾 IMG", txt_note: "Trascina il mouse sulla tela per ruotare la vista 3D.", h_history: "La Storia: Un \"Errore\" Meteorologico", p_history: "Nel 1963, Edward Lorenz scoprì il Caos Deterministico ripetendo una simulazione con una minima variazione iniziale.", h_eq: "Le Equazioni Differenziali (Il Motore)", p_eq: "Il sistema di Lorenz è definito da tre equazioni differenziali ordinarie:", h_vars: "Variabili del Mondo Reale", list_vars: "<li><strong>x:</strong> Velocità di rotazione.</li><li><strong>y:</strong> Differenza di temperatura.</li><li><strong>z:</strong> Deviazione verticale.</li>", h_const: "Le Costanti (I tuoi Slider)", list_const: "<li><strong>Sigma (σ):</strong> Viscosità.</li><li><strong>Rho (ρ):</strong> Differenza di temperatura.</li><li><strong>Beta (β):</strong> Proporzione geometrica.</li>", h_butterfly: "Perché la forma a Farfalla?", p_butterfly: "Quando il sistema è caotico, il punto ruota attorno a un'\"ala\", diventa instabile e salta all'altra.", h_dl_data: "Download Dati", p_dl_data: "Scarica le coordinate (X, Y, Z) in formato CSV.", btn_dl_data: "⬇ Scarica Coordinate (.csv)", legal: "Note Legali", privacy: "Privacy", cookies: "Cookies", contact: "Contatto", coffee: "Offrimi un caffè", rights: "© 2026 Graphics Labs" },
+            'nl': { nav_main: "← HOOFDHUB", nav_math: "← MATH HUB", title: "PROJECT CHAOS", desc: "Lorenz Attractor Simulatie en het Vlinder Effect.", lbl_speed: "Simulatiesnelheid:", btn_restart: "HERSTARTEN", btn_save: "💾 IMG", txt_note: "Sleep de muis over het canvas om de 3D-weergave te draaien.", h_history: "De Geschiedenis: Een Meteorologische \"Fout\"", p_history: "In 1963 ontdekte Edward Lorenz Deterministische Chaos door een simulatie met een minimale afwijking te herhalen.", h_eq: "De Differentiaalvergelijkingen (De Motor)", p_eq: "Het Lorenz-systeem wordt gedefinieerd door drie gewone differentiaalvergelijkingen:", h_vars: "Variabelen uit de echte wereld", list_vars: "<li><strong>x:</strong> Rotatiesnelheid.</li><li><strong>y:</strong> Temperatuurverschil.</li><li><strong>z:</strong> Verticale afwijking.</li>", h_const: "De Constanten (Je Sliders)", list_const: "<li><strong>Sigma (σ):</strong> Viscositeit.</li><li><strong>Rho (ρ):</strong> Temperatuurverschil.</li><li><strong>Beta (β):</strong> Geometrische verhouding.</li>", h_butterfly: "Waarom de Vlindervorm?", p_butterfly: "Wanneer het systeem chaotisch is, draait het punt om een \"vleugel\" en springt naar de andere.", h_dl_data: "Gegevens Downloaden", p_dl_data: "Download de (X, Y, Z) coördinaten in CSV-formaat.", btn_dl_data: "⬇ Download Coördinaten (.csv)", legal: "Juridisch", privacy: "Privacy", cookies: "Cookies", contact: "Contact", coffee: "Koop koffie", rights: "© 2026 Graphics Labs" },
+            'ja': { nav_main: "← メインハブ", nav_math: "← 数学ハブ", title: "プロジェクト・カオス", desc: "ローレンツ・アトラクタのシミュレーションとバタフライ効果。", lbl_speed: "シミュレーション速度:", btn_restart: "再起動", btn_save: "💾 画像保存", txt_note: "キャンバス上でマウスをドラッグして3Dビューを回転させます。", h_history: "歴史：気象学的「エラー」", p_history: "1963年、エドワード・ローレンツは最小限の初期変動でシミュレーションを繰り返し、決定論的カオスを発見しました。", h_eq: "微分方程式（エンジン）", p_eq: "ローレンツシステムは、3つの常微分方程式によって定義されます：", h_vars: "現実世界の変数", list_vars: "<li><strong>x:</strong> 流体の回転速度。</li><li><strong>y:</strong> 温度差。</li><li><strong>z:</strong> 垂直温度偏差。</li>", h_const: "定数（スライダー）", list_const: "<li><strong>Sigma (σ):</strong> 流体の粘度。</li><li><strong>Rho (ρ):</strong> 温度差。</li><li><strong>Beta (β):</strong> 幾何学的比率。</li>", h_butterfly: "なぜ蝶の形なのか？", p_butterfly: "システムがカオスの場合、点は一つの「翼」の周りを回り、もう一方に飛び移ります。", h_dl_data: "データダウンロード", p_dl_data: "（X、Y、Z）座標をCSV形式でダウンロードします。", btn_dl_data: "⬇ 座標をDL (.csv)", legal: "法的通知", privacy: "プライバシー", cookies: "クッキー", contact: "連絡先", coffee: "コーヒーを奢る", rights: "© 2026 Graphics Labs" }
+        };
+
+        function setLang(lang) {
+            localStorage.setItem('gl_lang', lang);
+            const t = translations[lang] || translations['es'];
+            document.getElementById('nav-main').innerText = t.nav_main;
+            document.getElementById('nav-math-smart').innerText = t.nav_math;
+            document.getElementById('txt-title').innerText = t.title;
+            document.getElementById('txt-desc').innerText = t.desc;
+            document.getElementById('lbl-speed').innerText = t.lbl_speed;
+            document.getElementById('btn-restart').innerText = t.btn_restart;
+            document.getElementById('btn-save').innerText = t.btn_save;
+            document.getElementById('txt-note').innerText = t.txt_note;
+            document.getElementById('info-h-history').innerText = t.h_history;
+            document.getElementById('info-p-history').innerText = t.p_history;
+            document.getElementById('info-h-eq').innerText = t.h_eq;
+            document.getElementById('info-p-eq').innerText = t.p_eq;
+            document.getElementById('info-h-vars').innerText = t.h_vars;
+            document.getElementById('info-list-vars').innerHTML = t.list_vars;
+            document.getElementById('info-h-const').innerText = t.h_const;
+            document.getElementById('info-list-const').innerHTML = t.list_const;
+            document.getElementById('info-h-butterfly').innerText = t.h_butterfly;
+            document.getElementById('info-p-butterfly').innerText = t.p_butterfly;
+            document.getElementById('h-dl-data').innerText = t.h_dl_data;
+            document.getElementById('p-dl-data').innerText = t.p_dl_data;
+            document.getElementById('btn-dl-data').innerText = t.btn_dl_data;
+            document.getElementById('link-legal').innerText = t.legal;
+            document.getElementById('link-privacy').innerText = t.privacy;
+            document.getElementById('link-cookies').innerText = t.cookies;
+            document.getElementById('link-contact').innerText = t.contact;
+            document.getElementById('btn-coffee').innerText = t.coffee;
+            document.getElementById('footer-rights').innerText = t.rights;
+            document.querySelectorAll('.lang-switch button').forEach(b => { b.classList.remove('active'); if(b.id === 'btn-' + lang) b.classList.add('active'); });
+        }
+
+        /* --- FONDO ANIMADO --- */
+        const bgCanvas = document.getElementById('bg-canvas'), bgCtx = bgCanvas.getContext('2d');
+        let particlesArray = [];
+        const mouseBg = { x: null, y: null, radius: 150 };
+        function resizeBg() { bgCanvas.width = window.innerWidth; bgCanvas.height = window.innerHeight; }
+        window.addEventListener('resize', () => { resizeBg(); initParticles(); });
+        window.addEventListener('mousemove', (e) => { mouseBg.x = e.x; mouseBg.y = e.y; });
+        resizeBg();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * bgCanvas.width; this.y = Math.random() * bgCanvas.height;
+                this.size = Math.random() * 12 + 8; this.speedX = (Math.random() * 1) - 0.5; this.speedY = (Math.random() * 1) - 0.5;
+                const symbols = ['∫', 'dx', 'dy', 'dt', 'σ', 'ρ', 'β', '∆', '∞']; this.text = symbols[Math.floor(Math.random() * symbols.length)];
+            }
+            draw() { bgCtx.font = this.size + 'px monospace'; bgCtx.fillStyle = 'rgba(0, 255, 65, 0.1)'; bgCtx.fillText(this.text, this.x, this.y); }
+            update() {
+                this.x += this.speedX; this.y += this.speedY;
+                if (mouseBg.x != null) {
+                    let dx = mouseBg.x - this.x, dy = mouseBg.y - this.y, dist = Math.sqrt(dx*dx + dy*dy);
+                    if (dist < mouseBg.radius) { this.x -= (dx/dist) * ((mouseBg.radius-dist)/mouseBg.radius) * 5; this.y -= (dy/dist) * ((mouseBg.radius-dist)/mouseBg.radius) * 5; }
+                }
+                if (this.x > bgCanvas.width) this.x = 0; if (this.x < 0) this.x = bgCanvas.width;
+                if (this.y > bgCanvas.height) this.y = 0; if (this.y < 0) this.y = bgCanvas.height;
+                this.draw();
+            }
+        }
+        function initParticles() { particlesArray = []; let n = (bgCanvas.height * bgCanvas.width) / 9000; for (let i = 0; i < n; i++) particlesArray.push(new Particle()); }
+        function animateParticles() { bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height); for (let i = 0; i < particlesArray.length; i++) particlesArray[i].update(); requestAnimationFrame(animateParticles); }
+
+        initParticles(); animateParticles(); setLang(localStorage.getItem('gl_lang') || 'es'); requestAnimationFrame(draw);
+    </script>
+</body>
+</html>

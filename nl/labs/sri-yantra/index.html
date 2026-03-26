@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <script>
+    // --- i18n URL Router ---
+    (function() {
+        window.__GL_LANG = 'nl';
+        window.__GL_LANG_UPPER = 'NL';
+        window.__GL_LANGS = ['es', 'ca', 'en', 'fr', 'de', 'pt', 'it', 'nl', 'ja'];
+        
+        // Override localStorage to always use URL-based language
+        localStorage.setItem('gl_lang', 'nl');
+        
+        // Language switcher: navigate to the equivalent page in the target language folder
+        window.switchLangUrl = function(targetLang) {
+            var path = window.location.pathname;
+            // Replace current lang segment with target lang
+            var newPath = path.replace(/^\/(es|ca|en|fr|de|pt|it|nl|ja)\//, '/' + targetLang.toLowerCase() + '/');
+            if (newPath === path) {
+                // Fallback: prepend lang
+                newPath = '/' + targetLang.toLowerCase() + '/';
+            }
+            window.location.href = newPath + window.location.hash;
+        };
+        
+        // Auto-call setLang on DOMContentLoaded to apply translations
+        // Some labs use uppercase keys (ES/EN), others lowercase (es/en)
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof setLang === 'function') {
+                // Try uppercase first (used by most lab pages with inline translations)
+                try { setLang('NL'); } catch(e) {}
+                // Also try lowercase (used by magic-square style pages)
+                try { setLang('nl'); } catch(e) {}
+            }
+        });
+    })();
+    </script>
+    <title>Sri Yantra | Graphics Labs</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Interactief Sri Yantra-laboratorium. Experimenteer met generatieve kunst en visuele wiskunde bij Graphics Labs.">
+    
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3150277567590534"
+     crossorigin="anonymous"></script>
+    <style>
+        :root {
+            --primary: #00ff41;
+            --glass: rgba(255, 255, 255, 0.05);
+            --nav-bg: rgba(0, 0, 0, 0.85);
+        }
+
+        body {
+            margin: 0; background-color: #080808; font-family: 'Segoe UI', Roboto, sans-serif; color: #ddd;
+            overflow-x: hidden; line-height: 1.6;
+        }
+
+        /* --- SISTEMA DE NAVEGACIÓN SUPERIOR --- */
+        .top-nav {
+            position: fixed; top: 0; left: 0; width: 100%; height: 65px;
+            background: var(--nav-bg); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 20px; box-sizing: border-box; z-index: 1000;
+            border-bottom: 1px solid var(--glass);
+        }
+        .nav-left { display: flex; align-items: center; gap: 15px; }
+        .nav-brand { color: var(--primary); font-weight: 900; letter-spacing: 2px; font-size: 1.2em; text-decoration: none; }
+        .nav-btn { 
+            background: var(--glass); border: 1px solid #333; color: #fff; padding: 6px 12px; 
+            border-radius: 4px; text-decoration: none; font-size: 0.8em; font-weight: bold; transition: 0.3s;
+        }
+        .nav-btn:hover { background: var(--primary); color: #000; border-color: var(--primary); }
+
+        .lang-selector { display: flex; gap: 5px; }
+        .lang-btn { 
+            background: transparent; border: 1px solid #444; color: #888; padding: 4px 8px; 
+            border-radius: 3px; cursor: pointer; font-size: 0.7em; transition: 0.3s;
+        }
+        .lang-btn.active { border-color: var(--primary); color: var(--primary); background: rgba(0, 255, 65, 0.1); }
+
+        /* --- LAYOUT APP --- */
+        #app-wrapper { height: 100vh; padding-top: 65px; box-sizing: border-box; border-bottom: 1px solid #222; }
+        #main-container { display: flex; width: 100%; height: 100%; }
+        
+        #canvas-container {
+            flex: 3; display: flex; justify-content: center; align-items: center;
+            background-color: #ffffff; padding: 20px; transition: background-color 0.2s ease;
+        }
+        canvas { box-shadow: 0 0 40px rgba(0,0,0,0.15); border-radius: 50%; max-width: 100%; max-height: 100%; }
+
+        #controls-container {
+            flex: 1.5; min-width: 350px; background-color: #111; padding: 20px;
+            overflow-y: auto; box-shadow: -5px 0 15px rgba(0,0,0,0.3); border-left: 1px solid #222;
+        }
+        
+        h2.app-title { color: var(--primary); margin-bottom: 20px; text-align: center; letter-spacing: 2px; text-transform: uppercase; font-size: 1.2em;}
+        
+        .btn-group { display: flex; gap: 10px; margin-bottom: 25px; }
+        .export-btn {
+            flex: 1; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;
+            transition: 0.2s; font-size: 0.9em;
+        }
+        #btnPng { background-color: var(--primary); color: #000; }
+        #btnJpg { background-color: #fff; color: #000; }
+
+        h3.section-header { 
+            color: #eee; margin-top: 30px; margin-bottom: 15px; border-bottom: 1px solid #333;
+            padding-bottom: 8px; font-size: 0.9em; text-transform: uppercase; letter-spacing: 1px;
+        }
+
+        .control-group { background: var(--glass); border: 1px solid #333; border-radius: 8px; padding: 15px; margin-bottom: 18px; }
+        .triangle-title { font-weight: bold; margin-bottom: 12px; display: inline-block; font-size: 0.85em; padding: 2px 5px; border-radius: 4px; }
+        .high-contrast-label { background-color: rgba(240, 240, 240, 0.95) !important; color: #000 !important; }
+
+        .control-row { display: flex; align-items: center; margin-bottom: 10px; font-size: 0.85em; }
+        .control-label { flex: 1; color: #aaa; }
+        
+        input[type=color] { border: none; width: 50px; height: 30px; border-radius: 4px; cursor: pointer; background: none; }
+        input[type=range] { flex-grow: 2; cursor: pointer; accent-color: var(--primary); }
+        .value-display { width: 35px; text-align: right; color: var(--primary); font-family: monospace; font-weight: bold; }
+
+        /* --- ADS & CONTENT --- */
+        .ad-container {
+            border: 1px dashed #444; background: #0a0a0a; color: #555;
+            padding: 20px; margin: 40px auto; max-width: 900px; text-align: center;
+            font-family: 'Courier New', monospace; font-size: 0.8em; letter-spacing: 2px;
+        }
+
+        .content-section { max-width: 900px; margin: 0 auto; padding: 20px; }
+        article h2 { color: var(--primary); border-left: 4px solid var(--primary); padding-left: 15px; margin-top: 60px; font-size: 1.8em; }
+        article p { margin-bottom: 20px; font-size: 1.1em; color: #ccc; text-align: justify; }
+        article ul { list-style: none; padding: 0; }
+        article li { margin-bottom: 15px; padding-left: 20px; border-left: 2px solid var(--primary); color: #bbb; }
+        article strong { color: #fff; }
+
+        footer { background-color: #050505; padding: 60px 20px; text-align: center; border-top: 1px solid #222; font-size: 0.9em; color: #666; }
+        .paypal-btn {
+            display: inline-block; background: #0070ba; color: #fff; padding: 12px 25px; 
+            border-radius: 50px; text-decoration: none; font-weight: bold; margin-bottom: 30px;
+            transition: 0.3s; box-shadow: 0 4px 15px rgba(0, 112, 186, 0.3);
+        }
+        .footer-links { margin: 20px 0; }
+        .footer-links a { color: #888; text-decoration: none; margin: 0 10px; }
+        .footer-links a:hover { color: var(--primary); }
+
+        @media (max-width: 800px) {
+            #main-container { flex-direction: column; }
+            #app-wrapper { height: auto; }
+            #canvas-container { height: 50vh; }
+            .lang-selector { display: none; }
+        }
+    </style>
+    <link rel="canonical" href="https://graphics-labs.org/nl/labs/sri-yantra/" />
+
+    <link rel="alternate" hreflang="es" href="https://graphics-labs.org/es/labs/sri-yantra/" />
+    <link rel="alternate" hreflang="ca" href="https://graphics-labs.org/ca/labs/sri-yantra/" />
+    <link rel="alternate" hreflang="en" href="https://graphics-labs.org/en/labs/sri-yantra/" />
+    <link rel="alternate" hreflang="fr" href="https://graphics-labs.org/fr/labs/sri-yantra/" />
+    <link rel="alternate" hreflang="de" href="https://graphics-labs.org/de/labs/sri-yantra/" />
+    <link rel="alternate" hreflang="pt" href="https://graphics-labs.org/pt/labs/sri-yantra/" />
+    <link rel="alternate" hreflang="it" href="https://graphics-labs.org/it/labs/sri-yantra/" />
+    <link rel="alternate" hreflang="nl" href="https://graphics-labs.org/nl/labs/sri-yantra/" />
+    <link rel="alternate" hreflang="ja" href="https://graphics-labs.org/ja/labs/sri-yantra/" />
+    <link rel="alternate" hreflang="x-default" href="https://graphics-labs.org/es/labs/sri-yantra/" />
+</head>
+<body>
+
+<nav class="top-nav">
+    <div class="nav-left">
+        <a href="../../index.html" class="nav-btn" data-i18n="nav_hub">HUB</a>
+        <a href="javascript:history.back()" class="nav-btn" data-i18n="nav_back">BACK</a>
+        <span class="nav-brand">GRAPHICS LABS</span>
+    </div>
+    <div class="lang-selector">
+        <button class="lang-btn active" onclick="changeLanguage('es')">ES</button>
+        <button class="lang-btn" onclick="changeLanguage('ca')">CA</button>
+        <button class="lang-btn" onclick="changeLanguage('en')">EN</button>
+        <button class="lang-btn" onclick="changeLanguage('fr')">FR</button>
+        <button class="lang-btn" onclick="changeLanguage('de')">DE</button>
+        <button class="lang-btn" onclick="changeLanguage('pt')">PT</button>
+        <button class="lang-btn" onclick="changeLanguage('it')">IT</button>
+        <button class="lang-btn" onclick="changeLanguage('nl')">NL</button>
+        <button class="lang-btn" onclick="changeLanguage('ja')">JA</button>
+    </div>
+</nav>
+
+<div id="app-wrapper">
+    <div id="main-container">
+        <div id="canvas-container">
+            <canvas id="yantraCanvas"></canvas>
+        </div>
+
+        <div id="controls-container">
+            <h2 class="app-title" data-i18n="app_panel">PANEL DE CONTROL</h2>
+            
+            <div class="btn-group">
+                <button id="btnPng" class="export-btn">💾 PNG</button>
+                <button id="btnJpg" class="export-btn">📸 JPG</button>
+            </div>
+            
+            <div id="sliders-dock"></div>
+        </div>
+    </div>
+</div>
+
+<div class="ad-container">
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-3150277567590534"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+
+<section class="content-section">
+    <article>
+        <h2 data-i18n="art_h1">¿Qué es el Sri Yantra y por qué es tan difícil de dibujar?</h2>
+        <p data-i18n="art_p1">El <strong>Sri Yantra</strong> (o Sri Chakra) es uno de los símbolos más antiguos y poderosos de la geometría sagrada tántrica. Representa la unión de lo Masculino Divino y lo Femenino Divino, la danza cósmica entre el orden y el caos que crea el universo material.</p>
+        <p data-i18n="art_p2">Visualmente, se compone de nueve triángulos entrelazados que irradian desde un punto central o <em>bindu</em>. Cuatro triángulos apuntan hacia arriba, representando a <strong>Shiva</strong> (la conciencia masculina), y cinco apuntan hacia abajo, representando a <strong>Shakti</strong> (la energía femenina creativa).</p>
+
+        <h2 data-i18n="art_h2">El Reto Matemático de las 14 Intersecciones</h2>
+        <p data-i18n="art_p3">Dibujar un Sri Yantra perfecto es un problema geométrico famoso. A diferencia de otros mandalas que son puramente artísticos, el Sri Yantra requiere una precisión matemática extrema. Los nueve triángulos deben entrelazarse de tal manera que formen 43 triángulos más pequeños, y lo más difícil: deben coincidir perfectamente en <strong>14 puntos nodales de intersección</strong>.</p>
+        <p data-i18n="art_p4">Si intentas dibujarlo con regla y compás sin cálculos previos, descubrirás que las líneas casi nunca se encuentran en el punto exacto. Siempre queda un pequeño error. Por eso hemos creado <strong>Sri Sharka Lab</strong>.</p>
+
+        <h2 data-i18n="art_h3">Cómo usar Sri Sharka Lab</h2>
+        <p data-i18n="art_p5">Esta herramienta ha sido diseñada para artistas, meditadores y estudiantes de geometría sagrada. A diferencia de las imágenes estáticas, este laboratorio es <strong>paramétrico</strong>, lo que te da control total sobre la forma:</p>
+        
+        <ul>
+            <li data-i18n="art_li1"><strong>Control de Espectro Total:</strong> No te limites al blanco y negro. Usa los selectores de color para elegir cualquier tono del espectro visible para las fuerzas de Shiva, Shakti y el fondo. El sistema ajustará automáticamente el contraste de la interfaz.</li>
+            <li data-i18n="art_li2"><strong>Ajuste de Precisión:</strong> Usa los deslizadores para mover la <strong>Punta</strong>, la <strong>Base</strong> y el <strong>Ancho</strong> de cada uno de los 9 triángulos de forma independiente. Esto te permite buscar visualmente la "intersección perfecta" o experimentar con nuevas variantes del Yantra.</li>
+            <li data-i18n="art_li3"><strong>Exportación en Alta Resolución:</strong> Descarga tus creaciones en formato PNG (transparencia) o JPG (con fondo sólido) para usarlas en tus proyectos, impresiones o meditaciones digitales.</li>
+        </ul>
+
+        <h2 data-i18n="art_h4">El Significado Espiritual</h2>
+        <p data-i18n="art_p6">Meditar sobre el Sri Yantra o dedicar tiempo a construirlo ayuda a equilibrar los hemisferios cerebrales. La parte lógica (izquierda) se ocupa de la estructura geométrica, mientras que la parte creativa (derecha) se ocupa de la armonía visual. <strong>Sri Sharka Lab</strong> te invita a entrar en ese estado de flujo, convirtiendo el diseño digital en una práctica espiritual moderna.</p>
+    </article>
+</section>
+
+<div class="ad-container">
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-3150277567590534"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+
+<footer>
+    <a href="https://www.paypal.com/paypalme/pbazan" target="_blank" class="paypal-btn" data-i18n="footer_coffee">☕ Invítame a un café</a>
+    <div class="footer-links">
+        <a href="../../legal.html#aviso" data-i18n="footer_legal">Aviso Legal</a>
+        <a href="../../legal.html#privacidad" data-i18n="footer_privacy">Privacidad</a>
+        <a href="../../legal.html#cookies" data-i18n="footer_cookies">Cookies</a>
+        <a href="mailto:pbazan@gmail.com" data-i18n="footer_contact">Contacto</a>
+    </div>
+    <p>Copyright © 2026 Graphics Labs. <span data-i18n="footer_rights">Todos los derechos reservados.</span></p>
+</footer>
+
+<script>
+    // --- SISTEMA I18N ---
+const translations = {
+    es: {
+        nav_hub: "HUB", nav_back: "VOLVER", app_panel: "PANEL DE CONTROL",
+        group_colors: "Paleta de Colores", group_shiva: "Geometría Shiva", group_shakti: "Geometría Shakti",
+        label_bg: "Fondo:", label_shiva: "Fuerza Shiva:", label_shakti: "Fuerza Shakti:",
+        label_apex: "Punta:", label_base: "Base:", label_width: "Ancho:",
+        footer_coffee: "☕ Invítame a un café", footer_rights: "Todos los derechos reservados.",
+        art_h1: "¿Qué es el Sri Yantra y por qué es tan difícil de dibujar?",
+        art_p1: "El <strong>Sri Yantra</strong> (o Sri Chakra) es uno de los símbolos más antiguos y poderosos de la geometría sagrada tántrica. Representa la unión de lo Masculino Divino y lo Femenino Divino, la danza cósmica entre el orden y el caos que crea el universo material.",
+        art_p2: "Visualmente, se compone de nueve triángulos entrelazados que irradian desde un punto central o <em>bindu</em>. Cuatro triángulos apuntan hacia arriba, representando a <strong>Shiva</strong> (la conciencia masculina), y cinco apuntan hacia abajo, representando a <strong>Shakti</strong> (la energía femenina creativa).",
+        art_h2: "El Reto Matemático de las 14 Intersecciones",
+        art_p3: "Dibujar un Sri Yantra perfecto es un problema geométrico famoso. A diferencia de otros mandalas que son puramente artísticos, el Sri Yantra requiere una precisión matemática extrema. Los nueve triángulos deben entrelazarse de tal manera que formen 43 triángulos más pequeños, y lo más difícil: deben coincidir perfectamente en <strong>14 puntos nodales de intersección</strong>.",
+        art_p4: "Si intentas dibujarlo con regla y compás sin cálculos previos, descubrirás que las líneas casi nunca se encuentran en el punto exacto. Siempre queda un pequeño error. Por eso hemos creado <strong>Sri Sharka Lab</strong>.",
+        art_h3: "Cómo usar Sri Sharka Lab",
+        art_p5: "Esta herramienta ha sido diseñada para artistas, meditadores y estudiantes de geometría sagrada. A diferencia de las imágenes estáticas, este laboratorio es <strong>paramétrico</strong>, lo que te da control total sobre la forma:",
+        art_li1: "<strong>Control de Espectro Total:</strong> No te limites al blanco y negro. Usa los selectores de color para elegir cualquier tono del espectro visible para las fuerzas de Shiva, Shakti y el fondo. El sistema ajustará automáticamente el contraste de la interfaz.",
+        art_li2: "<strong>Ajuste de Precisión:</strong> Usa los deslizadores para mover la <strong>Punta</strong>, la <strong>Base</strong> y el <strong>Ancho</strong> de cada uno de los 9 triángulos de forma independiente. Esto te permite buscar visualmente la \"intersección perfecta\" o experimentar con nuevas variantes del Yantra.",
+        art_li3: "<strong>Exportación en Alta Resolución:</strong> Descarga tus creaciones en formato PNG (transparencia) o JPG (con fondo sólido) para usarlas en tus proyectos, impresiones o meditaciones digitales.",
+        art_h4: "El Significado Espiritual",
+        art_p6: "Meditar sobre el Sri Yantra o dedicar tiempo a construirlo ayuda a equilibrar los hemisferios cerebrales. La parte lógica (izquierda) se ocupa de la estructura geométrica, mientras que la parte creativa (derecha) se ocupa de la armonía visual. <strong>Sri Sharka Lab</strong> te invita a entrar en ese estado de flujo, convirtiendo el diseño digital en una práctica espiritual moderna."
+    },
+    en: {
+        nav_hub: "HUB", nav_back: "BACK", app_panel: "CONTROL PANEL",
+        group_colors: "Color Palette", group_shiva: "Shiva Geometry", group_shakti: "Shakti Geometry",
+        label_bg: "Background:", label_shiva: "Shiva Force:", label_shakti: "Shakti Force:",
+        label_apex: "Apex:", label_base: "Base:", label_width: "Width:",
+        footer_coffee: "☕ Buy me a coffee", footer_rights: "All rights reserved.",
+        art_h1: "What is the Sri Yantra and why is it so hard to draw?",
+        art_p1: "The <strong>Sri Yantra</strong> (or Sri Chakra) is one of the oldest and most powerful symbols of tantric sacred geometry. It represents the union of the Divine Masculine and the Divine Feminine, the cosmic dance between order and chaos that creates the material universe.",
+        art_p2: "Visually, it is composed of nine interlocking triangles radiating from a central point or <em>bindu</em>. Four triangles point upwards, representing <strong>Shiva</strong> (masculine consciousness), and five point downwards, representing <strong>Shakti</strong> (creative feminine energy).",
+        art_h2: "The Mathematical Challenge of the 14 Intersections",
+        art_p3: "Drawing a perfect Sri Yantra is a famous geometric problem. Unlike other mandalas that are purely artistic, the Sri Yantra requires extreme mathematical precision. The nine triangles must interlock in such a way that they form 43 smaller triangles, and most difficult: they must coincide perfectly at <strong>14 nodal points of intersection</strong>.",
+        art_p4: "If you try to draw it with a ruler and compass without prior calculations, you will find that the lines almost never meet at the exact point. There is always a small error. That is why we created <strong>Sri Sharka Lab</strong>.",
+        art_h3: "How to use Sri Sharka Lab",
+        art_p5: "This tool has been designed for artists, meditators, and students of sacred geometry. Unlike static images, this laboratory is <strong>parametric</strong>, giving you total control over the form:",
+        art_li1: "<strong>Total Spectrum Control:</strong> Don't limit yourself to black and white. Use the color pickers to choose any shade of the visible spectrum for the forces of Shiva, Shakti, and the background. The system will automatically adjust the interface contrast.",
+        art_li2: "<strong>Precision Adjustment:</strong> Use the sliders to move the <strong>Apex</strong>, <strong>Base</strong>, and <strong>Width</strong> of each of the 9 triangles independently. This allows you to visually search for the \"perfect intersection\" or experiment with new variants of the Yantra.",
+        art_li3: "<strong>High Resolution Export:</strong> Download your creations in PNG (transparency) or JPG (with solid background) format to use in your projects, prints, or digital meditations.",
+        art_h4: "The Spiritual Meaning",
+        art_p6: "Meditating on the Sri Yantra or spending time constructing it helps balance the brain hemispheres. The logical part (left) deals with the geometric structure, while the creative part (right) deals with visual harmony. <strong>Sri Sharka Lab</strong> invites you to enter that state of flow, turning digital design into a modern spiritual practice."
+    },
+    ca: {
+        nav_hub: "HUB", nav_back: "TORNAR", app_panel: "PANELL DE CONTROL",
+        group_colors: "Paleta de Colors", group_shiva: "Geometria Shiva", group_shakti: "Geometria Shakti",
+        label_bg: "Fons:", label_shiva: "Força Shiva:", label_shakti: "Força Shakti:",
+        label_apex: "Punta:", label_base: "Base:", label_width: "Amplada:",
+        footer_coffee: "☕ Convida'm a un cafè", footer_rights: "Tots els drets reservats.",
+        art_h1: "Què és el Sri Yantra i per què és tan difícil de dibuixar?",
+        art_p1: "El <strong>Sri Yantra</strong> (o Sri Chakra) és un dels símbols més antics i poderosos de la geometria sagrada tàntrica. Representa la unió del Masculí Diví i el Femení Diví, la dansa còsmica entre l'ordre i el caos que crea l'univers material.",
+        art_p2: "Visualment, es compon de nou triangles entrellaçats que irradiïn des d'un punt central o <em>bindu</em>. Quatre triangles apunten cap amunt, representant <strong>Shiva</strong> (la consciència masculina), i cinc apunten cap avall, representant <strong>Shakti</strong> (l'energia femenina creativa).",
+        art_h2: "El Repte Matemàtic de les 14 Interseccions",
+        art_p3: "Dibuixar un Sri Yantra perfecte és un problema geomètric famós. A diferència d'altres mandales que són purament artístics, el Sri Yantra requereix una precisió matemàtica extrema. Els nou triangles s'han d'entrellaçar de tal manera que formin 43 triangles més petits, i el més difícil: han de coincidir perfectament en <strong>14 punts nodals d'intersecció</strong>.",
+        art_p4: "Si intentes dibuixar-lo amb regla i compàs sense càlculs previs, descobriràs que les línies gairebé mai es troben en el punt exacte. Sempre queda un petit error. Per això hem creat <strong>Sri Sharka Lab</strong>.",
+        art_h3: "Com usar Sri Sharka Lab",
+        art_p5: "Aquesta eina ha estat dissenyada per a artistes, meditadors i estudiants de geometria sagrada. A diferència de les imatges estàtiques, aquest laboratori és <strong>paramètric</strong>, el que et dóna control total sobre la forma:",
+        art_li1: "<strong>Control d'Espectre Total:</strong> No et limitis al blanc i negre. Usa els selectors de color per triar qualsevol to de l'espectre visible per a les forces de Shiva, Shakti i el fons. El sistema ajustarà automàticament el contrast de la interfície.",
+        art_li2: "<strong>Ajust de Precisió:</strong> Usa els lliscadors per moure la <strong>Punta</strong>, la <strong>Base</strong> i l'<strong>Amplada</strong> de cada un dels 9 triangles de forma independent. Això et permet cercar visualment la \"intersecció perfecta\" o experimentar amb noves variants del Yantra.",
+        art_li3: "<strong>Exportació en Alta Resolució:</strong> Descarrega les teves creacions en format PNG (transparència) o JPG (amb fons sòlid) per usar-les en els teus projectes, impressions o meditacions digitals.",
+        art_h4: "El Significat Espiritual",
+        art_p6: "Meditar sobre el Sri Yantra o dedicar temps a construir-lo ajuda a equilibrar els hemisferis cerebrals. La part lògica (esquerra) s'ocupa de l'estructura geomètrica, mentre que la part creativa (dreta) s'ocupa de l'harmonia visual. <strong>Sri Sharka Lab</strong> t'invita a entrar en aquest estat de flux, convertint el disseny digital en una pràctica espiritual moderna."
+    },
+    fr: {
+        nav_hub: "HUB", nav_back: "RETOUR", app_panel: "PANNEAU DE CONTRÔLE",
+        group_colors: "Palette de Couleurs", group_shiva: "Géométrie Shiva", group_shakti: "Géométrie Shakti",
+        label_bg: "Fond :", label_shiva: "Force Shiva :", label_shakti: "Force Shakti :",
+        label_apex: "Pointe :", label_base: "Base :", label_width: "Largeur :",
+        footer_coffee: "☕ Offrez-moi un café", footer_rights: "Tous droits réservés.",
+        art_h1: "Qu'est-ce que le Sri Yantra et pourquoi est-il si difficile à dessiner ?",
+        art_p1: "Le <strong>Sri Yantra</strong> (ou Sri Chakra) est l'un des symboles les plus anciens et les plus puissants de la géométrie sacrée tantrique. Il représente l'union du Masculin Divin et du Féminin Divin, la danse cosmique entre l'ordre et le chaos qui crée l'univers matériel.",
+        art_p2: "Visuellement, il se compose de neuf triangles entrelacés rayonnant à partir d'un point central ou <em>bindu</em>. Quatre triangles pointent vers le haut, représentant <strong>Shiva</strong> (la conscience masculine), et cinq pointent vers le bas, représentant <strong>Shakti</strong> (l'énergie féminine créative).",
+        art_h2: "Le Défi Mathématique des 14 Intersections",
+        art_p3: "Dessiner un Sri Yantra parfait est un problème géométrique célèbre. Contrairement à d'autres mandalas qui sont purement artistiques, le Sri Yantra nécessite une précision mathématique extrême. Les neuf triangles doivent s'entrelacer de telle manière qu'ils forment 43 triangles plus petits, et le plus difficile : ils doivent coïncider parfaitement en <strong>14 points nodaux d'intersection</strong>.",
+        art_p4: "Si vous essayez de le dessiner avec une règle et un compas sans calculs préalables, vous découvrirez que les lignes ne se rencontrent presque jamais au point exact. Il reste toujours une petite erreur. C'est pourquoi nous avons créé <strong>Sri Sharka Lab</strong>.",
+        art_h3: "Comment utiliser Sri Sharka Lab",
+        art_p5: "Cet outil a été conçu pour les artistes, les méditants et les étudiants en géométrie sacrée. Contrairement aux images statiques, ce laboratoire est <strong>paramétrique</strong>, ce qui vous donne un contrôle total sur la forme :",
+        art_li1: "<strong>Contrôle du Spectre Total :</strong> Ne vous limitez pas au noir et blanc. Utilisez les sélecteurs de couleurs pour choisir n'importe quelle teinte du spectre visible pour les forces de Shiva, Shakti et le fond. Le système ajustera automatiquement le contraste de l'interface.",
+        art_li2: "<strong>Réglage de Précision :</strong> Utilisez les curseurs pour déplacer la <strong>Pointe</strong>, la <strong>Base</strong> et la <strong>Largeur</strong> de chacun des 9 triangles indépendamment. Cela vous permet de rechercher visuellement l'\"intersection parfaite\" ou d'expérimenter de nouvelles variantes du Yantra.",
+        art_li3: "<strong>Exportation en Haute Résolution :</strong> Téléchargez vos créations au format PNG (transparence) ou JPG (avec fond solide) pour les utiliser dans vos projets, impressions ou méditations numériques.",
+        art_h4: "La Signification Spirituelle",
+        art_p6: "Méditer sur le Sri Yantra ou consacrer du temps à le construire aide à équilibrer les hémisphères cérébraux. La partie logique (gauche) s'occupe de la structure géométrique, tandis que la partie créative (droite) s'occupe de l'harmonie visuelle. <strong>Sri Sharka Lab</strong> vous invite à entrer dans cet état de flux, transformant le design numérique en une pratique spirituelle moderne."
+    },
+    de: {
+        nav_hub: "HUB", nav_back: "ZURÜCK", app_panel: "KONTROLLPANEL",
+        group_colors: "Farbpalette", group_shiva: "Shiva Geometrie", group_shakti: "Shakti Geometrie",
+        label_bg: "Hintergrund:", label_shiva: "Shiva-Kraft:", label_shakti: "Shakti-Kraft:",
+        label_apex: "Spitze:", label_base: "Basis:", label_width: "Breite:",
+        footer_coffee: "☕ Spendier mir einen Kaffee", footer_rights: "Alle Rechte vorbehalten.",
+        art_h1: "Was ist das Sri Yantra und warum ist es so schwer zu zeichnen?",
+        art_p1: "Das <strong>Sri Yantra</strong> (oder Sri Chakra) ist eines der ältesten und mächtigsten Symbole der tantrischen heiligen Geometrie. Es repräsentiert die Vereinigung des göttlich Männlichen und des göttlich Weiblichen, den kosmischen Tanz zwischen Ordnung und Chaos, der das materielle Universum erschafft.",
+        art_p2: "Visuell besteht es aus neun ineinandergreifenden Dreiecken, die von einem zentralen Punkt oder <em>bindu</em> ausstrahlen. Vier Dreiecke zeigen nach oben und repräsentieren <strong>Shiva</strong> (das männliche Bewusstsein), und fünf zeigen nach unten und repräsentieren <strong>Shakti</strong> (die kreative weibliche Energie).",
+        art_h2: "Die mathematische Herausforderung der 14 Schnittpunkte",
+        art_p3: "Ein perfektes Sri Yantra zu zeichnen, ist ein berühmtes geometrisches Problem. Im Gegensatz zu anderen Mandalas, die rein künstlerisch sind, erfordert das Sri Yantra extreme mathematische Präzision. Die neun Dreiecke müssen so ineinandergreifen, dass sie 43 kleinere Dreiecke bilden, und das Schwierigste: sie müssen perfekt an <strong>14 Knotenpunkten des Schnitts</strong> zusammentreffen.",
+        art_p4: "Wenn Sie versuchen, es mit Lineal und Zirkel ohne vorherige Berechnungen zu zeichnen, werden Sie feststellen, dass sich die Linien fast nie am exakten Punkt treffen. Es bleibt immer ein kleiner Fehler. Deshalb haben wir das <strong>Sri Sharka Lab</strong> ins Leben gerufen.",
+        art_h3: "Wie man das Sri Sharka Lab benutzt",
+        art_p5: "Dieses Tool wurde für Künstler, Meditierende und Studenten der heiligen Geometrie entwickelt. Im Gegensatz zu statischen Bildern ist dieses Labor <strong>parametrisch</strong>, was Ihnen die volle Kontrolle über die Form gibt:",
+        art_li1: "<strong>Vollspektrum-Kontrolle:</strong> Beschränken Sie sich nicht auf Schwarz-Weiß. Verwenden Sie die Farbwähler, um einen beliebigen Ton aus dem sichtbaren Spektrum für die Kräfte von Shiva, Shakti und den Hintergrund zu wählen. Das System passt den Kontrast der Benutzeroberfläche automatisch an.",
+        art_li2: "<strong>Präzisionseinstellung:</strong> Verwenden Sie die Schieberegler, um die <strong>Spitze</strong>, die <strong>Basis</strong> und die <strong>Breite</strong> jedes der 9 Dreiecke unabhängig voneinander zu verschieben. Dies ermöglicht es Ihnen, visuell nach dem \"perfekten Schnittpunkt\" zu suchen oder mit neuen Varianten des Yantras zu experimentieren.",
+        art_li3: "<strong>Hochauflösender Export:</strong> Laden Sie Ihre Kreationen im PNG-Format (Transparenz) oder JPG-Format (mit solidem Hintergrund) herunter, um sie in Ihren Projekten, Drucken oder digitalen Meditationen zu verwenden.",
+        art_h4: "Die spirituelle Bedeutung",
+        art_p6: "Über das Sri Yantra zu meditieren oder Zeit damit zu verbringen, es zu konstruieren, hilft dabei, die Gehirnhälften auszugleichen. Der logische Teil (links) befasst sich mit der geometrischen Struktur, während der kreative Teil (rechts) sich mit der visuellen Harmonie befasst. <strong>Sri Sharka Lab</strong> lädt Sie ein, in diesen Zustand des Fließens einzutreten und digitales Design in eine moderne spirituelle Praxis zu verwandeln."
+    },
+    pt: {
+        nav_hub: "HUB", nav_back: "VOLTAR", app_panel: "PAINEL DE CONTROLO",
+        group_colors: "Paleta de Cores", group_shiva: "Geometria Shiva", group_shakti: "Geometria Shakti",
+        label_bg: "Fundo:", label_shiva: "Força Shiva:", label_shakti: "Força Shakti:",
+        label_apex: "Ponta:", label_base: "Base:", label_width: "Largura:",
+        footer_coffee: "☕ Pague-me um café", footer_rights: "Todos os direitos reservados.",
+        art_h1: "O que é o Sri Yantra e por que é tão difícil de desenhar?",
+        art_p1: "O <strong>Sri Yantra</strong> (ou Sri Chakra) é um dos símbolos mais antigos e poderosos da geometria sagrada tântrica. Representa a união do Masculino Divino e do Feminino Divino, a dança cósmica entre a ordem e o caos que cria o universo material.",
+        art_p2: "Visualmente, é composto por nove triângulos entrelaçados que irradiam de um ponto central ou <em>bindu</em>. Quatro triângulos apontam para cima, representando <strong>Shiva</strong> (a consciência masculina), e cinco apontam para baixo, representando <strong>Shakti</strong> (a energia feminina criativa).",
+        art_h2: "O Desafio Matemático das 14 Interseções",
+        art_p3: "Desenhar um Sri Yantra perfeito é um problema geométrico famoso. Ao contrário de outras mandalas que são puramente artísticas, o Sri Yantra requer uma precisão matemática extrema. Os nove triângulos devem entrelaçar-se de tal forma que formem 43 triângulos mais pequenos, e o mais difícil: devem coincidir perfeitamente em <strong>14 pontos nodais de interseção</strong>.",
+        art_p4: "Se tentar desenhá-lo com régua e compasso sem cálculos prévios, descobrirá que as linhas quase nunca se encontram no ponto exato. Resta sempre um pequeno erro. Por isso criamos o <strong>Sri Sharka Lab</strong>.",
+        art_h3: "Como usar o Sri Sharka Lab",
+        art_p5: "Esta ferramenta foi concebida para artistas, meditadores e estudantes de geometria sagrada. Ao contrário das imagens estáticas, este laboratório é <strong>paramétrico</strong>, o que lhe dá controlo total sobre a forma:",
+        art_li1: "<strong>Controlo de Espetro Total:</strong> Não se limite ao preto e branco. Use os seletores de cores para escolher qualquer tom do espetro visível para as forças de Shiva, Shakti e o fundo. O sistema ajustará automaticamente o contraste da interface.",
+        art_li2: "<strong>Ajuste de Precisão:</strong> Use os seletores para mover a <strong>Ponta</strong>, a <strong>Base</strong> e a <strong>Largura</strong> de cada um dos 9 triângulos de forma independente. Isto permite-lhe procurar visualmente a \"interseção perfeita\" ou experimentar novas variantes do Yantra.",
+        art_li3: "<strong>Exportação em Alta Resolução:</strong> Descarregue as suas criações em formato PNG (transparência) ou JPG (com fundo sólido) para usá-las nos seus projetos, impressões ou meditações digitais.",
+        art_h4: "O Significado Espiritual",
+        art_p6: "Meditar sobre o Sri Yantra ou dedicar tempo a construí-lo ajuda a equilibrar os hemisférios cerebrais. A parte lógica (esquerda) ocupa-se da estrutura geométrica, enquanto a parte criativa (direita) ocupa-se da harmonia visual. O <strong>Sri Sharka Lab</strong> convida-o a entrar nesse estado de fluxo, convertendo o design digital numa prática espiritual moderna."
+    },
+    it: {
+        nav_hub: "HUB", nav_back: "INDIETRO", app_panel: "PANNELLO DI CONTROLLO",
+        group_colors: "Tavolozza Colori", group_shiva: "Geometria Shiva", group_shakti: "Geometria Shakti",
+        label_bg: "Sfondo:", label_shiva: "Forza Shiva:", label_shakti: "Forza Shakti:",
+        label_apex: "Punta:", label_base: "Base:", label_width: "Larghezza:",
+        footer_coffee: "☕ Offrimi un caffè", footer_rights: "Tutti i diritti riservati.",
+        art_h1: "Cos'è lo Sri Yantra e perché è così difficile da disegnare?",
+        art_p1: "Lo <strong>Sri Yantra</strong> (o Sri Chakra) è uno dei simboli più antichi e potenti della geometria sacra tantrica. Rappresenta l'unione del Maschile Divino e del Femminile Divino, la danza cosmica tra l'ordine e il caos che crea l'universo materiale.",
+        art_p2: "Visivamente, è composto da nove triangoli intrecciati che irradiano da un punto centrale o <em>bindu</em>. Quattro triangoli puntano verso l'alto, rappresentando <strong>Shiva</strong> (la coscienza maschile), e cinque puntano verso il basso, rappresentando <strong>Shakti</strong> (l'energia femminile creativa).",
+        art_h2: "La Sfida Matematica delle 14 Intersezioni",
+        art_p3: "Disegnare uno Sri Yantra perfetto è un famoso problema geometrico. A differenza di altri mandala che sono puramente artistici, lo Sri Yantra richiede un'estrema precisione matematica. I nove triangoli devono intrecciarsi in modo tale da formare 43 triangoli più piccoli, e la cosa più difficile: devono coincidere perfettamente in <strong>14 punti nodali di intersezione</strong>.",
+        art_p4: "Se provi a disegnarlo con riga e compasso senza calcoli preventivi, scoprirai che le linee non si incontrano quasi mai nel punto esatto. Rimane sempre un piccolo errore. Ecco perché abbiamo creato <strong>Sri Sharka Lab</strong>.",
+        art_h3: "Come usare Sri Sharka Lab",
+        art_p5: "Questo strumento è stato progettato per artisti, meditatori e studenti di geometria sacra. A differenza delle immagini statiche, questo laboratorio è <strong>parametrico</strong>, il che ti dà il controllo totale sulla forma:",
+        art_li1: "<strong>Controllo dello Spettro Totale:</strong> Non limitarti al bianco e nero. Usa i selettori di colore per scegliere qualsiasi tonalità dello spettro visibile per le forze di Shiva, Shakti e lo sfondo. Il sistema regolerà automaticamente il contrasto dell'interfaccia.",
+        art_li2: "<strong>Regolazione di Precisione:</strong> Usa i cursori per spostare la <strong>Punta</strong>, la <strong>Base</strong> e la <strong>Larghezza</strong> di ciascuno dei 9 triangoli indipendentemente. Questo ti permette di cercare visivamente l'\"intersezione perfetta\" o di sperimentare nuove varianti dello Yantra.",
+        art_li3: "<strong>Esportazione in Alta Risoluzione:</strong> Scarica le tue creazioni in formato PNG (trasparenza) o JPG (con sfondo solido) per usarle nei tuoi progetti, stampe o meditazioni digitali.",
+        art_h4: "Il Significato Spirituale",
+        art_p6: "Meditare sullo Sri Yantra o dedicare tempo a costruirlo aiuta a equilibrare gli emisferi cerebrali. La parte logica (sinistra) si occupa della struttura geometrica, mentre la parte creativa (destra) si occupa dell'armonia visiva. <strong>Sri Sharka Lab</strong> ti invita a entrare in quello stato di flusso, trasformando il design digitale in una pratica spirituale moderna."
+    },
+    nl: {
+        nav_hub: "HUB", nav_back: "TERUG", app_panel: "CONTROLEPANEEL",
+        group_colors: "Kleurenpalet", group_shiva: "Shiva Geometrie", group_shakti: "Shakti Geometrie",
+        label_bg: "Achtergrond:", label_shiva: "Shiva-kracht:", label_shakti: "Shakti-kracht:",
+        label_apex: "Punt:", label_base: "Basis:", label_width: "Breedte:",
+        footer_coffee: "☕ Trakteer me op een koffie", footer_rights: "Alle rechten voorbehouden.",
+        art_h1: "Wat is de Sri Yantra en waarom is het zo moeilijk om te tekenen?",
+        art_p1: "De <strong>Sri Yantra</strong> (of Sri Chakra) is een van de oudste en krachtigste symbolen van de tantrische heilige geometrie. Het vertegenwoordigt de vereniging van het Goddelijk Mannelijke en het Goddelijk Vrouwelijke, de kosmische dans tussen orde en chaos die het materiële universum creëert.",
+        art_p2: "Visueel bestaat het uit negen in elkaar grijpende driehoeken die uitstralen vanuit een centraal punt of <em>bindu</em>. Vier driehoeken wijzen naar boven en vertegenwoordigen <strong>Shiva</strong> (het mannelijk bewustzijn), en vijf wijzen naar beneden en vertegenwoordigen <strong>Shakti</strong> (de creatieve vrouwelijke energie).",
+        art_h2: "De wiskundige uitdaging van de 14 kruispunten",
+        art_p3: "Het tekenen van een perfecte Sri Yantra is een beroemd geometrisch probleem. In tegenstelling tot andere mandala's die puur artistiek zijn, vereist de Sri Yantra extreme wiskundige precisie. De negen driehoeken moeten op zo'n manier in elkaar grijpen dat ze 43 kleinere driehoeken vormen, en het moeilijkste: ze moeten perfect samenvallen op <strong>14 knooppunten van kruising</strong>.",
+        art_p4: "Als je het probeert te tekenen met liniaal en passer zonder voorafgaande berekeningen, zul je ontdekken dat de lijnen elkaar bijna nooit op het exacte punt ontmoeten. Er blijft altijd een kleine fout over. Daarom hebben we <strong>Sri Sharka Lab</strong> gecreëerd.",
+        art_h3: "Hoe Sri Sharka Lab te gebruiken",
+        art_p5: "Deze tool is ontworpen voor kunstenaars, mediteerders en studenten van heilige geometrie. In tegenstelling tot statische beelden is dit laboratorium <strong>parametrisch</strong>, wat je totale controle geeft over de vorm:",
+        art_li1: "<strong>Totale Spectrumcontrole:</strong> Beperk jezelf niet tot zwart-wit. Gebruik de kleurkiezers om elke tint van het zichtbare spectrum te kiezen voor de krachten van Shiva, Shakti en de achtergrond. Het systeem zal automatisch het contrast van de interface aanpassen.",
+        art_li2: "<strong>Precisie-aanpassing:</strong> Gebruik de schuifregelaars om de <strong>Punt</strong>, de <strong>Basis</strong> en de <strong>Breedte</strong> van elk van de 9 driehoeken onafhankelijk te verplaatsen. Hiermee kun je visueel zoeken naar de \"perfecte kruising\" of experimenteren met nieuwe varianten van de Yantra.",
+        art_li3: "<strong>Export in Hoge Resolutie:</strong> Download je creaties in PNG-formaat (transparantie) of JPG-formaat (met vaste achtergrond) om te gebruiken in je projecten, prints of digitale meditaties.",
+        art_h4: "De Spirituele Betekenis",
+        art_p6: "Mediteren op de Sri Yantra of tijd besteden aan het construeren ervan helpt de hersenhelften in evenwicht te brengen. Het logische deel (links) houdt zich bezig met de geometrische structuur, terwijl het creatieve deel (rechts) zich bezighoudt met de visuele harmonie. <strong>Sri Sharka Lab</strong> nodigt je uit om in die staat van flow te komen, waarbij digitaal ontwerp wordt omgezet in een moderne spirituele beoefening."
+    },
+    ja: {
+        nav_hub: "ハブ", nav_back: "戻る", app_panel: "コントロールパネル",
+        group_colors: "カラーパレット", group_shiva: "シヴァの幾何学", group_shakti: "シャクティの幾何学",
+        label_bg: "背景：", label_shiva: "シヴァの力：", label_shakti: "シャクティの力：",
+        label_apex: "頂点：", label_base: "底面：", label_width: "幅：",
+        footer_coffee: "☕ コーヒーを一杯おごる", footer_rights: "無断複写・転載を禁じます。",
+        art_h1: "シュリ・ヤントラとは何か、なぜ描くのがこれほど難しいのか？",
+        art_p1: "<strong>シュリ・ヤントラ</strong>（またはシュリ・チャクラ）は、タントラ神聖幾何学において最も古く、最も強力な象徴の一つです。それは神聖な男性性と神聖な女性性の結合、物質宇宙を創造する秩序とカオスの間の宇宙のダンスを表しています。",
+        art_p2: "視覚的には、中心点または<em>bindu</em>（ビンドゥ）から放射される9つの重なり合う三角形で構成されています。4つの三角形は上を向き、<strong>シヴァ</strong>（男性的な意識）を表し、5つは下を向き、<strong>シャクティ</strong>（創造的な女性的なエネルギー）を表しています。",
+        art_h2: "14の交点という数学的課題",
+        art_p3: "完璧なシュリ・ヤントラを描くことは、有名な幾何学的問題です。純粋に芸術的な他のマンダラとは異なり、シュリ・ヤントラには極めて高い数学的精度が求められます。9つの三角形は、43個のより小さな三角形を形成するように連動しなければならず、最も難しいのは、それらが<strong>14の交点</strong>で完璧に一致しなければならないことです。",
+        art_p4: "事前の計算なしに定規とコンパスで描こうとすると、線が正確な位置で交わることはほとんどないことに気づくでしょう。常にわずかな誤差が生じます。だからこそ、私たちは<strong>Sri Sharka Lab</strong>を開発しました。",
+        art_h3: "Sri Sharka Labの使い方",
+        art_p5: "このツールは、アーティスト、瞑想者、そして神聖幾何学を学ぶ学生のために設計されました。静止画像とは異なり、このラボは<strong>パラメトリック</strong>（数値制御可能）であり、形を完全にコントロールすることができます：",
+        art_li1: "<strong>全スペクトル制御：</strong> 白黒に限定しないでください。カラーセレクターを使用して、シヴァ、シャクティ、そして背景に可視スペクトルの任意の色を選択できます。システムはインターフェースのコントラストを自動的に調整します。",
+        art_li2: "<strong>精密調整：</strong> スライダーを使用して、9つの三角形それぞれの<strong>頂点</strong>、<strong>底面</strong>、<strong>幅</strong>を個別に移動させます。これにより、視覚的に「完璧な交点」を探したり、ヤントラの新しいバリエーションを実験したりできます。",
+        art_li3: "<strong>高解像度エクスポート：</strong> 作品をPNG形式（透過）またはJPG形式（塗りつぶし背景）でダウンロードして、プロジェクト、印刷物、またはデジタル瞑想に使用できます。",
+        art_h4: "精神的な意味",
+        art_p6: "シュリ・ヤントラで瞑想したり、その構築に時間を費やしたりすることは、脳の半球のバランスを整えるのに役立ちます。論理的な部分（左脳）は幾何学的な構造を扱い、創造的な部分（右脳）は視覚的な調和を扱います。<strong>Sri Sharka Lab</strong>は、デジタルデザインを現代的な精神修養へと変え、あなたをフロー状態へと誘います。"
+    }
+};
+
+    function changeLanguage(lang) {
+        document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+        event?.target?.classList?.add('active');
+        const texts = translations[lang] || translations['en'];
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (texts[key]) el.innerHTML = texts[key];
+        });
+        // Reiniciar controles para actualizar textos dinámicos
+        createControls();
+    }
+
+    // --- LÓGICA DEL SIMULADOR (INALTERADA) ---
+    const canvas = document.getElementById('yantraCanvas');
+    const ctx = canvas.getContext('2d');
+    const slidersDock = document.getElementById('sliders-dock');
+    const canvasContainer = document.getElementById('canvas-container');
+
+    let size, cx, cy, scale;
+    let globalColors = { bg: '#ffffff', shiva: '#ffd700', shakti: '#FF4500' };
+
+    let trianglesState = [
+        { id: 'sh1', type: 'shiva', name: 'Shiva 1', apexVal: -98, baseVal: 45, widthVal: 98 },
+        { id: 'sh2', type: 'shiva', name: 'Shiva 2', apexVal: -71, baseVal: 55, widthVal: 76 },
+        { id: 'sh3', type: 'shiva', name: 'Shiva 3', apexVal: -48, baseVal: 65, widthVal: 58 },
+        { id: 'sh4', type: 'shiva', name: 'Shiva 4', apexVal: -20, baseVal: 75, widthVal: 38 },
+        { id: 'shk1', type: 'shakti', name: 'Shakti 1', apexVal: 98, baseVal: -45, widthVal: 98 },
+        { id: 'shk2', type: 'shakti', name: 'Shakti 2', apexVal: 73, baseVal: -52, widthVal: 79 },
+        { id: 'shk3', type: 'shakti', name: 'Shakti 3', apexVal: 49, baseVal: -60, widthVal: 61 },
+        { id: 'shk4', type: 'shakti', name: 'Shakti 4', apexVal: 27, baseVal: -70, widthVal: 43 },
+        { id: 'shk5', type: 'shakti', name: 'Shakti 5', apexVal: 8, baseVal: -80, widthVal: 26 }
+    ];
+
+    function init() {
+        createControls();
+        resizeCanvas();
+        updateDynamicColors();
+        setupExportListeners();
+    }
+
+    function createControls() {
+        slidersDock.innerHTML = '';
+        const currentLang = document.querySelector('.lang-btn.active').innerText.toLowerCase();
+        const t = translations[currentLang] || translations['en'];
+
+        slidersDock.appendChild(createHeader(t.group_colors));
+        const colorGroup = document.createElement('div');
+        colorGroup.className = 'control-group';
+
+        const createColorPicker = (labelTxt, stateProp, titleClass) => {
+            const row = document.createElement('div'); row.className = 'control-row';
+            const label = document.createElement('span'); label.innerText = labelTxt; label.className = 'control-label ' + (titleClass || '');
+            const colorInput = document.createElement('input'); colorInput.type = 'color'; colorInput.value = globalColors[stateProp];
+            colorInput.addEventListener('input', (e) => {
+                globalColors[stateProp] = e.target.value;
+                drawEverything();
+                updateDynamicColors();
+            });
+            row.appendChild(label); row.appendChild(colorInput); return row;
+        }
+
+        colorGroup.appendChild(createColorPicker(t.label_bg, 'bg'));
+        colorGroup.appendChild(createColorPicker(t.label_shiva, 'shiva', 'shiva-text-target'));
+        colorGroup.appendChild(createColorPicker(t.label_shakti, 'shakti', 'shakti-text-target'));
+        slidersDock.appendChild(colorGroup);
+
+        slidersDock.appendChild(createHeader(t.group_shiva, "shiva-text-target"));
+        slidersDock.appendChild(createHeader(t.group_shakti, "shakti-text-target"));
+
+        trianglesState.forEach((tri, index) => {
+            const groupWrapper = document.createElement('div'); groupWrapper.className = 'control-group';
+            const title = document.createElement('span'); title.innerText = tri.name;
+            title.className = 'triangle-title ' + (tri.type === 'shiva' ? 'shiva-title-target' : 'shakti-title-target');
+            groupWrapper.appendChild(title);
+
+            const createGeoSlider = (labelTxt, stateProp, minV, maxV) => {
+                const row = document.createElement('div'); row.className = 'control-row';
+                const label = document.createElement('span'); label.innerText = labelTxt; label.className = 'control-label';
+                const slider = document.createElement('input'); slider.type = 'range'; slider.min = minV; slider.max = maxV; slider.value = tri[stateProp];
+                const valDisplay = document.createElement('span'); valDisplay.className = 'value-display';
+                const updateVal = (v) => { valDisplay.innerText = Math.round(((v - minV) / (maxV - minV)) * 100); };
+                updateVal(slider.value);
+                slider.addEventListener('input', (e) => {
+                    trianglesState[index][stateProp] = parseInt(e.target.value);
+                    updateVal(e.target.value);
+                    drawEverything();
+                });
+                row.appendChild(label); row.appendChild(slider); row.appendChild(valDisplay); return row;
+            };
+
+            groupWrapper.appendChild(createGeoSlider(t.label_apex, 'apexVal', -130, 130));
+            groupWrapper.appendChild(createGeoSlider(t.label_base, 'baseVal', -130, 130));
+            groupWrapper.appendChild(createGeoSlider(t.label_width, 'widthVal', 5, 130));
+            
+            if(tri.type === 'shiva') slidersDock.insertBefore(groupWrapper, slidersDock.lastChild.previousSibling);
+            else slidersDock.appendChild(groupWrapper);
+        });
+    }
+
+    function createHeader(text, className) {
+        let h = document.createElement('h3'); h.className = 'section-header ' + (className || ''); h.innerText = text; return h;
+    }
+
+    function resizeCanvas() {
+        size = Math.min(canvasContainer.offsetWidth, canvasContainer.offsetHeight) * 0.95;
+        canvas.width = size; canvas.height = size;
+        cx = size / 2; cy = size / 2; scale = size / 2.5;
+        drawEverything();
+    }
+
+    function updateDynamicColors() {
+        canvasContainer.style.backgroundColor = globalColors.bg;
+        const applyContrast = (targetClass, color) => {
+            document.querySelectorAll(targetClass).forEach(el => { el.style.color = color; });
+        };
+        applyContrast('.shiva-text-target', globalColors.shiva);
+        applyContrast('.shiva-title-target', globalColors.shiva);
+        applyContrast('.shakti-text-target', globalColors.shakti);
+        applyContrast('.shakti-title-target', globalColors.shakti);
+    }
+
+    function drawEverything() {
+        ctx.fillStyle = globalColors.bg;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        drawStaticElements();
+        drawInteractiveTriangles();
+        drawBindu();
+    }
+
+    function drawInteractiveTriangles() {
+        ctx.lineWidth = 1.5;
+        const r = scale * 0.6; 
+        trianglesState.forEach(tri => {
+            ctx.strokeStyle = (tri.type === 'shiva') ? globalColors.shiva : globalColors.shakti;
+            const yApex = cy + (tri.apexVal / 100 * r);
+            const yBase = cy + (tri.baseVal / 100 * r);
+            const halfW = tri.widthVal / 100 * r;
+            ctx.beginPath();
+            ctx.moveTo(cx, yApex); ctx.lineTo(cx + halfW, yBase); ctx.lineTo(cx - halfW, yBase);
+            ctx.closePath(); ctx.stroke();
+        });
+    }
+
+    function drawStaticElements() {
+        ctx.strokeStyle = globalColors.shiva; ctx.lineWidth = 2;
+        const s = scale * 1.1;
+        ctx.strokeRect(cx - s, cy - s, s*2, s*2);
+        ctx.globalAlpha = 0.2;
+        [0.9, 0.6].forEach(f => {
+            ctx.beginPath(); ctx.arc(cx, cy, scale * f, 0, Math.PI*2); ctx.stroke();
+        });
+        ctx.globalAlpha = 1.0;
+    }
+
+    function drawBindu() {
+        ctx.fillStyle = globalColors.shakti;
+        ctx.beginPath(); ctx.arc(cx, cy, scale * 0.013, 0, Math.PI*2); ctx.fill();
+    }
+
+    function setupExportListeners() {
+        const dl = (f, e) => {
+            const l = document.createElement('a'); l.download = `graphics_labs_sri_yantra.${e}`;
+            l.href = canvas.toDataURL(f, 0.9); l.click();
+        };
+        document.getElementById('btnPng').onclick = () => dl('image/png', 'png');
+        document.getElementById('btnJpg').onclick = () => dl('image/jpeg', 'jpg');
+    }
+
+    window.addEventListener('resize', () => setTimeout(resizeCanvas, 50));
+    init();
+</script>
+</body>
+</html>
+
+

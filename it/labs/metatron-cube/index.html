@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <script>
+    // --- i18n URL Router ---
+    (function() {
+        window.__GL_LANG = 'it';
+        window.__GL_LANG_UPPER = 'IT';
+        window.__GL_LANGS = ['es', 'ca', 'en', 'fr', 'de', 'pt', 'it', 'nl', 'ja'];
+        
+        // Override localStorage to always use URL-based language
+        localStorage.setItem('gl_lang', 'it');
+        
+        // Language switcher: navigate to the equivalent page in the target language folder
+        window.switchLangUrl = function(targetLang) {
+            var path = window.location.pathname;
+            // Replace current lang segment with target lang
+            var newPath = path.replace(/^\/(es|ca|en|fr|de|pt|it|nl|ja)\//, '/' + targetLang.toLowerCase() + '/');
+            if (newPath === path) {
+                // Fallback: prepend lang
+                newPath = '/' + targetLang.toLowerCase() + '/';
+            }
+            window.location.href = newPath + window.location.hash;
+        };
+        
+        // Auto-call setLang on DOMContentLoaded to apply translations
+        // Some labs use uppercase keys (ES/EN), others lowercase (es/en)
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof setLang === 'function') {
+                // Try uppercase first (used by most lab pages with inline translations)
+                try { setLang('IT'); } catch(e) {}
+                // Also try lowercase (used by magic-square style pages)
+                try { setLang('it'); } catch(e) {}
+            }
+        });
+    })();
+    </script>
+    <title>Metatron Cube | Graphics Labs</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Laboratorio interattivo di Metatron Cube. Sperimenta con arte generativa e matematica visiva su Graphics Labs.">
+    
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3150277567590534"
+     crossorigin="anonymous"></script>
+    
+    <style>
+        :root {
+            --primary: #00ff41;
+            --glass: rgba(255, 255, 255, 0.05);
+            --nav-bg: rgba(0, 0, 0, 0.85);
+        }
+
+        html, body { 
+            margin: 0; padding: 0; background-color: #000; font-family: 'Segoe UI', sans-serif; color: #ddd; 
+            overflow-x: hidden; overscroll-behavior: none;
+        }
+
+        /* --- SISTEMA DE NAVEGACIÓN SUPERIOR --- */
+        .top-nav {
+            position: fixed; top: 0; left: 0; width: 100%; height: 65px;
+            background: var(--nav-bg); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 20px; box-sizing: border-box; z-index: 1000;
+            border-bottom: 1px solid var(--glass);
+        }
+        .nav-left { display: flex; align-items: center; gap: 15px; }
+        .nav-brand { color: var(--primary); font-weight: 900; letter-spacing: 2px; font-size: 1.2em; text-decoration: none; }
+        .nav-btn { 
+            background: var(--glass); border: 1px solid #333; color: #fff; padding: 6px 12px; 
+            border-radius: 4px; text-decoration: none; font-size: 0.8em; font-weight: bold; transition: 0.3s;
+        }
+        .nav-btn:hover { background: var(--primary); color: #000; border-color: var(--primary); }
+
+        .lang-selector { display: flex; gap: 5px; }
+        .lang-btn { 
+            background: transparent; border: 1px solid #444; color: #888; padding: 4px 8px; 
+            border-radius: 3px; cursor: pointer; font-size: 0.7em; transition: 0.3s;
+        }
+        .lang-btn.active { border-color: var(--primary); color: var(--primary); background: rgba(0, 255, 65, 0.1); }
+        .lang-btn:hover { color: #fff; border-color: #666; }
+        
+        #app-wrapper { 
+            display: flex; width: 100%; height: 100vh; overflow: hidden; position: relative; padding-top: 65px; box-sizing: border-box;
+        }
+        
+        #canvas-container {
+            flex: 3; position: relative;
+            background: radial-gradient(circle at center, #0a1a0a 0%, #000 100%);
+            cursor: grab; overflow: hidden; touch-action: none;
+        }
+        #canvas-container:active { cursor: grabbing; }
+        canvas { display: block; width: 100%; height: 100%; }
+
+        #controls-container {
+            flex: 2; min-width: 320px; background-color: #050505; padding: 25px;
+            overflow-y: auto; box-shadow: -5px 0 30px rgba(0,0,0,0.8); border-left: 1px solid #222; z-index: 10;
+        }
+
+        h2 { color: var(--primary); margin: 0 0 15px 0; text-align: center; letter-spacing: 2px; text-transform: uppercase; text-shadow: 0 0 15px rgba(0, 255, 65, 0.3); }
+        
+        .btn-group { display: flex; gap: 10px; margin-bottom: 25px; }
+        .export-btn {
+            flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;
+            transition: transform 0.1s, filter 0.2s; font-size: 0.9em;
+        }
+        .export-btn:hover { filter: brightness(1.2); transform: translateY(-2px); }
+        #btnPng { background-color: var(--primary); color: #000; } 
+        #btnJpg { background-color: #fff; color: #000; } 
+
+        .control-group { background: var(--glass); border: 1px solid #333; border-radius: 8px; padding: 15px; margin-bottom: 20px; }
+        .control-row { display: flex; align-items: center; margin-bottom: 12px; font-size: 0.9em; justify-content: space-between; }
+        .control-label { color: #ccc; font-weight: 500; }
+        
+        input[type=range] { width: 50%; cursor: pointer; accent-color: var(--primary); }
+        input[type=color] { border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; padding: 0; overflow: hidden; }
+        input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer; }
+
+        .btn-main {
+            width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-bottom: 10px;
+            background: linear-gradient(45deg, #111, #222); color: #fff; border: 1px solid #444;
+            transition: all 0.3s;
+        }
+        .btn-main:hover { border-color: var(--primary); color: var(--primary); }
+        
+        .preset-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+        .btn-preset { background: #1a1a1a; color: #aaa; border: 1px solid #333; padding: 8px; border-radius: 4px; cursor: pointer; font-size: 0.8em; transition: 0.2s;}
+        .btn-preset:hover { background: #252525; color: #fff; border-color: var(--primary); }
+        .btn-preset.active { background: rgba(0, 255, 65, 0.2); color: #fff; border-color: var(--primary); box-shadow: 0 0 10px rgba(0,255,65,0.2); }
+
+        /* --- ADS & CONTENT --- */
+        .ad-container {
+            border: 1px dashed #444; background: #0a0a0a; color: #555;
+            padding: 20px; margin: 40px auto; max-width: 900px; text-align: center;
+            font-family: 'Courier New', monospace; font-size: 0.8em; letter-spacing: 2px;
+        }
+
+        .content-section { max-width: 900px; margin: 0 auto; padding: 20px; background-color: #000; position: relative; z-index: 20; }
+        article h2 { color: var(--primary); border-left: 4px solid var(--primary); padding-left: 15px; margin-top: 60px; font-size: 2em; letter-spacing: 1px;}
+        article h3 { color: #fff; margin-top: 40px; font-size: 1.5em; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        article p { margin-bottom: 20px; font-size: 1.1em; color: #ccc; line-height: 1.8; text-align: justify; }
+        article ul { list-style: none; padding: 0; }
+        article li { margin-bottom: 15px; padding-left: 20px; border-left: 2px solid var(--primary); color: #bbb; }
+        article strong { color: #fff; }
+
+        footer { background-color: #050505; padding: 60px 20px; text-align: center; border-top: 1px solid #222; font-size: 0.9em; color: #666; }
+        .paypal-btn {
+            display: inline-block; background: #0070ba; color: #fff; padding: 12px 25px; 
+            border-radius: 50px; text-decoration: none; font-weight: bold; margin-bottom: 30px;
+            transition: 0.3s; box-shadow: 0 4px 15px rgba(0, 112, 186, 0.3);
+        }
+        .footer-links { margin: 20px 0; }
+        .footer-links a { color: #888; text-decoration: none; margin: 0 10px; }
+        .footer-links a:hover { color: var(--primary); }
+
+        @media (max-width: 800px) {
+            #app-wrapper { display: block; height: auto; }
+            #canvas-container { height: 55vh; border-bottom: 2px solid var(--primary); }
+            #controls-container { min-width: 100%; box-sizing: border-box; }
+            .lang-selector { display: none; }
+        }
+    </style>
+    <link rel="canonical" href="https://graphics-labs.org/it/labs/metatron-cube/" />
+
+    <link rel="alternate" hreflang="es" href="https://graphics-labs.org/es/labs/metatron-cube/" />
+    <link rel="alternate" hreflang="ca" href="https://graphics-labs.org/ca/labs/metatron-cube/" />
+    <link rel="alternate" hreflang="en" href="https://graphics-labs.org/en/labs/metatron-cube/" />
+    <link rel="alternate" hreflang="fr" href="https://graphics-labs.org/fr/labs/metatron-cube/" />
+    <link rel="alternate" hreflang="de" href="https://graphics-labs.org/de/labs/metatron-cube/" />
+    <link rel="alternate" hreflang="pt" href="https://graphics-labs.org/pt/labs/metatron-cube/" />
+    <link rel="alternate" hreflang="it" href="https://graphics-labs.org/it/labs/metatron-cube/" />
+    <link rel="alternate" hreflang="nl" href="https://graphics-labs.org/nl/labs/metatron-cube/" />
+    <link rel="alternate" hreflang="ja" href="https://graphics-labs.org/ja/labs/metatron-cube/" />
+    <link rel="alternate" hreflang="x-default" href="https://graphics-labs.org/es/labs/metatron-cube/" />
+</head>
+<body>
+
+<nav class="top-nav">
+    <div class="nav-left">
+        <a href="../../index.html" class="nav-btn" data-i18n="nav_hub">HUB</a>
+        <a href="javascript:history.back()" class="nav-btn" data-i18n="nav_back">BACK</a>
+        <span class="nav-brand">GRAPHICS LABS</span>
+    </div>
+    <div class="lang-selector">
+        <button class="lang-btn active" onclick="changeLanguage('es')">ES</button>
+        <button class="lang-btn" onclick="changeLanguage('ca')">CA</button>
+        <button class="lang-btn" onclick="changeLanguage('en')">EN</button>
+        <button class="lang-btn" onclick="changeLanguage('fr')">FR</button>
+        <button class="lang-btn" onclick="changeLanguage('de')">DE</button>
+        <button class="lang-btn" onclick="changeLanguage('pt')">PT</button>
+        <button class="lang-btn" onclick="changeLanguage('it')">IT</button>
+        <button class="lang-btn" onclick="changeLanguage('nl')">NL</button>
+        <button class="lang-btn" onclick="changeLanguage('ja')">JA</button>
+    </div>
+</nav>
+
+<div id="app-wrapper">
+    <div id="canvas-container">
+        <canvas id="metatronCanvas"></canvas>
+    </div>
+
+    <div id="controls-container">
+        <h2 data-i18n="sim_title">Cubo de Metatrón</h2>
+        
+        <div class="btn-group">
+            <button id="btnPng" class="export-btn" data-i18n="btn_png">💾 Guardar PNG</button>
+            <button id="btnJpg" class="export-btn" data-i18n="btn_jpg">📸 Guardar JPG</button>
+        </div>
+
+        <button id="btnAnimate" class="btn-main" style="background: linear-gradient(45deg, var(--primary), #00bc30); border:none; color:#000;" data-i18n="btn_animate">✨ Re-Animar Construcción</button>
+
+        <div class="control-group">
+            <div class="control-row" style="margin-bottom:0;">
+                <span class="control-label" data-i18n="label_speed">⚡ Velocidad Anim.</span>
+                <input type="range" id="animSpeed" min="0.2" max="20" step="0.1" value="2.0">
+            </div>
+            <div style="text-align:right; font-size:0.75em; color:#777; margin-top:2px;">
+                Valor: <span id="speedVal">2.0</span>
+            </div>
+            
+            <div class="control-row" style="margin-bottom:0; margin-top:15px;">
+                <span class="control-label" data-i18n="label_rot">🔄 Rotación</span>
+                <input type="range" id="rotation" min="0" max="360" value="0">
+            </div>
+            <div style="text-align:right; font-size:0.75em; color:#777; margin-top:2px;">
+                Grados: <span id="rotVal">0°</span>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <h3 style="margin:0 0 10px 0; color:#fff; font-size:0.9em; border-bottom:1px solid #444; padding-bottom:5px;" data-i18n="group_presets">Geometría Oculta (Presets)</h3>
+            <p style="font-size:0.75em; color:#888; margin-bottom:10px;" data-i18n="presets_desc">Selecciona una estructura para aislarla:</p>
+            <div class="preset-grid">
+                <button class="btn-preset active" onclick="setPreset('all')" data-i18n="p_all">Todo (Metatrón)</button>
+                <button class="btn-preset" onclick="setPreset('fruit')" data-i18n="p_fruit">Fruto de la Vida</button>
+                <button class="btn-preset" onclick="setPreset('merkaba')" data-i18n="p_merkaba">Merkaba</button>
+                <button class="btn-preset" onclick="setPreset('cube')" data-i18n="p_cube">Cubo</button>
+                <button class="btn-preset" onclick="setPreset('inner')" data-i18n="p_inner">Núcleo</button>
+                <button class="btn-preset" onclick="setPreset('hexagon')" data-i18n="p_hex">Hexágono</button>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <h3 style="margin:0 0 10px 0; color:#fff; font-size:0.9em; border-bottom:1px solid #444; padding-bottom:5px;" data-i18n="group_layers">Capas y Ajustes</h3>
+            <div class="control-row">
+                <span class="control-label" data-i18n="check_circles">Círculos (Fem)</span>
+                <input type="checkbox" id="checkCircles" checked>
+            </div>
+            <div class="control-row">
+                <span class="control-label" data-i18n="check_lines">Líneas (Masc)</span>
+                <input type="checkbox" id="checkLines" checked>
+            </div>
+             <div class="control-row">
+                <span class="control-label" data-i18n="label_width">Grosor Línea</span>
+                <input type="range" id="lineWidth" min="0.5" max="5" step="0.5" value="1">
+            </div>
+        </div>
+
+        <div class="control-group">
+            <h3 style="margin:0 0 10px 0; color:#fff; font-size:0.9em; border-bottom:1px solid #444; padding-bottom:5px;" data-i18n="group_colors">Colores</h3>
+            <div class="control-row">
+                <span class="control-label" data-i18n="color_lines">Líneas</span>
+                <input type="color" id="colorLines" value="#FFD700">
+            </div>
+            <div class="control-row">
+                <span class="control-label" data-i18n="color_circles">Círculos</span>
+                <input type="color" id="colorCircles" value="#9d00ff">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="ad-container">
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-3150277567590534"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+
+<section class="content-section">
+    <article>
+        <h2 data-i18n="art_q_title">¿Qué es el Cubo de Metatrón?</h2>
+        <p data-i18n="art_q_p1">El <strong>Cubo de Metatrón</strong> es considerado una de las figuras más potentes y complejas de la Geometría Sagrada. No es solo un dibujo atractivo; es un mapa de información que explica cómo la energía del Creador fluye a través de la materia.</p>
+        <p data-i18n="art_q_p2">Recibe su nombre del Arcángel Metatrón, quien en la mística judía y la Cábala es el escriba de Dios y el guardián de los registros akáshicos. Se dice que esta figura actúa como un plano divino para la construcción de todo lo que existe en el universo físico.</p>
+
+        <h3 data-i18n="art_orig_title">El Origen: Del Círculo a la Línea</h3>
+        <p data-i18n="art_orig_p1">Esta figura no nace de la nada. Comienza con el <strong>Fruto de la Vida</strong> (que puedes aislar en nuestro generador pulsando el botón correspondiente). El Fruto se compone de 13 círculos tangentes.</p>
+        <p data-i18n="art_orig_p2">La magia ocurre cuando aplicamos la <strong>energía masculina</strong> (líneas rectas) sobre la <strong>energía femenina</strong> (círculos curvos). Si conectas el centro de cada uno de los 13 círculos con los centros de todos los demás, obtienes 78 líneas exactas. Esa red de conexiones es el Cubo de Metatrón.</p>
+
+        <h3 data-i18n="art_cube_title">¿Por qué se llama "Cubo" si parece un hexágono?</h3>
+        <p data-i18n="art_cube_p1">Esta es la duda más común. La figura que ves es una <strong>proyección isométrica</strong> (2D) de un cubo tridimensional.</p>
+        <p data-i18n="art_cube_p2">Si tomas un cubo físico (un dado, por ejemplo) y lo giras hasta que una de sus esquinas apunte directamente a tu ojo, su contorno dejará de verse como un cuadrado y se convertirá en un hexágono perfecto. Nuestro generador te permite ver estas líneas internas que forman el "Cubo dentro del Cubo" o Teseracto.</p>
+
+        <h3 data-i18n="art_secr_title">El Secreto Contenido: Los 5 Sólidos Platónicos</h3>
+        <p data-i18n="art_secr_p1">Lo más fascinante de esta estructura es que, al borrar líneas específicas, aparecen visualmente los cinco Sólidos Platónicos anidados, que son los bloques constructores de la materia:</p>
+        <ul>
+            <li data-i18n="li_hex"><strong>El Hexaedro (Cubo):</strong> Tierra, estabilidad.</li>
+            <li data-i18n="li_tet"><strong>El Tetraedro:</strong> Fuego, manifestación.</li>
+            <li data-i18n="li_oct"><strong>El Octaedro:</strong> Aire, equilibrio mental.</li>
+            <li data-i18n="li_ico"><strong>El Icosaedro:</strong> Agua, fluidez emocional.</li>
+            <li data-i18n="li_dod"><strong>El Dodecaedro:</strong> Éter, espíritu.</li>
+        </ul>
+
+        <h3 data-i18n="art_merk_title">La Merkaba y la Protección</h3>
+        <p data-i18n="art_merk_p1">Uno de los filtros más importantes de esta herramienta es la <strong>Merkaba</strong> (Estrella Tetraédrica). Esta figura está formada por dos tetraedros entrelazados (uno apuntando al cielo, otro a la tierra). Es el símbolo del equilibrio perfecto entre lo divino y lo terrenal, y se considera el "vehículo de luz" para la ascensión de la conciencia.</p>
+
+        <h3 data-i18n="art_med_title">¿Para qué sirve meditar con esta forma?</h3>
+        <p data-i18n="art_med_p1">Utilizar nuestro generador animado para observar la construcción del Cubo de Metatrón puede ayudarte a:</p>
+        <ul>
+            <li data-i18n="med_li1">Equilibrar los hemisferios cerebrales (lógica de líneas vs intuición de círculos).</li>
+            <li data-i18n="med_li2">Limpiar energías densas o estancadas en tu campo personal.</li>
+            <li data-i18n="med_li3">Entender el orden subyacente en situaciones de caos aparente.</li>
+            <li data-i18n="med_li4">Conectar con la vibración de la creación universal.</li>
+        </ul>
+    </article>
+</section>
+
+<div class="ad-container">
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-3150277567590534"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+
+<footer>
+    <a href="https://www.paypal.com/paypalme/pbazan" target="_blank" class="paypal-btn" data-i18n="footer_coffee">☕ Invítame a un café</a>
+    <div class="footer-links">
+        <a href="../../legal.html#aviso" data-i18n="footer_legal">Aviso Legal</a>
+        <a href="../../legal.html#privacidad" data-i18n="footer_privacy">Privacidad</a>
+        <a href="../../legal.html#cookies" data-i18n="footer_cookies">Cookies</a>
+        <a href="mailto:pbazan@gmail.com" data-i18n="footer_contact">Contacto</a>
+    </div>
+    <p>Copyright © 2026 Graphics Labs. <span data-i18n="footer_rights">Todos los derechos reservados.</span></p>
+</footer>
+
+<script>
+    // --- SISTEMA TRADUCCIÓN (I18N) ---
+const translations = {
+    es: {
+        nav_hub: "HUB", nav_back: "VOLVER", sim_title: "Cubo de Metatrón",
+        btn_png: "💾 Guardar PNG", btn_jpg: "📸 Guardar JPG", btn_animate: "✨ Re-Animar Construcción",
+        label_speed: "⚡ Velocidad Anim.", label_rot: "🔄 Rotación", group_presets: "Geometría Oculta (Presets)",
+        presets_desc: "Selecciona una estructura para aislarla:", p_all: "Todo (Metatrón)",
+        p_fruit: "Fruto de la Vida", p_merkaba: "Merkaba", p_cube: "Cubo", p_inner: "Núcleo", p_hex: "Hexágono",
+        group_layers: "Capas y Ajustes", check_circles: "Círculos (Fem)", check_lines: "Líneas (Masc)",
+        label_width: "Grosor Línea", group_colors: "Colores", color_lines: "Líneas", color_circles: "Círculos",
+        art_q_title: "¿Qué es el Cubo de Metatrón?",
+        art_q_p1: "El Cubo de Metatrón es considerado una de las figuras más potentes y complejas de la Geometría Sagrada. No es solo un dibujo atractivo; es un mapa de información que explica cómo la energía del Creador fluye a través de la materia.",
+        art_q_p2: "Recibe su nombre del Arcángel Metatrón, quien en la mística judía y la Cábala es el escriba de Dios y el guardián de los registros akáshicos. Se dice que esta figura actúa como un plano divino para la construcción de todo lo que existe en el universo físico.",
+        art_orig_title: "El Origen: Del Círculo a la Línea",
+        art_orig_p1: "Esta figura no nace de la nada. Comienza con el Fruto de la Vida (que puedes aislar en nuestro generador pulsando el botón correspondiente). El Fruto se compone de 13 círculos tangentes.",
+        art_orig_p2: "La magia ocurre cuando aplicamos la energía masculina (líneas rectas) sobre la energía femenina (círculos curvos). Si conectas el centro de cada uno de los 13 círculos con los centros de todos los demás, obtienes 78 líneas exactas. Esa red de conexiones es el Cubo de Metatrón.",
+        art_cube_title: "¿Por qué se llama \"Cubo\" si parece un hexágono?",
+        art_cube_p1: "Esta es la duda más común. La figura que ves es una proyección isométrica (2D) de un cubo tridimensional.",
+        art_cube_p2: "Si tomas un cubo físico (un dado, por ejemplo) y lo giras hasta que una de sus esquinas apunte directamente a tu ojo, su contorno dejará de verse como un cuadrado y se convertirá en un hexágono perfecto. Nuestro generador te permite ver estas líneas internas que forman el \"Cubo dentro del Cubo\" o Teseracto.",
+        art_secr_title: "El Secreto Contenido: Los 5 Sólidos Platónicos",
+        art_secr_p1: "Lo más fascinante de esta estructura es que, al borrar líneas específicas, aparecen visualmente los cinco Sólidos Platónicos anidados, que son los bloques constructores de la materia:",
+        li_hex: "El Hexaedro (Cubo): Tierra, estabilidad.", li_tet: "El Tetraedro: Fuego, manifestación.",
+        li_oct: "El Octaedro: Aire, equilibrio mental.", li_ico: "El Icosaedro: Agua, fluidez emocional.",
+        li_dod: "El Dodecaedro: Éter, espíritu.",
+        art_merk_title: "La Merkaba y la Protección",
+        art_merk_p1: "Uno de los filtros más importantes de esta herramienta es la Merkaba (Estrella Tetraédrica). Esta figura está formada por dos tetraedros entrelazados (uno apuntando al cielo, otro a la tierra). Es el símbolo del equilibrio perfecto entre lo divino y lo terrenal, y se considera el \"vehículo de luz\" para la ascensión de la conciencia.",
+        art_med_title: "¿Para qué sirve meditar con esta forma?",
+        art_med_p1: "Utilizar nuestro generador animado para observar la construcción del Cubo de Metatrón puede ayudarte a:",
+        med_li1: "Equilibrar los hemisferios cerebrales (lógica de líneas vs intuición de círculos).",
+        med_li2: "Limpiar energías densas o estancadas en tu campo personal.",
+        med_li3: "Entender el orden subyacente en situaciones de caos aparente.",
+        med_li4: "Conectar con la vibración de la creación universal.",
+        footer_coffee: "☕ Invítame a un café", footer_legal: "Aviso Legal", footer_privacy: "Privacidad",
+        footer_cookies: "Cookies", footer_contact: "Contacto", footer_rights: "Todos los derechos reservados."
+    },
+    ca: {
+        nav_hub: "HUB", nav_back: "TORNAR", sim_title: "Cub de Metatró",
+        btn_png: "💾 Guardar PNG", btn_jpg: "📸 Guardar JPG", btn_animate: "✨ Re-Animar Construcció",
+        label_speed: "⚡ Velocitat Anim.", label_rot: "🔄 Rotació", group_presets: "Geometria Oculta (Presets)",
+        presets_desc: "Selecciona una estructura per aïllar-la:", p_all: "Tot (Metatró)",
+        p_fruit: "Fruit de la Vida", p_merkaba: "Merkaba", p_cube: "Cub", p_inner: "Nucli", p_hex: "Hexàgon",
+        group_layers: "Capes i Ajustos", check_circles: "Cercles (Fem)", check_lines: "Línies (Masc)",
+        label_width: "Gruix Línia", group_colors: "Colors", color_lines: "Línies", color_circles: "Cercles",
+        art_q_title: "Què és el Cub de Metatró?",
+        art_q_p1: "El Cub de Metatró és considerat una de les figures més potents i complexes de la Geometria Sagrada. No és només un dibuix atractiu; és un mapa d'informació que explica com l'energia del Creador flueix a través de la matèria.",
+        art_q_p2: "Rep el seu nom de l'Arcàngel Metatró, qui en la mística jueva i la Càbala és l'escriba de Déu i el guardià dels registres akàshics. Es diu que aquesta figura actua com un pla diví per a la construcció de tot el que existeix en l'univers físic.",
+        art_orig_title: "L'Origen: Del Cercle a la Línia",
+        art_orig_p1: "Aquesta figura no neix del no-res. Comença amb el Fruit de la Vida (que pots aïllar en el nostre generador polsant el botó corresponent). El Fruit es compon de 13 cercles tangents.",
+        art_orig_p2: "La màgia ocorre quan apliquem l'energia masculina (línies rectes) sobre l'energia femenina (cercles corbs). Si connectes el centre de cada un dels 13 cercles amb els centres de tots els altres, obtens 78 línies exactes. Aquesta xarxa de connexions és el Cub de Metatró.",
+        art_cube_title: "Per què se'n diu \"Cub\" si sembla un hexàgon?",
+        art_cube_p1: "Aquest és el dubte més comú. La figura que veus és una projecció isomètrica (2D) d'un cub tridimensional.",
+        art_cube_p2: "Si prens un cub físic (un dau, per exemple) i el giras fins que una de les seves cantonades apunti directament al teu ull, el seu contorn deixarà de veure's com un quadrat i es convertirà en un hexàgon perfecte. El nostre generador et permet veure aquestes línies internes que formen el \"Cub dins del Cub\" o Tesseract.",
+        art_secr_title: "El Secret Contingut: Els 5 Sòlids Platònics",
+        art_secr_p1: "El més fascinant d'aquesta estructura és que, en esborrar línies específiques, apareixen visualment els cinc Sòlids Platònics niats, que són els blocs constructors de la matèria:",
+        li_hex: "L'Hexaedre (Cub): Terra, estabilitat.", li_tet: "El Tetraedre: Foc, manifestació.",
+        li_oct: "L'Octaedre: Aire, equilibri mental.", li_ico: "L'Icosaedre: Aigua, fluïdesa emocional.",
+        li_dod: "El Dodecaedre: Èter, esperit.",
+        art_merk_title: "La Merkaba i la Protecció",
+        art_merk_p1: "Un dels filtres més importants d'aquesta eina és la Merkaba (Estrella Tetraèdrica). Aquesta figura està formada per dos tetraedres entrellaçats (un apuntant al cel, l'altre a la terra). És el símbol de l'equilibri perfecte entre el diví i el terrenal, i es considera el \"vehicle de llum\" per a l'ascensió de la consciència.",
+        art_med_title: "Per a què serveix meditar amb aquesta forma?",
+        art_med_p1: "Utilitzar el nostre generador animat per observar la construcció del Cub de Metatró pot ajudar-te a:",
+        med_li1: "Equilibrar els hemisferis cerebrals (lògica de línies vs intuïció de cercles).",
+        med_li2: "Netejar energies denses o estancades en el teu camp personal.",
+        med_li3: "Entendre l'ordre subjacent en situacions de caos aparent.",
+        med_li4: "Connectar amb la vibració de la creació universal.",
+        footer_coffee: "☕ Convida'm a un cafè", footer_legal: "Avís Legal", footer_privacy: "Privadesa",
+        footer_cookies: "Cookies", footer_contact: "Contacte", footer_rights: "Tots els drets reservats."
+    },
+    en: {
+        nav_hub: "HUB", nav_back: "BACK", sim_title: "Metatron's Cube",
+        btn_png: "💾 Save PNG", btn_jpg: "📸 Save JPG", btn_animate: "✨ Re-Animate Construction",
+        label_speed: "⚡ Anim. Speed", label_rot: "🔄 Rotation", group_presets: "Hidden Geometry (Presets)",
+        presets_desc: "Select a structure to isolate it:", p_all: "All (Metatron)",
+        p_fruit: "Fruit of Life", p_merkaba: "Merkaba", p_cube: "Cube", p_inner: "Core", p_hex: "Hexagon",
+        group_layers: "Layers & Settings", check_circles: "Circles (Fem)", check_lines: "Lines (Masc)",
+        label_width: "Line Width", group_colors: "Colors", color_lines: "Lines", color_circles: "Circles",
+        art_q_title: "What is Metatron's Cube?",
+        art_q_p1: "Metatron's Cube is considered one of the most powerful and complex figures in Sacred Geometry. It is not just an attractive drawing; it is a map of information explaining how the Creator's energy flows through matter.",
+        art_q_p2: "It takes its name from Archangel Metatron, who in Jewish mysticism and Kabbalah is God's scribe and guardian of the Akashic records. This figure is said to act as a divine blueprint for the construction of everything that exists in the physical universe.",
+        art_orig_title: "The Origin: From Circle to Line",
+        art_orig_p1: "This figure is not born from nothing. It begins with the Fruit of Life (which you can isolate in our generator by pressing the corresponding button). The Fruit is composed of 13 tangent circles.",
+        art_orig_p2: "Magic happens when we apply masculine energy (straight lines) over feminine energy (curved circles). If you connect the center of each of the 13 circles with the centers of all the others, you get exactly 78 lines. That network of connections is Metatron's Cube.",
+        art_cube_title: "Why is it called a \"Cube\" if it looks like a hexagon?",
+        art_cube_p1: "This is the most common doubt. The figure you see is a 2D isometric projection of a three-dimensional cube.",
+        art_cube_p2: "If you take a physical cube (a die, for example) and rotate it until one of its corners points directly at your eye, its outline will stop looking like a square and become a perfect hexagon. Our generator allows you to see these internal lines that form the \"Cube within the Cube\" or Tesseract.",
+        art_secr_title: "The Contained Secret: The 5 Platonic Solids",
+        art_secr_p1: "The most fascinating thing about this structure is that, by erasing specific lines, the five nested Platonic Solids visually appear, which are the building blocks of matter:",
+        li_hex: "Hexahedron (Cube): Earth, stability.", li_tet: "Tetrahedron: Fire, manifestation.",
+        li_oct: "Octahedron: Air, mental balance.", li_ico: "Icosahedron: Water, emotional fluidity.",
+        li_dod: "Dodecahedron: Ether, spirit.",
+        art_merk_title: "Merkaba and Protection",
+        art_merk_p1: "One of the most important filters of this tool is the Merkaba (Star Tetrahedron). This figure is formed by two interlocking tetrahedrons (one pointing to the sky, the other to the earth). It is the symbol of perfect balance between the divine and the earthly, and is considered the \"light vehicle\" for the ascension of consciousness.",
+        art_med_title: "What is the purpose of meditating with this shape?",
+        art_med_p1: "Using our animated generator to observe the construction of Metatron's Cube can help you:",
+        med_li1: "Balance the brain hemispheres (logic of lines vs intuition of circles).",
+        med_li2: "Clear dense or stagnant energies in your personal field.",
+        med_li3: "Understand the underlying order in situations of apparent chaos.",
+        med_li4: "Connect with the vibration of universal creation.",
+        footer_coffee: "☕ Buy me a coffee", footer_legal: "Legal Notice", footer_privacy: "Privacy",
+        footer_cookies: "Cookies", footer_contact: "Contact", footer_rights: "All rights reserved."
+    },
+    fr: {
+        nav_hub: "HUB", nav_back: "RETOUR", sim_title: "Cube de Métatron",
+        btn_png: "💾 Enregistrer PNG", btn_jpg: "📸 Enregistrer JPG", btn_animate: "✨ Ré-Animer la Construction",
+        label_speed: "⚡ Vitesse Anim.", label_rot: "🔄 Rotation", group_presets: "Géométrie Cachée (Presets)",
+        presets_desc: "Sélectionnez une structure pour l'isoler :", p_all: "Tout (Métatron)",
+        p_fruit: "Fruit de la Vie", p_merkaba: "Merkaba", p_cube: "Cube", p_inner: "Noyau", p_hex: "Hexagone",
+        group_layers: "Couches et Réglages", check_circles: "Cercles (Fem)", check_lines: "Lignes (Masc)",
+        label_width: "Épaisseur Ligne", group_colors: "Couleurs", color_lines: "Lignes", color_circles: "Cercles",
+        art_q_title: "Qu'est-ce que le Cube de Métatron ?",
+        art_q_p1: "Le Cube de Métatron est considéré comme l'une des figures les plus puissantes et complexes de la Géométrie Sacrée. Ce n'est pas seulement un dessin attrayant ; c'est une carte d'information qui explique comment l'énergie du Créateur coule à travers la matière.",
+        art_q_p2: "Il tire son nom de l'Archange Métatron, qui dans la mystique juive et la Kabbale est le scribe de Dieu et le gardien des annales akashiques. On dit que cette figure agit comme un plan divin pour la construction de tout ce qui existe dans l'univers physique.",
+        art_orig_title: "L'Origine : Du Cercle à la Ligne",
+        art_orig_p1: "Cette figure ne naît pas de rien. Elle commence par le Fruit de la Vie (que vous pouvez isoler dans notre générateur en appuyant sur le bouton correspondant). Le Fruit est composé de 13 cercles tangents.",
+        art_orig_p2: "La magie opère lorsque nous appliquons l'énergie masculine (lignes droites) sur l'énergie féminine (cercles courbes). Si vous connectez le centre de chacun des 13 cercles aux centres de tous les autres, vous obtenez exactement 78 lignes. Ce réseau de connexions est le Cube de Métatron.",
+        art_cube_title: "Pourquoi l'appelle-t-on \"Cube\" s'il ressemble à un hexagone ?",
+        art_cube_p1: "C'est le doute le plus courant. La figure que vous voyez est une projection isométrique (2D) d'un cube tridimensionnel.",
+        art_cube_p2: "Si vous prenez un cube physique (un dé, par exemple) et que vous le tournez jusqu'à ce qu'un de ses coins pointe directement vers votre œil, son contour cessera de ressembler à un carré et deviendra un hexagone parfait. Notre générateur vous permet de voir ces lignes internes qui forment le \"Cube dans le Cube\" ou Tesseract.",
+        art_secr_title: "Le Secret Contenu : Les 5 Solides de Platon",
+        art_secr_p1: "Le plus fascinant dans cette structure est qu'en effaçant des lignes spécifiques, les cinq solides de Platon imbriqués apparaissent visuellement, lesquels sont les blocs constructeurs de la matière :",
+        li_hex: "L'Hexaèdre (Cube) : Terre, stabilité.", li_tet: "Le Tétraèdre : Feu, manifestation.",
+        li_oct: "L'Octaèdre : Air, équilibre mental.", li_ico: "L'Icosaèdre : Eau, fluidité émotionnelle.",
+        li_dod: "Le Dodécaèdre : Éther, esprit.",
+        art_merk_title: "La Merkaba et la Protection",
+        art_merk_p1: "L'un des filtres les plus importants de cet outil est la Merkaba (Étoile Tétraédrique). Cette figure est formée de deux tétraèdres entrelacés (l'un pointant vers le ciel, l'autre vers la terre). C'est le symbole de l'équilibre parfait entre le divin et le terrestre, et elle est considérée comme le \"véhicule de lumière\" pour l'ascension de la conscience.",
+        art_med_title: "À quoi sert de méditer avec cette forme ?",
+        art_med_p1: "Utiliser notre générateur animé pour observer la construction du Cube de Métatron peut vous aider à :",
+        med_li1: "Équilibrer les hémisphères cérébraux (logique des lignes vs intuition des cercles).",
+        med_li2: "Nettoyer les énergies denses ou stagnantes dans votre champ personnel.",
+        med_li3: "Comprendre l'ordre sous-jacent dans des situations de chaos apparent.",
+        med_li4: "Se connecter à la vibration de la création universelle.",
+        footer_coffee: "☕ Offrez-moi un café", footer_legal: "Mentions Légales", footer_privacy: "Confidentialité",
+        footer_cookies: "Cookies", footer_contact: "Contact", footer_rights: "Tous droits réservés."
+    },
+    de: {
+        nav_hub: "HUB", nav_back: "ZURÜCK", sim_title: "Metatron-Würfel",
+        btn_png: "💾 PNG Speichern", btn_jpg: "📸 JPG Speichern", btn_animate: "✨ Konstruktion Re-Animieren",
+        label_speed: "⚡ Anim. Tempo", label_rot: "🔄 Rotation", group_presets: "Verborgene Geometrie (Presets)",
+        presets_desc: "Wählen Sie eine Struktur zum Isolieren:", p_all: "Alles (Metatron)",
+        p_fruit: "Frucht des Lebens", p_merkaba: "Merkaba", p_cube: "Würfel", p_inner: "Kern", p_hex: "Hexagon",
+        group_layers: "Ebenen & Einstellungen", check_circles: "Kreise (Fem)", check_lines: "Linien (Masc)",
+        label_width: "Linienstärke", group_colors: "Farben", color_lines: "Linien", color_circles: "Kreise",
+        art_q_title: "Was ist der Metatron-Würfel?",
+        art_q_p1: "Der Metatron-Würfel gilt als eine der mächtigsten und komplexesten Figuren der Heiligen Geometrie. Er ist nicht nur eine attraktive Zeichnung; er ist eine Informationskarte, die erklärt, wie die Energie des Schöpfers durch die Materie fließt.",
+        art_q_p2: "Er hat seinen Namen vom Erzengel Metatron, der in der jüdischen Mystik und Kabbala der Schreiber Gottes und Hüter der Akasha-Chronik ist. Man sagt, dass diese Figur als göttlicher Bauplan für die Konstruktion von allem dient, was im physischen Universum existiert.",
+        art_orig_title: "Der Ursprung: Vom Kreis zur Linie",
+        art_orig_p1: "Diese Figur entsteht nicht aus dem Nichts. Sie beginnt mit der Frucht des Lebens (die Sie in unserem Generator durch Drücken der entsprechenden Taste isolieren können). Die Frucht besteht aus 13 tangierenden Kreisen.",
+        art_orig_p2: "Die Magie geschieht, wenn wir männliche Energie (gerade Linien) auf weibliche Energie (gebogene Kreise) anwenden. Wenn Sie das Zentrum jedes der 13 Kreise mit den Zentren aller anderen verbinden, erhalten Sie genau 78 Linien. Dieses Netzwerk von Verbindungen ist der Metatron-Würfel.",
+        art_cube_title: "Warum heißt er \"Würfel\", wenn er wie ein Hexagon aussieht?",
+        art_cube_p1: "Dies ist die häufigste Frage. Die Figur, die Sie sehen, ist eine isometrische Projektion (2D) eines dreidimensionalen Würfels.",
+        art_cube_p2: "Wenn Sie einen physischen Würfel nehmen (ein Würfel, zum Beispiel) und ihn so drehen, dass eine seiner Ecken direkt auf Ihr Auge zeigt, wird sein Umriss aufhören, wie ein Quadrat auszusehen, und zu einem perfekten Hexagon werden. Unser Generator ermöglicht es Ihnen, diese internen Linien zu sehen, die den \"Würfel im Würfel\" oder Tesserakt bilden.",
+        art_secr_title: "Das enthaltene Geheimnis: Die 5 Platonischen Körper",
+        art_secr_p1: "Das Faszinierendste an dieser Struktur ist, dass durch das Löschen bestimmter Linien die fünf ineinander verschachtelten Platonischen Körper visuell erscheinen, welche die Bausteine der Materie sind:",
+        li_hex: "Das Hexaeder (Würfel): Erde, Stabilität.", li_tet: "Das Tetraeder: Feuer, Manifestation.",
+        li_oct: "Das Oktaeder: Luft, geistiges Gleichgewicht.", li_ico: "Das Ikosaeder: Wasser, emotionaler Fluss.",
+        li_dod: "Das Dodekaeder: Äther, Geist.",
+        art_merk_title: "Die Merkaba und der Schutz",
+        art_merk_p1: "Einer der wichtigsten Filter dieses Werkzeugs ist die Merkaba (Sterntetraeder). Diese Figur besteht aus zwei ineinander verschlungenen Tetraedern (einer zum Himmel, der andere zur Erde zeigend). Sie ist das Symbol für das perfekte Gleichgewicht zwischen dem Göttlichen und dem Irdischen und wird als das \"Lichtgefährt\" für den Aufstieg des Bewusstseins betrachtet.",
+        art_med_title: "Wozu dient die Meditation mit dieser Form?",
+        art_med_p1: "Die Nutzung unseres animierten Generators zur Beobachtung des Aufbaus des Metatron-Würfels kann Ihnen helfen:",
+        med_li1: "Die Gehirnhälften auszugleichen (Logik der Linien vs. Intuition der Kreise).",
+        med_li2: "Dichte oder stagnierende Energien in Ihrem persönlichen Feld zu reinigen.",
+        med_li3: "Die zugrunde liegende Ordnung in Situationen scheinbaren Chaos zu verstehen.",
+        med_li4: "Sich mit der Schwingung der universellen Schöpfung zu verbinden.",
+        footer_coffee: "☕ Spendier mir einen Kaffee", footer_legal: "Impressum", footer_privacy: "Datenschutz",
+        footer_cookies: "Cookies", footer_contact: "Kontakt", footer_rights: "Alle Rechte vorbehalten."
+    },
+    pt: {
+        nav_hub: "HUB", nav_back: "VOLTAR", sim_title: "Cubo de Metatron",
+        btn_png: "💾 Salvar PNG", btn_jpg: "📸 Salvar JPG", btn_animate: "✨ Re-Animar Construção",
+        label_speed: "⚡ Velocidade Anim.", label_rot: "🔄 Rotação", group_presets: "Geometria Oculta (Presets)",
+        presets_desc: "Selecione uma estrutura para isolá-la:", p_all: "Tudo (Metatron)",
+        p_fruit: "Fruto da Vida", p_merkaba: "Merkaba", p_cube: "Cubo", p_inner: "Núcleo", p_hex: "Hexágono",
+        group_layers: "Camadas e Ajustes", check_circles: "Círculos (Fem)", check_lines: "Linhas (Masc)",
+        label_width: "Espessura Linha", group_colors: "Cores", color_lines: "Linhas", color_circles: "Círculos",
+        art_q_title: "O que é o Cubo de Metatron?",
+        art_q_p1: "O Cubo de Metatron é considerado uma das figuras mais potentes e complexas da Geometria Sagrada. Não é apenas um desenho atraente; é um mapa de informação que explica como a energia do Criador flui através da matéria.",
+        art_q_p2: "Recebe o seu nome do Arcanjo Metatron, que na mística judaica e na Cabala é o escriba de Deus e o guardião dos registros akáshicos. Diz-se que esta figura atua como um plano divino para a construção de tudo o que existe no universo físico.",
+        art_orig_title: "A Origem: Do Círculo à Linha",
+        art_orig_p1: "Esta figura não nasce do nada. Começa com o Fruto da Vida (que podes isolar no nosso gerador premindo o botão correspondente). O Fruto é composto por 13 círculos tangentes.",
+        art_orig_p2: "A magia acontece quando aplicamos a energia masculina (linhas retas) sobre a energia feminina (círculos curvos). Se ligares o centro de cada um dos 13 círculos aos centros de todos os outros, obténs exatamente 78 linhas. Essa rede de ligações é o Cubo de Metatron.",
+        art_cube_title: "Porque se chama \"Cubo\" se parece um hexágono?",
+        art_cube_p1: "Esta é a dúvida mais comum. A figura que vê é uma projeção isométrica (2D) de um cubo tridimensional.",
+        art_cube_p2: "Se pegar num cubo físico (um dado, por exemplo) e o girar até que uma das suas esquinas aponte diretamente para o seu olho, o seu contorno deixará de parecer um quadrado e tornar-se-á um hexágono perfeito. O nosso gerador permite-lhe ver estas linhas internas que formam o \"Cubo dentro do Cubo\" ou Tesseracto.",
+        art_secr_title: "O Segredo Contido: Os 5 Sólidos Platónicos",
+        art_secr_p1: "O mais fascinante desta estrutura é que, ao apagar linhas específicas, aparecem visualmente os cinco Sólidos Platónicos aninhados, que são os blocos construtores da matéria:",
+        li_hex: "O Hexaedro (Cubo): Terra, estabilidade.", li_tet: "O Tetraedro: Fogo, manifestação.",
+        li_oct: "O Octaedro: Ar, equilíbrio mental.", li_ico: "O Icosaedro: Água, fluidez emocional.",
+        li_dod: "O Dodecaedro: Éter, espírito.",
+        art_merk_title: "A Merkaba e a Proteção",
+        art_merk_p1: "Um dos filtros mais importantes desta ferramenta é a Merkaba (Estrela Tetraédrica). Esta figura é formada por dois tetraedros entrelaçados (um apontando para o céu, outro para a terra). É o símbolo do equilíbrio perfeito entre o divino e o terreno, e é considerada o \"veículo de luz\" para a ascensão da consciência.",
+        art_med_title: "Para que serve meditar com esta forma?",
+        art_med_p1: "Utilizar o nosso gerador animado para observar a construção do Cubo de Metatron pode ajudá-lo a:",
+        med_li1: "Equilibrar os hemisférios cerebrais (lógica de linhas vs intuição de círculos).",
+        med_li2: "Limpar energias densas ou estancadas no seu campo pessoal.",
+        med_li3: "Entender a ordem subjacente em situações de caos aparente.",
+        med_li4: "Conectar-se com a vibração da criação universal.",
+        footer_coffee: "☕ Pague-me um café", footer_legal: "Aviso Legal", footer_privacy: "Privacidade",
+        footer_cookies: "Cookies", footer_contact: "Contacto", footer_rights: "Todos os direitos reservados."
+    },
+    it: {
+        nav_hub: "HUB", nav_back: "INDIETRO", sim_title: "Cubo di Metatron",
+        btn_png: "💾 Salva PNG", btn_jpg: "📸 Salva JPG", btn_animate: "✨ Rianima Costruzione",
+        label_speed: "⚡ Velocità Anim.", label_rot: "🔄 Rotazione", group_presets: "Geometria Occulta (Preset)",
+        presets_desc: "Seleziona una struttura per isolarla:", p_all: "Tutto (Metatron)",
+        p_fruit: "Frutto della Vita", p_merkaba: "Merkaba", p_cube: "Cubo", p_inner: "Nucleo", p_hex: "Esagono",
+        group_layers: "Livelli e Regolazioni", check_circles: "Cerchi (Fem)", check_lines: "Linee (Masc)",
+        label_width: "Spessore Linea", group_colors: "Colori", color_lines: "Linee", color_circles: "Cerchi",
+        art_q_title: "Cos'è il Cubo di Metatron?",
+        art_q_p1: "Il Cubo di Metatron è considerato una delle figure più potenti e complesse della Geometria Sacra. Non è solo un bel disegno; è una mappa di informazioni che spiega come l'energia del Creatore fluisce attraverso la materia.",
+        art_q_p2: "Prende il nome dall'Arcangelo Metatron, che nella mistica ebraica e nella Cabala è lo scriba di Dio e il guardiano dei registri akashici. Si dice che questa figura agisca come un piano divino per la costruzione di tutto ciò che esiste nell'universo fisico.",
+        art_orig_title: "L'Origine: Dal Cerchio alla Linea",
+        art_orig_p1: "Questa figura non nasce dal nulla. Inizia con il Frutto della Vita (que puoi isolare nel nostro generatore premendo il pulsante corrispondente). Il Frutto è composto da 13 cerchi tangenti.",
+        art_orig_p2: "La magia avviene quando applichiamo l'energia maschile (linee rette) sull'energia femminile (cerchi curvi). Se colleghi il centro di ciascuno dei 13 cerchi con i centri di tutti gli altri, ottieni esattamente 78 linee. Questa rete di connessioni è il Cubo di Metatron.",
+        art_cube_title: "Perché si chiama \"Cubo\" se sembra un esagono?",
+        art_cube_p1: "Questo è il dubbio più comune. La figura che vedi è una proiezione isometrica (2D) di un cubo tridimensionale.",
+        art_cube_p2: "Se prendi un cubo fisico (un dado, ad esempio) e lo ruoti finché uno dei suoi angoli non punta direttamente al tuo occhio, il suo contorno smetterà di sembrare un quadrato e diventerà un esagono perfetto. Il nostro generatore ti permette di vedere queste linee interne che formano il \"Cubo nel Cubo\" o Tesseratto.",
+        art_secr_title: "Il Segreto Contenuto: I 5 Solidi Platonici",
+        art_secr_p1: "La cosa più affascinante di questa struttura è che, cancellando linee specifiche, compaiono visivamente i cinque solidi platonici annidati, che sono i mattoni della materia:",
+        li_hex: "L'Esaedro (Cubo): Terra, stabilità.", li_tet: "Il Tetraedro: Fuoco, manifestazione.",
+        li_oct: "L'Ottaedro: Aria, equilibrio mentale.", li_ico: "L'Icosaedro: Acqua, fluidità emotiva.",
+        li_dod: "Il Dodecaedro: Etere, spirito.",
+        art_merk_title: "La Merkaba e la Protezione",
+        art_merk_p1: "Uno dei filtri più importanti di questo strumento è la Merkaba (Stella Tetraedrica). Questa figura è formata da due tetraedri intrecciati (uno rivolto al cielo, l'altro alla terra). È il simbolo del perfetto equilibrio tra il divino e il terreno, ed è considerata il \"veicolo di luce\" per l'ascesa della coscienza.",
+        art_med_title: "A cosa serve meditare con questa forma?",
+        art_med_p1: "Utilizzare il nostro generatore animato per osservare la costruzione del Cubo di Metatron può aiutarti a:",
+        med_li1: "Equilibrare gli emisferi cerebrali (logica delle linee vs intuizione dei cerchi).",
+        med_li2: "Pulire energie dense o stagnanti nel tuo campo personale.",
+        med_li3: "Capire l'ordine sottostante in situazioni di caos apparente.",
+        med_li4: "Connettersi con la vibrazione della creazione universale.",
+        footer_coffee: "☕ Offrimi un caffè", footer_legal: "Avviso Legale", footer_privacy: "Privacy",
+        footer_cookies: "Cookies", footer_contact: "Contatto", footer_rights: "Tutti i diritti riservati."
+    },
+    nl: {
+        nav_hub: "HUB", nav_back: "TERUG", sim_title: "Kubus van Metatron",
+        btn_png: "💾 PNG Opslaan", btn_jpg: "📸 JPG Opslaan", btn_animate: "✨ Constructie Re-Animeren",
+        label_speed: "⚡ Anim. Snelheid", label_rot: "🔄 Rotatie", group_presets: "Verborgen Geometrie (Presets)",
+        presets_desc: "Selecteer een structuur om te isoleren:", p_all: "Alles (Metatron)",
+        p_fruit: "Vrucht van het Leven", p_merkaba: "Merkaba", p_cube: "Kubus", p_inner: "Kern", p_hex: "Hexagon",
+        group_layers: "Lagen & Instellingen", check_circles: "Cirkels (Fem)", check_lines: "Lijnen (Masc)",
+        label_width: "Lijndikte", group_colors: "Kleuren", color_lines: "Lijnen", color_circles: "Cirkels",
+        art_q_title: "Wat is de Kubus van Metatron?",
+        art_q_p1: "De Kubus van Metatron wordt beschouwd als een van de krachtigste en meest complexe figuren in de Heilige Geometrie. Het is niet alleen een aantrekkelijke tekening; het is een informatiekaart die uitlegt hoe de energie van de Schepper door de materie stroomt.",
+        art_q_p2: "Het ontleent zijn naam aan de Aartsengel Metatron, die in de Joodse mystiek en de Kabbala de schrijver van God is en de bewaker van de Akasha-kronieken. Er wordt gezegd dat deze figuur fungeert als een goddelijk blauwdruk voor de constructie van alles wat in het fysieke universum bestaat.",
+        art_orig_title: "De Oorsprong: Van Cirkel naar Lijn",
+        art_orig_p1: "Deze figuur ontstaat niet uit het niets. Het begint met de Vrucht van het Leven (die u in onze generator kunt isoleren door op de betreffende knop te drukken). De Vrucht bestaat uit 13 rakende cirkels.",
+        art_orig_p2: "De magie gebeurt wanneer we mannelijke energie (rechte lijnen) toepassen op vrouwelijke energie (gebogen cirkels). Als je het midden van elk van de 13 cirkels verbindt met de middelpunten van alle andere, krijg je precies 78 lijnen. Dat netwerk van verbindingen is de Kubus van Metatron.",
+        art_cube_title: "Waarom heet het \"Kubus\" als het op een hexagon lijkt?",
+        art_cube_p1: "Dit is de meest voorkomende vraag. De figuur die je ziet is een isometrische projectie (2D) van een driedimensionale kubus.",
+        art_cube_p2: "Als je een fysieke kubus neemt (bijvoorbeeld een dobbelsteen) en deze draait totdat een van de hoeken recht naar je oog wijst, wordt de omtrek niet langer als een vierkant gezien en wordt het een perfecte hexagon. Onze generator stelt u in staat om deze interne lijnen te zien die de \"Kubus in de Kubus\" of Tesseract vormen.",
+        art_secr_title: "Het bevatten Geheim: De 5 Platonische Lichamen",
+        art_secr_p1: "Het meest fascinerende aan deze structuur is dat door specifieke lijnen te wissen, de vijf genestelde Platonische lichamen visueel verschijnen, welke de bouwstenen van de materie zijn:",
+        li_hex: "Het Hexaëder (Kubus): Aarde, stabiliteit.", li_tet: "Het Tetraëder: Vuur, manifestatie.",
+        li_oct: "Het Octaëder: Lucht, mentaal evenwicht.", li_ico: "Het Icosaëder: Water, emotionele vloeibaarheid.",
+        li_dod: "Het Dodecaëder: Ether, geest.",
+        art_merk_title: "De Merkaba en Bescherming",
+        art_merk_p1: "Een van de belangrijkste filters van dit instrument is de Merkaba (Stertetraëder). Deze figuur wordt gevormd door twee in elkaar grijpende tetraëders (één naar de hemel gericht, de andere naar de aarde). Het is het symbool van perfect evenwicht tussen het goddelijke en het aardse, en wordt beschouwd als het \"lichtvoertuig\" voor de ascensie van het bewustzijn.",
+        art_med_title: "Waarvoor dient mediteren met deze vorm?",
+        art_med_p1: "Het gebruik van onze geanimeerde generator om de opbouw van de Kubus van Metatron te observeren kan u helpen om:",
+        med_li1: "De hersenhelften in evenwicht te brengen (logica van lijnen vs. intuïtie van cirkels).",
+        med_li2: "Dichte of stilstaande energieën in uw persoonlijke veld te reinigen.",
+        med_li3: "De onderliggende orde te begrijpen in situaties van schijnbare chaos.",
+        med_li4: "Verbinding te maken met de vibratie van de universele creatie.",
+        footer_coffee: "☕ Trakteer me op een koffie", footer_legal: "Juridische Kennisgeving", footer_privacy: "Privacy",
+        footer_cookies: "Cookies", footer_contact: "Contact", footer_rights: "Alle rechten voorbehouden."
+    },
+    ja: {
+        nav_hub: "ハブ", nav_back: "戻る", sim_title: "メタトロンキューブ",
+        btn_png: "💾 PNGを保存", btn_jpg: "📸 JPGを保存", btn_animate: "✨ 描画アニメーション再生",
+        label_speed: "⚡ 再生速度", label_rot: "🔄 回転", group_presets: "隠された幾何学 (プリセット)",
+        presets_desc: "構造を選択して抽出：", p_all: "すべて (メタトロン)",
+        p_fruit: "生命の果実", p_merkaba: "マカバ", p_cube: "立方体", p_inner: "核", p_hex: "六角形",
+        group_layers: "レイヤーと設定", check_circles: "円 (女性性)", check_lines: "直線 (男性性)",
+        label_width: "線の太さ", group_colors: "カラー", color_lines: "線", color_circles: "円",
+        art_q_title: "メタトロンキューブとは？",
+        art_q_p1: "メタトロンキューブは、神聖幾何学の中で最も強力で複雑な図形の一つとされています。単なる魅力的な図形ではなく、創造主のエネルギーがどのように物質を流れるかを説明する情報の地図です。",
+        art_q_p2: "その名は、ユダヤ教の神秘主義やカバラにおいて「神の代書人」であり「アカシックレコードの守護者」とされる大天使メタトロンに由来します。この図形は、物理的な宇宙に存在するすべてのものを構築するための神聖な設計図として機能すると言われています。",
+        art_orig_title: "起源：円から直線へ",
+        art_orig_p1: "この図形は何もないところから生まれるのではありません。まず「生命の果実」（ジェネレーターの対応するボタンを押して抽出できます）から始まります。これは13個の接する円で構成されています。",
+        art_orig_p2: "女性的なエネルギー（曲線・円）の上に男性的なエネルギー（直線）を重ねることで、魔法が起こります。13個の円のそれぞれの中心を他のすべての円の中心と結ぶと、正確に78本の直線が得られます。そのネットワークがメタトロンキューブです。",
+        art_cube_title: "六角形なのに、なぜ「立方体（キューブ）」と呼ぶのですか？",
+        art_cube_p1: "これは最も一般的な疑問です。あなたが見ている図形は、三次元の立方体の等角投影図（2D）です。",
+        art_cube_p2: "物理的な立方体（例：サイコロ）を手に取り、角の一つが自分の目に真っ直ぐ向くように回転させると、その輪郭は正方形ではなく完璧な六角形に見えます。当ジェネレーターでは、「立方体の中の立方体」またはテセラクトを形成するこれらの内部線を見ることができます。",
+        art_secr_title: "秘められた秘密：5つのプラトン立体",
+        art_secr_p1: "この構造の最も魅力的な点は、特定の線を消すと、物質を構成する5つのプラトン立体が入れ子状に視覚的に浮かび上がることです：",
+        li_hex: "正六面体 (立方体)：地、安定。", li_tet: "正四面体：火、具現化。",
+        li_oct: "正八面体：風、精神の均衡。", li_ico: "正二十面体：水、感情の流動性。",
+        li_dod: "正十二面体：エーテル、精神。",
+        art_merk_title: "マカバと保護",
+        art_merk_p1: "このツールの最も重要なフィルターの一つが「マカバ（星型二重正四面体）」です。この図形は、2つの正四面体が重なり合って形成されます（一方は天を指し、もう一方は地を指します）。これは聖なるものと地上の完璧な均衡の象徴であり、意識のアセンションのための「光の乗り物」とされています。",
+        art_med_title: "この形で瞑想する意味は何ですか？",
+        art_med_p1: "アニメーションジェネレーターを使用してメタトロンキューブの構築を観察することは、以下の助けになります：",
+        med_li1: "脳の右脳と左脳のバランスを整える（直線の論理 vs 円の直感）。",
+        med_li2: "自身のフィールドにある停滞したエネルギーを浄化する。",
+        med_li3: "混乱の中に潜む秩序を理解する。",
+        med_li4: "宇宙の創造の波動と繋がる。",
+        footer_coffee: "☕ コーヒーを一杯おごる", footer_legal: "法的通知", footer_privacy: "プライバシー",
+        footer_cookies: "クッキー", footer_contact: "お問い合わせ", footer_rights: "無断複写・転載を禁じます。"
+    }
+};
+    function changeLanguage(lang) {
+        document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+        event?.target?.classList?.add('active');
+        const texts = translations[lang] || translations['en'];
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (texts[key]) el.innerHTML = texts[key];
+        });
+    }
+
+    // --- LÓGICA DEL SIMULADOR (INALTERADA) ---
+    const canvas = document.getElementById('metatronCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    let isDragging = false;
+    let lastMouseX = 0;
+    let initialPinchDist = null;
+    let initialBaseRadius = null;
+
+    const state = {
+        circles: true,
+        lines: true,
+        lineWidth: 1,
+        lineColor: '#FFD700',
+        circleColor: '#9d00ff',
+        filter: 'all', 
+        animationProgress: 1,
+        isAnimating: false,
+        animSpeed: 2.0,
+        rotation: 0 
+    };
+
+    let points = []; 
+    let connections = []; 
+    let baseRadius = 0; 
+
+    function init() {
+        resize();
+        window.addEventListener('resize', resize);
+        setupControls();
+        addInteractionListeners();
+        generatePoints();
+        generateConnections();
+        draw();
+    }
+
+    function resize() {
+        const parent = canvas.parentElement;
+        canvas.width = parent.clientWidth;
+        canvas.height = parent.clientHeight;
+        const minDim = Math.min(canvas.width, canvas.height);
+        if(baseRadius === 0) {
+            baseRadius = minDim / 10; 
+        }
+        generatePoints(); 
+        draw();
+    }
+
+    function addInteractionListeners() {
+        canvas.addEventListener('mousedown', (e) => { isDragging = true; lastMouseX = e.clientX; });
+        window.addEventListener('mouseup', () => { isDragging = false; });
+        canvas.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const deltaX = e.clientX - lastMouseX;
+            lastMouseX = e.clientX;
+            state.rotation = (state.rotation + deltaX * 0.5) % 360;
+            if (state.rotation < 0) state.rotation += 360;
+            updateRotationUI();
+            generatePoints();
+            draw();
+        });
+
+        canvas.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const zoomSpeed = 0.05;
+            if (e.deltaY < 0) baseRadius *= (1 + zoomSpeed);
+            else baseRadius *= (1 - zoomSpeed);
+            if (baseRadius < 10) baseRadius = 10;
+            if (baseRadius > canvas.width) baseRadius = canvas.width;
+            generatePoints();
+            draw();
+        }, { passive: false });
+
+        canvas.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) { isDragging = true; lastMouseX = e.touches[0].clientX; }
+            else if (e.touches.length === 2) {
+                isDragging = false;
+                initialPinchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+                initialBaseRadius = baseRadius;
+            }
+        }, { passive: false });
+
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (e.touches.length === 1 && isDragging) {
+                const deltaX = e.touches[0].clientX - lastMouseX;
+                lastMouseX = e.touches[0].clientX;
+                state.rotation = (state.rotation + deltaX * 0.5) % 360;
+                if (state.rotation < 0) state.rotation += 360;
+                updateRotationUI();
+                generatePoints();
+                draw();
+            } else if (e.touches.length === 2) {
+                const currentDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+                if (initialPinchDist > 0) {
+                    const scale = currentDist / initialPinchDist;
+                    baseRadius = initialBaseRadius * scale;
+                    if (baseRadius < 10) baseRadius = 10;
+                    if (baseRadius > canvas.width) baseRadius = canvas.width;
+                    generatePoints();
+                    draw();
+                }
+            }
+        }, { passive: false });
+
+        canvas.addEventListener('touchend', () => { isDragging = false; initialPinchDist = null; });
+    }
+
+    function updateRotationUI() {
+        const rotInt = Math.round(state.rotation);
+        document.getElementById('rotation').value = rotInt;
+        document.getElementById('rotVal').innerText = rotInt + '°';
+    }
+
+    function generatePoints() {
+        points = [];
+        const cx = canvas.width / 2;
+        const cy = canvas.height / 2;
+        const rotRad = state.rotation * Math.PI / 180;
+        points.push({x: cx, y: cy});
+        const dist1 = baseRadius * 2;
+        for(let i = 0; i < 6; i++) {
+            const angle = ((i * 60) * Math.PI / 180) + rotRad; 
+            points.push({ x: cx + Math.cos(angle) * dist1, y: cy + Math.sin(angle) * dist1 });
+        }
+        const dist2 = baseRadius * 4;
+        for(let i = 0; i < 6; i++) {
+            const angle = ((i * 60) * Math.PI / 180) + rotRad;
+            points.push({ x: cx + Math.cos(angle) * dist2, y: cy + Math.sin(angle) * dist2 });
+        }
+    }
+
+    function generateConnections() {
+        connections = [];
+        const total = points.length;
+        for (let i = 0; i < total; i++) {
+            for (let j = i + 1; j < total; j++) {
+                connections.push({from: i, to: j});
+            }
+        }
+    }
+
+    function draw() {
+        if (state.isAnimating) {
+            ctx.fillStyle = 'rgba(0,0,0,0.15)'; 
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        } else {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+
+        let linesToDraw = [];
+        if (state.lines) {
+            if (state.filter === 'all') linesToDraw = connections;
+            else if (state.filter === 'merkaba') {
+                const group1 = [7,9,11], group2 = [8,10,12]; 
+                connections.forEach(l => {
+                    if((group1.includes(l.from) && group1.includes(l.to)) || (group2.includes(l.from) && group2.includes(l.to))) linesToDraw.push(l);
+                    if((group1.includes(l.from) || group2.includes(l.from)) && (l.to >=1 && l.to <=6)) linesToDraw.push(l);
+                });
+            } else if (state.filter === 'cube') {
+                connections.forEach(l => {
+                   if(l.from >= 7 && l.to >= 7 && (Math.abs(l.to - l.from) === 1 || Math.abs(l.to - l.from) === 5)) linesToDraw.push(l); 
+                   if(l.from >= 1 && l.from <= 6 && l.to >= 1 && l.to <= 6 && (Math.abs(l.to - l.from) === 1 || Math.abs(l.to - l.from) === 5)) linesToDraw.push(l);
+                   if(l.from >=1 && l.from <=6 && l.to >=7 && (l.to - l.from === 6)) linesToDraw.push(l); 
+                });
+            } else if (state.filter === 'hexagon') {
+                 connections.forEach(l => { if(l.from >= 7 && l.to >= 7 && (Math.abs(l.to - l.from) === 1 || Math.abs(l.to - l.from) === 5)) linesToDraw.push(l); });
+            } else if (state.filter === 'inner') {
+                 connections.forEach(l => { if(l.from === 0 && l.to <= 6) linesToDraw.push(l); });
+            }
+
+            ctx.lineWidth = state.lineWidth; ctx.strokeStyle = state.lineColor;
+            ctx.beginPath();
+            let limit = state.isAnimating ? Math.floor(linesToDraw.length * state.animationProgress) : linesToDraw.length;
+            for(let i=0; i<limit; i++) {
+                const line = linesToDraw[i];
+                if(line) { ctx.moveTo(points[line.from].x, points[line.from].y); ctx.lineTo(points[line.to].x, points[line.to].y); }
+            }
+            ctx.stroke();
+        }
+
+        if (state.circles) {
+            ctx.strokeStyle = state.circleColor; ctx.lineWidth = 2;
+            let circlesLimit = points.length;
+            if (state.isAnimating && !state.lines) circlesLimit = Math.floor(points.length * state.animationProgress);
+            for(let i=0; i<circlesLimit; i++) {
+                const p = points[i];
+                if(p) {
+                    ctx.beginPath(); ctx.arc(p.x, p.y, baseRadius, 0, Math.PI * 2);
+                    ctx.fillStyle = hexToRgba(state.circleColor, 0.1); ctx.fill(); ctx.stroke();
+                }
+            }
+        }
+    }
+
+    function animateConstruction() {
+        state.isAnimating = true; state.animationProgress = 0;
+        function loop() {
+            if (state.animationProgress < 1.05) { 
+                state.animationProgress += state.animSpeed / 100;
+                draw(); if(state.isAnimating) requestAnimationFrame(loop);
+            } else { state.isAnimating = false; state.animationProgress = 1; draw(); }
+        }
+        loop();
+    }
+
+    function saveImage(format) {
+        const link = document.createElement('a'); link.download = `graphics_labs_metatron.${format}`;
+        if(format === 'jpeg') {
+            const tC = document.createElement('canvas'); tC.width = canvas.width; tC.height = canvas.height;
+            const tX = tC.getContext('2d'); tX.fillStyle = '#000'; tX.fillRect(0,0,canvas.width,canvas.height);
+            tX.drawImage(canvas, 0, 0); link.href = tC.toDataURL('image/jpeg', 0.9);
+        } else link.href = canvas.toDataURL('image/png');
+        link.click();
+    }
+
+    function hexToRgba(hex, alpha) {
+        let r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+        return `rgba(${r},${g},${b},${alpha})`;
+    }
+
+    function setupControls() {
+        document.getElementById('checkCircles').onchange = (e) => { state.circles = e.target.checked; draw(); };
+        document.getElementById('checkLines').onchange = (e) => { state.lines = e.target.checked; draw(); };
+        document.getElementById('lineWidth').oninput = (e) => { state.lineWidth = parseFloat(e.target.value); draw(); };
+        document.getElementById('colorLines').oninput = (e) => { state.lineColor = e.target.value; draw(); };
+        document.getElementById('colorCircles').oninput = (e) => { state.circleColor = e.target.value; draw(); };
+        document.getElementById('animSpeed').oninput = (e) => { state.animSpeed = parseFloat(e.target.value); document.getElementById('speedVal').innerText = state.animSpeed.toFixed(1); };
+        document.getElementById('rotation').oninput = (e) => { state.rotation = parseInt(e.target.value); document.getElementById('rotVal').innerText = state.rotation + '°'; generatePoints(); draw(); };
+        document.getElementById('btnAnimate').onclick = () => animateConstruction();
+        document.getElementById('btnPng').onclick = () => saveImage('png');
+        document.getElementById('btnJpg').onclick = () => saveImage('jpeg');
+    }
+
+    window.setPreset = (mode) => {
+        state.filter = mode;
+        document.querySelectorAll('.btn-preset').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
+        if(mode === 'fruit') { state.lines = false; state.circles = true; } 
+        else { state.lines = true; }
+        document.getElementById('checkLines').checked = state.lines;
+        document.getElementById('checkCircles').checked = state.circles;
+        animateConstruction(); 
+    };
+
+    init();
+</script>
+</body>
+</html>

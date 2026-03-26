@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <script>
+    // --- i18n URL Router ---
+    (function() {
+        window.__GL_LANG = 'ca';
+        window.__GL_LANG_UPPER = 'CA';
+        window.__GL_LANGS = ['es', 'ca', 'en', 'fr', 'de', 'pt', 'it', 'nl', 'ja'];
+        
+        // Override localStorage to always use URL-based language
+        localStorage.setItem('gl_lang', 'ca');
+        
+        // Language switcher: navigate to the equivalent page in the target language folder
+        window.switchLangUrl = function(targetLang) {
+            var path = window.location.pathname;
+            // Replace current lang segment with target lang
+            var newPath = path.replace(/^\/(es|ca|en|fr|de|pt|it|nl|ja)\//, '/' + targetLang.toLowerCase() + '/');
+            if (newPath === path) {
+                // Fallback: prepend lang
+                newPath = '/' + targetLang.toLowerCase() + '/';
+            }
+            window.location.href = newPath + window.location.hash;
+        };
+        
+        // Auto-call setLang on DOMContentLoaded to apply translations
+        // Some labs use uppercase keys (ES/EN), others lowercase (es/en)
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof setLang === 'function') {
+                // Try uppercase first (used by most lab pages with inline translations)
+                try { setLang('CA'); } catch(e) {}
+                // Also try lowercase (used by magic-square style pages)
+                try { setLang('ca'); } catch(e) {}
+            }
+        });
+    })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avís Legal | Graphics Labs</title>
+    <meta name="description" content="Aviso legal y condiciones de uso de Graphics Labs.">
+    <style>
+        :root { --primary: #00f3ff; --bg: #050505; --text: #ddd; --glass: rgba(20, 20, 20, 0.9); }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; line-height: 1.6; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: var(--glass); padding: 40px; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; }
+        h1 { color: var(--primary); text-transform: uppercase; border-bottom: 1px solid var(--primary); padding-bottom: 10px; }
+        h2 { color: #fff; margin-top: 30px; }
+        a { color: var(--primary); text-decoration: none; }
+        .back-btn { display: inline-block; margin-bottom: 20px; padding: 5px 15px; border: 1px solid var(--primary); color: var(--primary); border-radius: 4px; }
+        .back-btn:hover { background: var(--primary); color: #000; }
+    </style>
+    <link rel="canonical" href="https://graphics-labs.org/ca/legal.html" />
+
+    <link rel="alternate" hreflang="es" href="https://graphics-labs.org/es/legal.html" />
+    <link rel="alternate" hreflang="ca" href="https://graphics-labs.org/ca/legal.html" />
+    <link rel="alternate" hreflang="en" href="https://graphics-labs.org/en/legal.html" />
+    <link rel="alternate" hreflang="fr" href="https://graphics-labs.org/fr/legal.html" />
+    <link rel="alternate" hreflang="de" href="https://graphics-labs.org/de/legal.html" />
+    <link rel="alternate" hreflang="pt" href="https://graphics-labs.org/pt/legal.html" />
+    <link rel="alternate" hreflang="it" href="https://graphics-labs.org/it/legal.html" />
+    <link rel="alternate" hreflang="nl" href="https://graphics-labs.org/nl/legal.html" />
+    <link rel="alternate" hreflang="ja" href="https://graphics-labs.org/ja/legal.html" />
+    <link rel="alternate" hreflang="x-default" href="https://graphics-labs.org/es/legal.html" />
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-btn">← Volver a Graphics Labs</a>
+        
+        <h1>Aviso Legal</h1>
+        <p>En cumplimiento con el deber de información recogido en artículo 10 de la Ley 34/2002, de 11 de julio, de Servicios de la Sociedad de la Información y del Comercio Electrónico (LSSICE), a continuación se reflejan los siguientes datos:</p>
+
+        <h2>1. Datos Identificativos</h2>
+        <p>El titular del sitio web <strong>graphics-labs.org</strong> es:</p>
+        <ul>
+            <li><strong>Titular:</strong> Pablo Ignacio Bazan Villar</li>
+            <li><strong>Domicilio:</strong> Barcelona, España</li>
+            <li><strong>Email de contacto:</strong> pbazan@gmail.com</li>
+        </ul>
+
+        <h2>2. Usuarios</h2>
+        <p>El acceso y/o uso de este portal atribuye la condición de USUARIO, que acepta, desde dicho acceso y/o uso, las Condiciones Generales de Uso aquí reflejadas.</p>
+
+        <h2>3. Uso del Portal</h2>
+        <p>Graphics Labs proporciona el acceso a multitud de informaciones, servicios, programas o datos (en adelante, "los contenidos") en Internet pertenecientes a Pablo Ignacio Bazan Villar. El USUARIO asume la responsabilidad del uso del portal.</p>
+
+        <h2>4. Propiedad Intelectual e Industrial</h2>
+        <p>El titular por sí o como cesionario, es titular de todos los derechos de propiedad intelectual e industrial de su página web, así como de los elementos contenidos en la misma (a título enunciativo: código fuente, imágenes, sonido, audio, vídeo, software o textos).</p>
+        <p>Quedan expresamente prohibidas la reproducción, la distribución y la comunicación pública, incluida su modalidad de puesta a disposición, de la totalidad o parte de los contenidos de esta página web, con fines comerciales, en cualquier soporte y por cualquier medio técnico, sin la autorización del titular.</p>
+
+        <h2>5. Exclusión de Garantías y Responsabilidad</h2>
+        <p>El titular no se hace responsable, en ningún caso, de los daños y perjuicios de cualquier naturaleza que pudieran ocasionar, a título enunciativo: errores u omisiones en los contenidos, falta de disponibilidad del portal o la transmisión de virus o programas maliciosos o lesivos en los contenidos, a pesar de haber adoptado todas las medidas tecnológicas necesarias para evitarlo.</p>
+
+        <h2>6. Modificaciones</h2>
+        <p>El titular se reserva el derecho de efectuar sin previo aviso las modificaciones que considere oportunas en su portal.</p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <script>
+    // --- i18n URL Router ---
+    (function() {
+        window.__GL_LANG = 'nl';
+        window.__GL_LANG_UPPER = 'NL';
+        window.__GL_LANGS = ['es', 'ca', 'en', 'fr', 'de', 'pt', 'it', 'nl', 'ja'];
+        
+        // Override localStorage to always use URL-based language
+        localStorage.setItem('gl_lang', 'nl');
+        
+        // Language switcher: navigate to the equivalent page in the target language folder
+        window.switchLangUrl = function(targetLang) {
+            var path = window.location.pathname;
+            // Replace current lang segment with target lang
+            var newPath = path.replace(/^\/(es|ca|en|fr|de|pt|it|nl|ja)\//, '/' + targetLang.toLowerCase() + '/');
+            if (newPath === path) {
+                // Fallback: prepend lang
+                newPath = '/' + targetLang.toLowerCase() + '/';
+            }
+            window.location.href = newPath + window.location.hash;
+        };
+        
+        // Auto-call setLang on DOMContentLoaded to apply translations
+        // Some labs use uppercase keys (ES/EN), others lowercase (es/en)
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof setLang === 'function') {
+                // Try uppercase first (used by most lab pages with inline translations)
+                try { setLang('NL'); } catch(e) {}
+                // Also try lowercase (used by magic-square style pages)
+                try { setLang('nl'); } catch(e) {}
+            }
+        });
+    })();
+    </script>
+    <title>Flor Vida | Graphics Labs</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Interactief Flor Vida-laboratorium. Experimenteer met generatieve kunst en visuele wiskunde bij Graphics Labs.">
+    
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3150277567590534"
+     crossorigin="anonymous"></script>
+    <style>
+        :root {
+            --primary: #00ff41;
+            --glass: rgba(255, 255, 255, 0.05);
+            --bg-dark: #050505;
+            --nav-height: 60px;
+        }
+
+        html, body { 
+            margin: 0; padding: 0; background-color: #000; font-family: 'Segoe UI', sans-serif; color: #ddd; 
+            overflow-x: hidden; scroll-behavior: smooth;
+        }
+
+        /* 1. SISTEMA DE NAVEGACIÓN SUPERIOR */
+        .top-nav {
+            position: fixed; top: 0; left: 0; width: 100%; height: var(--nav-height);
+            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(15px);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 20px; z-index: 1000; border-bottom: 1px solid #222; box-sizing: border-box;
+        }
+        .nav-left { display: flex; align-items: center; gap: 15px; }
+        .nav-brand { color: var(--primary); font-weight: 800; letter-spacing: 2px; font-size: 1.1em; text-transform: uppercase; }
+        .nav-btn { 
+            background: var(--glass); border: 1px solid #333; color: #fff; padding: 6px 14px; 
+            border-radius: 4px; cursor: pointer; text-decoration: none; font-size: 0.8em; font-weight: bold;
+            transition: all 0.2s;
+        }
+        .nav-btn:hover { background: var(--primary); color: #000; border-color: var(--primary); }
+        
+        .nav-right { display: flex; gap: 4px; }
+        .lang-btn { 
+            width: 34px; height: 34px; border: 1px solid #333; background: #111; color: #888; 
+            font-size: 0.7em; cursor: pointer; font-weight: bold; transition: 0.2s;
+        }
+        .lang-btn.active { border-color: var(--primary); color: var(--primary); background: rgba(0, 255, 65, 0.1); }
+
+        /* 2. ESTRUCTURA APP */
+        #app-wrapper { 
+            display: flex; width: 100%; height: calc(100vh - var(--nav-height)); 
+            margin-top: var(--nav-height); position: relative; overflow: hidden;
+        }
+        
+        #canvas-container {
+            flex: 3; display: flex; justify-content: center; align-items: center;
+            background-color: #000; padding: 20px; overflow: hidden;
+        }
+        canvas { 
+            box-shadow: 0 0 60px rgba(0, 255, 65, 0.15); 
+            border-radius: 50%; max-width: 95%; max-height: 95%; 
+        }
+
+        #controls-container {
+            flex: 1.2; min-width: 340px; background-color: var(--bg-dark); padding: 25px;
+            overflow-y: auto; border-left: 1px solid #222; z-index: 10;
+        }
+
+        h2 { color: var(--primary); margin: 0 0 20px 0; text-align: center; letter-spacing: 2px; text-transform: uppercase; }
+        
+        .btn-group { display: flex; gap: 10px; margin-bottom: 25px; }
+        .export-btn {
+            flex: 1; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;
+            transition: 0.2s; font-size: 0.85em;
+        }
+        #btnPng { background-color: var(--primary); color: #000; } 
+        #btnJpg { background-color: #fff; color: #000; } 
+
+        .control-group { background: var(--glass); border: 1px solid #222; border-radius: 8px; padding: 15px; margin-bottom: 18px; }
+        .control-row { display: flex; align-items: center; margin-bottom: 12px; font-size: 0.9em; justify-content: space-between; }
+        .control-label { color: #ccc; flex: 1; }
+        
+        input[type=range] { flex: 2; cursor: pointer; accent-color: var(--primary); }
+        input[type=color] { border: none; width: 45px; height: 30px; border-radius: 4px; cursor: pointer; padding: 0; background: none; }
+        .value-display { width: 45px; text-align: right; font-family: monospace; color: var(--primary); font-weight: bold; }
+
+        #playGenesis {
+            background: none; border: 1px solid var(--primary); color: var(--primary); 
+            border-radius: 50%; width: 34px; height: 34px; cursor: pointer; margin-right: 12px;
+            display: flex; align-items: center; justify-content: center; transition: 0.2s;
+        }
+        #playGenesis:hover { background: var(--primary); color: #000; }
+
+        /* 3. ADS Y CONTENIDO INTEGRAL */
+        .ad-container {
+            width: 100%; min-height: 150px; background: #080808; margin: 50px 0;
+            border: 1px dashed #444; display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .ad-label { color: #444; font-size: 11px; margin-bottom: 10px; letter-spacing: 3px; font-weight: bold; }
+
+        .content-section { max-width: 900px; margin: 0 auto; padding: 60px 20px; }
+        article h2 { color: var(--primary); border-left: 4px solid var(--primary); padding-left: 20px; margin-top: 70px; font-size: 2.2em; text-transform: none; text-align: left;}
+        article h3 { color: #fff; border-bottom: 1px solid #333; padding-bottom: 12px; margin-top: 50px; font-size: 1.6em; }
+        article p { line-height: 1.9; text-align: justify; color: #bbb; font-size: 1.1em; margin-bottom: 25px; }
+        article ul { padding: 0; list-style: none; }
+        article li { margin-bottom: 20px; border-left: 2px solid var(--primary); padding-left: 20px; color: #aaa; }
+        article strong { color: var(--primary); }
+
+        /* 4. FOOTER ESTANDARIZADO */
+        footer { background-color: #020202; padding: 80px 20px; text-align: center; border-top: 1px solid #222; }
+        .paypal-btn {
+            background: #0070BA; color: white; padding: 14px 28px; border-radius: 30px;
+            text-decoration: none; font-weight: bold; display: inline-block; margin-bottom: 40px;
+            box-shadow: 0 5px 20px rgba(0, 112, 186, 0.3); transition: 0.2s;
+        }
+        .paypal-btn:hover { transform: translateY(-3px); }
+        .footer-links { margin: 25px 0; }
+        .footer-links a { color: #666; text-decoration: none; margin: 0 15px; font-size: 0.9em; transition: color 0.2s; }
+        .footer-links a:hover { color: var(--primary); }
+        .copyright { color: #444; font-size: 0.85em; margin-top: 30px; letter-spacing: 1px; }
+
+        @media (max-width: 800px) {
+            #app-wrapper { display: block; height: auto; }
+            #canvas-container { height: 60vh; }
+            #controls-container { width: 100%; box-sizing: border-box; }
+        }
+    </style>
+    <link rel="canonical" href="https://graphics-labs.org/nl/labs/flor-vida/" />
+
+    <link rel="alternate" hreflang="es" href="https://graphics-labs.org/es/labs/flor-vida/" />
+    <link rel="alternate" hreflang="ca" href="https://graphics-labs.org/ca/labs/flor-vida/" />
+    <link rel="alternate" hreflang="en" href="https://graphics-labs.org/en/labs/flor-vida/" />
+    <link rel="alternate" hreflang="fr" href="https://graphics-labs.org/fr/labs/flor-vida/" />
+    <link rel="alternate" hreflang="de" href="https://graphics-labs.org/de/labs/flor-vida/" />
+    <link rel="alternate" hreflang="pt" href="https://graphics-labs.org/pt/labs/flor-vida/" />
+    <link rel="alternate" hreflang="it" href="https://graphics-labs.org/it/labs/flor-vida/" />
+    <link rel="alternate" hreflang="nl" href="https://graphics-labs.org/nl/labs/flor-vida/" />
+    <link rel="alternate" hreflang="ja" href="https://graphics-labs.org/ja/labs/flor-vida/" />
+    <link rel="alternate" hreflang="x-default" href="https://graphics-labs.org/es/labs/flor-vida/" />
+</head>
+<body>
+
+<nav class="top-nav">
+    <div class="nav-left">
+        <a href="../../index.html" class="nav-btn">HUB</a>
+        <button onclick="window.history.length > 1 ? history.back() : window.location.href='../../index.html'" class="nav-btn">BACK</button>
+        <span class="nav-brand">GRAPHICS LABS</span>
+    </div>
+    <div class="nav-right">
+        <button class="lang-btn active" onclick="switchLangUrl('es')">ES</button>
+        <button class="lang-btn" onclick="switchLangUrl('ca')">CA</button>
+        <button class="lang-btn" onclick="switchLangUrl('en')">EN</button>
+        <button class="lang-btn" onclick="switchLangUrl('fr')">FR</button>
+        <button class="lang-btn" onclick="switchLangUrl('de')">DE</button>
+        <button class="lang-btn" onclick="switchLangUrl('pt')">PT</button>
+        <button class="lang-btn" onclick="switchLangUrl('it')">IT</button>
+        <button class="lang-btn" onclick="switchLangUrl('nl')">NL</button>
+        <button class="lang-btn" onclick="switchLangUrl('ja')">JA</button>
+    </div>
+</nav>
+
+<div id="app-wrapper">
+    <div id="canvas-container">
+        <canvas id="yantraCanvas"></canvas>
+    </div>
+
+    <div id="controls-container">
+        <h2 data-i18n="sim_title">FLOR DE LA VIDA LAB</h2>
+        
+        <div class="btn-group">
+            <button id="btnPng" class="export-btn" data-i18n="btn_png">💾 PNG</button>
+            <button id="btnJpg" class="export-btn" data-i18n="btn_jpg">📸 JPG</button>
+        </div>
+
+        <div class="control-group">
+            <h3 style="margin-top:0; color:#fff; font-size:1em; border-bottom:1px solid #333; padding-bottom:5px;" data-i18n="style_title">Estética & Luz</h3>
+            <div class="control-row"><span class="control-label" data-i18n="bg_color">Fondo:</span><input type="color" id="bgColor" value="#050505"></div>
+            <div class="control-row"><span class="control-label" data-i18n="line_color">Líneas:</span><input type="color" id="strokeColor" value="#00ffff"></div>
+            <div class="control-row"><span class="control-label" data-i18n="fill_color">Relleno:</span><input type="color" id="fillColor" value="#ff00ff"></div>
+        </div>
+
+        <div class="control-group">
+            <h3 style="margin-top:0; color:#fff; font-size:1em; border-bottom:1px solid #333; padding-bottom:5px;" data-i18n="genesis_title">Génesis (Expansión)</h3>
+            <div class="control-row">
+                <button id="playGenesis">▶</button>
+                <span class="control-label" data-i18n="circles_label">Círculos:</span>
+                <input type="range" id="genesisRange" min="1" max="61" value="19">
+                <span id="genesisVal" class="value-display">19</span>
+            </div>
+            <div class="control-row"><span class="control-label" data-i18n="radius_label">Radio:</span><input type="range" id="radiusRange" min="10" max="150" value="80"><span id="radiusVal" class="value-display">80</span></div>
+            <div class="control-row"><span class="control-label" data-i18n="width_label">Grosor:</span><input type="range" id="widthRange" min="1" max="50" value="15"><span id="widthVal" class="value-display">1.5</span></div>
+            <div class="control-row"><span class="control-label" data-i18n="opacity_label">Opacidad:</span><input type="range" id="opacityRange" min="0" max="100" value="10"><span id="opacityVal" class="value-display">10%</span></div>
+        </div>
+
+        <div class="control-group">
+            <div class="control-row">
+                <span class="control-label" data-i18n="border_label">Marco Exterior:</span>
+                <input type="checkbox" id="checkBorder" checked style="accent-color: var(--primary); transform: scale(1.3);">
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content-section">
+    <div class="ad-container">
+        <span class="ad-label">AD SPACE</span>
+        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3150277567590534" data-ad-slot="5648942722" data-ad-format="auto" data-full-width-responsive="true"></ins>
+        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+
+    <article id="main-content">
+        <h2 data-i18n="art_title">El Patrón de la Creación</h2>
+        <p data-i18n="art_p1">La Flor de la Vida es considerada por muchos como la geometría sagrada primordial. Este patrón, formado por círculos superpuestos con la misma simetría séxtuple, contiene dentro de sus proporciones todos los aspectos de la vida: las matemáticas, la física, la música y la biología.</p>
+        
+        <h3 data-i18n="art_h2">Las Etapas del Génesis</h3>
+        <p data-i18n="art_p2">Al usar el deslizador de "Expansión" en nuestra herramienta, estás recreando los días de la creación:</p>
+        <ul>
+            <li data-i18n="art_li1"><strong>La Semilla de la Vida (7 círculos):</strong> Representa los 7 días de la creación. Es la base de toda la estructura.</li>
+            <li data-i18n="art_li2"><strong>El Huevo de la Vida:</strong> La estructura celular embrionaria básica de todo ser vivo.</li>
+            <li data-i18n="art_li3"><strong>La Flor de la Vida (19 círculos):</strong> El patrón completo rodeado por dos grandes círculos, simbolizando el límite del universo observable.</li>
+            <li data-i18n="art_li4"><strong>El Fruto de la Vida (13 círculos ocultos):</strong> Si extiendes el patrón (sube el slider al máximo), revelas la base para los Sólidos Platónicos.</li>
+        </ul>
+
+        <h3 data-i18n="art_h3">La Conexión con el Árbol de la Vida</h3>
+        <p data-i18n="art_p3">La Flor de la Vida no es solo un dibujo bonito; es el plano arquitectónico del misticismo judío (Cábala). Si tomas los centros de los círculos del "Fruto de la Vida" y conectas 10 puntos específicos, obtienes el Árbol de la Vida.</p>
+        <p data-i18n="art_p4">Este diagrama sagrado representa las 10 Sephirot (emanaciones divinas) y los 22 senderos que conectan el mundo material (Malkuth) con la fuente divina (Kether). Al meditar trazando la Flor de la Vida, estás, literalmente, dibujando la matriz de donde surge el Árbol de la Vida.</p>
+
+        <h3 data-i18n="art_h4">Cómo usar este Laboratorio</h3>
+        <p data-i18n="art_p5">A diferencia de los dibujos en papel, aquí puedes experimentar con la luz. Usa colores neón sobre fondo negro para visualizar cómo la luz se comporta al expandirse desde el centro. Activa el botón de "Play" en el panel de control para ver la animación hipnótica del crecimiento geométrico, perfecta para respiración guiada.</p>
+    </article>
+
+    <div class="ad-container">
+        <span class="ad-label">AD SPACE</span>
+        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3150277567590534" data-ad-slot="5648942722" data-ad-format="auto" data-full-width-responsive="true"></ins>
+        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+</section>
+
+<footer>
+    <a href="https://www.paypal.com/paypalme/pbazan" target="_blank" class="paypal-btn" data-i18n="footer_coffee">☕ Invítame a un café</a>
+    <div class="footer-links">
+        <a href="../legal.html#aviso" data-i18n="legal_aviso">Aviso Legal</a>
+        <a href="../legal.html#privacidad" data-i18n="legal_privacidad">Privacidad</a>
+        <a href="../legal.html#cookies" data-i18n="legal_cookies">Cookies</a>
+        <a href="mailto:pbazan@gmail.com">Contacto</a>
+    </div>
+    <p class="copyright">Copyright © 2026 Graphics Labs. Todos los derechos reservados.</p>
+</footer>
+
+<script>
+    // --- SISTEMA I18N ÍNTEGRO (9 IDIOMAS) ---
+    const translations = {
+        ES: {
+            sim_title: "FLOR DE LA VIDA LAB", btn_png: "💾 PNG", btn_jpg: "📸 JPG",
+            style_title: "Estética & Luz", bg_color: "Fondo:", line_color: "Líneas:", fill_color: "Relleno:",
+            genesis_title: "Génesis (Expansión)", circles_label: "Círculos:", radius_label: "Radio:", width_label: "Grosor:", opacity_label: "Opacidad:", border_label: "Marco Exterior:",
+            art_title: "El Patrón de la Creación",
+            art_p1: "La Flor de la Vida es considerada por muchos como la geometría sagrada primordial. Este patrón, formado por círculos superpuestos con la misma simetría séxtuple, contiene dentro de sus proporciones todos los aspectos de la vida: las matemáticas, la física, la música y la biología.",
+            art_h2: "Las Etapas del Génesis",
+            art_p2: "Al usar el deslizador de \"Expansión\" en nuestra herramienta, estás recreando los días de la creación:",
+            art_li1: "<strong>La Semilla de la Vida (7 círculos):</strong> Representa los 7 días de la creación. Es la base de toda la estructura.",
+            art_li2: "<strong>El Huevo de la Vida:</strong> La estructura celular embrionaria básica de todo ser vivo.",
+            art_li3: "<strong>La Flor de la Vida (19 círculos):</strong> El patrón completo rodeado por dos grandes círculos, simbolizando el límite del universo observable.",
+            art_li4: "<strong>El Fruto de la Vida (13 círculos ocultos):</strong> Si extiendes el patrón (sube el slider al máximo), revelas la base para los Sólidos Platónicos.",
+            art_h3: "La Conexión con el Árbol de la Vida",
+            art_p3: "La Flor de la Vida no es solo un dibujo bonito; es el plano arquitectónico del misticismo judío (Cábala). Si tomas los centros de los círculos del \"Fruto de la Vida\" y conectas 10 puntos específicos, obtienes el Árbol de la Vida.",
+            art_p4: "Este diagrama sagrado representa las 10 Sephirot (emanaciones divinas) y los 22 senderos que conectan el mundo material (Malkuth) con la fuente divina (Kether). Al meditar trazando la Flor de la Vida, estás, literalmente, dibujando la matriz de donde surge el Árbol de la Vida.",
+            art_h4: "Cómo usar este Laboratorio",
+            art_p5: "A diferencia de los dibujos en papel, aquí puedes experimentar con la luz. Usa colores neón sobre fondo negro para visualizar cómo la luz se comporta al expandirse desde el centro. Activa el botón de \"Play\" en el panel de control para ver la animación hipnótica del crecimiento geométrico, perfecta para respiración guiada.",
+            footer_coffee: "☕ Invítame a un café", legal_aviso: "Aviso Legal", legal_privacidad: "Privacidad", legal_cookies: "Cookies"
+        },
+        EN: {
+            sim_title: "FLOWER OF LIFE LAB", btn_png: "💾 PNG", btn_jpg: "📸 JPG",
+            style_title: "Aesthetics & Light", bg_color: "Background:", line_color: "Lines:", fill_color: "Fill:",
+            genesis_title: "Genesis (Expansion)", circles_label: "Circles:", radius_label: "Radius:", width_label: "Width:", opacity_label: "Opacity:", border_label: "Outer Border:",
+            art_title: "The Pattern of Creation",
+            art_p1: "The Flower of Life is considered by many as the primordial sacred geometry. This pattern, formed by overlapping circles with the same sixfold symmetry, contains within its proportions all aspects of life: mathematics, physics, music, and biology.",
+            art_h2: "The Stages of Genesis",
+            art_p2: "By using the \"Expansion\" slider in our tool, you are recreating the days of creation:",
+            art_li1: "<strong>The Seed of Life (7 circles):</strong> Represents the 7 days of creation. It is the basis of the entire structure.",
+            art_li2: "<strong>The Egg of Life:</strong> The basic embryonic cellular structure of every living being.",
+            art_li3: "<strong>The Flower of Life (19 circles):</strong> The complete pattern surrounded by two large circles, symbolizing the limit of the observable universe.",
+            art_li4: "<strong>The Fruit of Life (13 hidden circles):</strong> If you extend the pattern (turn the slider to the maximum), you reveal the basis for the Platonic Solids.",
+            art_h3: "The Connection with the Tree of Life",
+            art_p3: "The Flower of Life is not just a pretty drawing; it is the architectural plan of Jewish mysticism (Kabbalah). If you take the centers of the circles of the \"Fruit of Life\" and connect 10 specific points, you get the Tree of Life.",
+            art_p4: "This sacred diagram represents the 10 Sephirot (divine emanations) and the 22 paths that connect the material world (Malkuth) with the divine source (Kether). By meditating while tracing the Flower of Life, you are literally drawing the matrix from which the Tree of Life emerges.",
+            art_h4: "How to use this Laboratory",
+            art_p5: "Unlike paper drawings, here you can experiment with light. Use neon colors on a black background to visualize how light behaves as it expands from the center. Activate the \"Play\" button in the control panel to see the hypnotic animation of geometric growth, perfect for guided breathing.",
+            footer_coffee: "☕ Buy me a coffee", legal_aviso: "Legal Notice", legal_privacidad: "Privacy", legal_cookies: "Cookies"
+        },
+        CA: {
+            sim_title: "FLOR DE LA VIDA LAB", btn_png: "💾 PNG", btn_jpg: "📸 JPG",
+            style_title: "Estètica i Llum", bg_color: "Fons:", line_color: "Línies:", fill_color: "Farciment:",
+            genesis_title: "Gènesi (Expansió)", circles_label: "Cercles:", radius_label: "Radi:", width_label: "Gruix:", opacity_label: "Opacitat:", border_label: "Marc Exterior:",
+            art_title: "El Patró de la Creació",
+            art_p1: "La Flor de la Vida és considerada per molts com la geometria sagrada primordial. Aquest patró, format per cercles superposats amb la mateixa simetria sèxtuple, conté dins les seves proporcions tots els aspectes de la vida: les matemàtiques, la física, la música i la biologia.",
+            art_h2: "Les Etapes del Gènesi",
+            art_p2: "En usar el lliscador d'\"Expansió\" en la nostra eina, estàs recreant els dies de la creació:",
+            art_li1: "<strong>La Llavor de la Vida (7 cercles):</strong> Representa els 7 dies de la creació. És la base de tota l'estructura.",
+            art_li2: "<strong>L'Ou de la Vida:</strong> L'estructura cel·lular embrionària bàsica de tot ésser viu.",
+            art_li3: "<strong>La Flor de la Vida (19 cercles):</strong> El patró complet envoltat per dos grans cercles, simbolitzant el límit de l'univers observable.",
+            art_li4: "<strong>El Fruit de la Vida (13 cercles ocults):</strong> Si estens el patró (puja el lliscador al màxim), reveles la base per als Sòlids Platònics.",
+            art_h3: "La Connexió amb l'Arbre de la Vida",
+            art_p3: "La Flor de la Vida no és només un dibuix bonic; és el plànol arquitectònic del misticisme jueu (Càbala). Si prens els centres dels cercles del \"Fruit de la Vida\" i connectes 10 punts específics, obtens l'Arbre de la Vida.",
+            art_p4: "Aquest diagrama sagrat representa les 10 Sephirot (emanacions divines) i els 22 senders que connecten el món material (Malkuth) amb la font divina (Kether). En meditar traçant la Flor de la Vida, estàs, literalment, dibuixant la matriu d'on sorgeix l'Arbre de la Vida.",
+            art_h4: "Com usar aquest Laboratori",
+            art_p5: "A diferència dels dibuixos en paper, aquí pots experimentar amb la llum. Usa colors neó sobre fons negre per a visualitzar com la llum es comporta en expandir-se des del centre. Activa el botó de \"Play\" al panell de control per a veure l'animació hipnòtica del creixement geomètric, perfecta per a respiració guiada.",
+            footer_coffee: "☕ Convida'm a un cafè", legal_aviso: "Avís Legal", legal_privacidad: "Privadesa", legal_cookies: "Cookies"
+        },
+        FR: {
+            sim_title: "LABO FLEUR DE VIE", btn_png: "💾 PNG", btn_jpg: "📸 JPG",
+            style_title: "Esthétique & Lumière", bg_color: "Fond :", line_color: "Lignes :", fill_color: "Remplissage :",
+            genesis_title: "Genèse (Expansion)", circles_label: "Cercles :", radius_label: "Rayon :", width_label: "Épaisseur :", opacity_label: "Opacité :", border_label: "Cadre Extérieur :",
+            art_title: "Le Patron de la Création",
+            art_p1: "La Fleur de Vie est considérée par beaucoup comme la géométrie sacrée primordiale. Ce motif, formé de cercles superposés à symétrie sextuple, contient dans ses proportions tous les aspects de la vie : les mathématiques, la physique, la musique et la biologie.",
+            art_h2: "Les Étapes de la Genèse",
+            art_p2: "En utilisant le curseur \"Expansion\" de notre outil, vous recréez les jours de la création :",
+            art_li1: "<strong>La Graine de Vie (7 cercles) :</strong> Représente les 7 jours de la création. C'est la base de toute la structure.",
+            art_li2: "<strong>L'Œuf de Vie :</strong> La structure cellulaire embryonnaire de base de tout être vivant.",
+            art_li3: "<strong>La Fleur de Vie (19 cercles) :</strong> Le motif complet entouré de deux grands cercles, symbolisant la limite de l'univers observable.",
+            art_li4: "<strong>Le Fruit de Vie (13 cercles cachés) :</strong> Si vous étendez le motif (montez le curseur au maximum), vous révélez la base des Solides Platoniciens.",
+            art_h3: "La Connexion avec l'Arbre de Vie",
+            art_p3: "La Fleur de Vie n'est pas seulement un joli dessin ; c'est le plan architectural du mysticisme juif (Kabbale). Si vous prenez les centres des cercles du \"Fruit de Vie\" et connectez 10 points spécifiques, vous obtenez l'Arbre de Vie.",
+            art_p4: "Ce diagramme sacré représente les 10 Sephirot (émanations divines) et les 22 sentiers qui relient le monde matériel (Malkuth) à la source divine (Kether). En méditant tout en traçant la Fleur de Vie, vous dessinez littéralement la matrice d'où émerge l'Arbre de Vie.",
+            art_h4: "Comment utiliser ce Laboratoire",
+            art_p5: "Contrairement aux dessins sur papier, vous pouvez ici expérimenter avec la lumière. Utilisez des couleurs néon sur fond noir pour visualiser comment la lumière se comporte lorsqu'elle se déploie à partir du centre. Activez le bouton \"Play\" du panneau de commande pour voir l'animation hypnotique de la croissance géométrique, parfaite pour la respiration guidée.",
+            footer_coffee: "☕ Offrez-moi un café", legal_aviso: "Mentions Légales", legal_privacidad: "Confidentialité", legal_cookies: "Cookies"
+        },
+        DE: {
+            sim_title: "BLUME DES LEBENS LAB", btn_png: "💾 PNG", btn_jpg: "📸 JPG",
+            style_title: "Ästhetik & Licht", bg_color: "Hintergrund:", line_color: "Linien:", fill_color: "Füllung:",
+            genesis_title: "Genesis (Expansion)", circles_label: "Kreise:", radius_label: "Radius:", width_label: "Breite:", opacity_label: "Deckkraft:", border_label: "Rahmen:",
+            art_title: "Das Muster der Schöpfung",
+            art_p1: "Die Blume des Lebens wird von vielen als die primäre heilige Geometrie angesehen. Dieses Muster, das aus überlappenden Kreisen mit der gleichen sechsfacher Symmetrie besteht, enthält in seinen Proportionen alle Aspekte des Lebens: Mathematik, Physik, Musik und Biologie.",
+            art_h2: "Die Stufen der Genesis",
+            art_p2: "Durch die Verwendung des Schiebereglers \"Expansion\" in unserem Tool stellen Sie die Tage der Schöpfung nach:",
+            art_li1: "<strong>Der Samen des Lebens (7 Kreise):</strong> Repräsentiert die 7 Tage der Schöpfung. Er ist die Basis der gesamten Struktur.",
+            art_li2: "<strong>Das Ei des Lebens:</strong> Die grundlegende embryonale Zellstruktur jedes Lebewesens.",
+            art_li3: "<strong>Die Blume des Lebens (19 Kreise):</strong> Das vollständige Muster, umgeben von zwei großen Kreisen, die die Grenze des beobachtbaren Universums symbolisieren.",
+            art_li4: "<strong>Die Frucht des Lebens (13 versteckte Kreise):</strong> Wenn Sie das Muster erweitern (den Schieberegler auf Maximum stellen), enthüllen Sie die Basis für die Platonischen Körper.",
+            art_h3: "Die Verbindung zum Baum des Lebens",
+            art_p3: "Die Blume des Lebens ist nicht nur eine hübsche Zeichnung; sie ist der architektonische Plan der jüdischen Mystik (Kabbala). Wenn Sie die Mittelpunkte der Kreise der \"Frucht des Lebens\" nehmen und 10 spezifische Punkte verbinden, erhalten Sie den Baum des Lebens.",
+            art_p4: "Dieses heilige Diagramm repräsentiert die 10 Sephirot (göttliche Emanationen) und die 22 Pfade, die die materielle Welt (Malkuth) mit der göttlichen Quelle (Kether) verbinden. Indem Sie meditieren, während Sie die Blume des Lebens nachzeichnen, zeichnen Sie buchstäblich die Matrix, aus der der Baum des Lebens hervorgeht.",
+            art_h4: "Wie man dieses Labor benutzt",
+            art_p5: "Im Gegensatz zu Zeichnungen auf Papier können Sie hier mit Licht experimentieren. Verwenden Sie Neonfarben auf schwarzem Hintergrund, um zu visualisieren, wie sich Licht verhält, wenn es sich vom Zentrum aus ausdehnt. Aktivieren Sie die \"Play\"-Taste im Bedienfeld, um die hypnotische Animation des geometrischen Wachstums zu sehen, die sich perfekt für geführte Atemübungen eignet.",
+            footer_coffee: "☕ Spendier mir einen Kaffee", legal_aviso: "Impressum", legal_privacidad: "Datenschutz", legal_cookies: "Cookies"
+        },
+        PT: {
+            sim_title: "LAB FLOR DA VIDA", btn_png: "💾 PNG", btn_jpg: "📸 JPG",
+            style_title: "Estética & Luz", bg_color: "Fundo:", line_color: "Linhas:", fill_color: "Preenchimento:",
+            genesis_title: "Gênesis (Expansão)", circles_label: "Círculos:", radius_label: "Raio:", width_label: "Espessura:", opacity_label: "Opacidade:", border_label: "Moldura:",
+            art_title: "O Padrão da Criação",
+            art_p1: "A Flor da Vida é considerada por muitos como a geometria sagrada primordial. Este padrão, formado por círculos sobrepostos com a mesma simetria sêxtupla, contém dentro das suas proporções todos os aspetos da vida: as matemáticas, a física, a música e a biologia.",
+            art_h2: "As Etapas do Gênesis",
+            art_p2: "Ao usar o seletor de \"Expansão\" na nossa ferramenta, está a recriar os dias da criação:",
+            art_li1: "<strong>A Semente da Vida (7 círculos):</strong> Representa os 7 dias da criação. É a base de toda a estrutura.",
+            art_li2: "<strong>O Ovo da Vida:</strong> A estrutura celular embrionária básica de todo ser vivo.",
+            art_li3: "<strong>A Flor da Vida (19 círculos):</strong> O padrão completo rodeado por dois grandes círculos, simbolizando o limite do universo observável.",
+            art_li4: "<strong>O Fruto da Vida (13 círculos ocultos):</strong> Se estender o padrão (suba o seletor ao máximo), revela a base para os Sólidos Platónicos.",
+            art_h3: "A Conexão com a Árvore da Vida",
+            art_p3: "A Flor da Vida não é apenas um desenho bonito; é o plano arquitetónico do misticismo judeu (Cabala). Se tomar os centros dos círculos do \"Fruto da Vida\" e ligar 10 pontos específicos, obtém a Árvore da Vida.",
+            art_p4: "Este diagrama sagrado representa as 10 Sephirot (emanações divinas) e os 22 caminhos que ligam o mundo material (Malkuth) à fonte divina (Kether). Ao meditar traçando a Flor da Vida, está, literalmente, a desenhar a matriz de onde surge a Árvore da Vida.",
+            art_h4: "Como usar este Laboratório",
+            art_p5: "Ao contrário dos desenhos em papel, aqui pode experimentar com a luz. Use cores néon sobre fundo preto para visualizar como a luz se comporta ao expandir-se a partir do centro. Ative o botão \"Play\" no painel de controlo para ver a animação hipnótica do crescimento geométrico, perfeita para respiração guiada.",
+            footer_coffee: "☕ Convide-me para um café", legal_aviso: "Aviso Legal", legal_privacidad: "Privacidade", legal_cookies: "Cookies"
+        },
+        IT: {
+            sim_title: "FIORE DELLA VITA LAB", btn_png: "💾 PNG", btn_jpg: "📸 JPG",
+            style_title: "Estetica & Luce", bg_color: "Sfondo:", line_color: "Linee:", fill_color: "Riempimento:",
+            genesis_title: "Genesi (Espansione)", circles_label: "Cerchi:", radius_label: "Raggio:", width_label: "Spessore:", opacity_label: "Opacità:", border_label: "Cornice:",
+            art_title: "Il Modello della Creazione",
+            art_p1: "Il Fiore della Vita è considerato da molti come la geometria sacra primordiale. Questo modello, formato da cerchi sovrapposti con la stessa simmetria sestupla, contiene all'interno delle sue proporzioni tutti gli aspetti della vita: la matematica, la fisica, la musica e la biologia.",
+            art_h2: "Le Fasi della Genesi",
+            art_p2: "Usando il cursore \"Espansione\" nel nostro strumento, stai ricreando i giorni della creazione:",
+            art_li1: "<strong>Il Seme della Vita (7 cerchi):</strong> Rappresenta i 7 giorni della creazione. È la base di tutta la struttura.",
+            art_li2: "<strong>L'Uovo della Vita:</strong> La struttura cellulare embrionale di base di ogni essere vivente.",
+            art_li3: "<strong>Il Fiore della Vita (19 cerchi):</strong> Il modello completo circondato da due grandi cerchi, che simboleggiano il limite dell'universo osservabile.",
+            art_li4: "<strong>Il Frutto della Vita (13 cerchi nascosti):</strong> Se estendi il modello (porta il cursore al massimo), riveli la base per i Solidi Platonici.",
+            art_h3: "La Connessione con l'Albero della Vita",
+            art_p3: "Il Fiore della Vita non è solo un bel disegno; è il piano architettonico del misticismo ebraico (Cabala). Se prendi i centri dei cerchi del \"Frutto della Vita\" e colleghi 10 punti specifici, ottieni l'Albero della Vita.",
+            art_p4: "Questo diagramma sacro rappresenta le 10 Sephirot (emanazioni divine) e i 22 sentieri che collegano il mondo materiale (Malkuth) con la fonte divina (Kether). Meditando mentre tracci il Fiore della Vita, stai letteralmente disegnando la matrice da cui nasce l'Albero della Vita.",
+            art_h4: "Come usare questo Laboratorio",
+            art_p5: "A differenza dei disegni su carta, qui puoi sperimentare con la luce. Usa colori neon su sfondo nero per visualizzare come la luce si comporta mentre si espande dal centro. Attiva il pulsante \"Play\" nel pannello di controllo per vedere l'animazione ipnotica della crescita geometrica, perfetta per la respirazione guidata.",
+            footer_coffee: "☕ Offrimi un caffè", legal_aviso: "Note Legali", legal_privacidad: "Privacy", legal_cookies: "Cookies"
+        },
+        NL: {
+            sim_title: "BLOEM DES LEVENS LAB", btn_png: "💾 PNG", btn_jpg: "📸 JPG",
+            style_title: "Esthetiek & Licht", bg_color: "Achtergrond:", line_color: "Lijnen:", fill_color: "Vulling:",
+            genesis_title: "Genesis (Expansie)", circles_label: "Cirkels:", radius_label: "Straal:", width_label: "Dikte:", opacity_label: "Transparantie:", border_label: "Kader:",
+            art_title: "Het Patroon van de Schepping",
+            art_p1: "De Bloem des Levens wordt door velen beschouwd als de primaire heilige geometrie. Dit patroon, gevormd door overlappende cirkels met dezelfde zesvoudige symmetrie, bevat binnen zijn proporties alle aspecten van het leven: wiskunde, natuurkunde, muziek en biologie.",
+            art_h2: "De Stadia van Genesis",
+            art_p2: "Door de schuifregelaar \"Expansie\" in onze tool te gebruiken, herschept u de dagen van de schepping:",
+            art_li1: "<strong>Het Zaad des Levens (7 cirkels):</strong> Vertegenwoordigt de 7 dagen van de schepping. Het is de basis van de hele structuur.",
+            art_li2: "<strong>Het Ei des Levens:</strong> De basis embryonale cellulaire structuur van elk levend wezen.",
+            art_li3: "<strong>De Bloem des Levens (19 cirkels):</strong> Het volledige patroon omgeven door twee grote cirkels, die de grens van het waarneembare universum symboliseren.",
+            art_li4: "<strong>De Vrucht des Levens (13 verborgen cirkels):</strong> Als u het patroon uitbreidt (zet de schuifregelaar op maximaal), onthult u de basis voor de Platonische Lichamen.",
+            art_h3: "De Verbinding met de Levensboom",
+            art_p3: "De Bloem des Levens is niet zomaar een mooie tekening; het is het architectonische plan van de Joodse mystiek (Kabbalah). Als u de middelpunten van de cirkels van de \"Vrucht des Levens\" neemt en 10 specifieke punten verbindt, krijgt u de Levensboom.",
+            art_p4: "Dit heilige diagram vertegenwoordigt de 10 Sephirot (goddelijke emanaties) und de 22 paden die de materiële wereld (Malkuth) verbinden met de goddelijke bron (Kether). Door te mediteren terwijl u de Bloem des Levens tekent, tekent u letterlijk de matrix waaruit de Levensboom voortkomt.",
+            art_h4: "Hoe dit Laboratorium te Gebruiken",
+            art_p5: "In tegenstelling tot tekeningen op papier, kunt u hier experimenteren met licht. Gebruik neonkleuren op een zwarte achtergrond om te visualiseren hoe licht zich gedraagt als het vanuit het centrum uitbreidt. Activeer de \"Play\"-knop in het bedieningspaneel om de hypnotiserende animatie van geometrische groei te zien, perfect voor begeleide ademhaling.",
+            footer_coffee: "☕ Trakteer me op koffie", legal_aviso: "Juridisch", legal_privacidad: "Privacy", legal_cookies: "Cookies"
+        },
+        JA: {
+            sim_title: "生命の花ラボ", btn_png: "💾 PNG", btn_jpg: "📸 JPG",
+            style_title: "審美性と光", bg_color: "背景:", line_color: "線:", fill_color: "塗りつぶし:",
+            genesis_title: "創世記 (拡張)", circles_label: "円の数:", radius_label: "半径:", width_label: "太さ:", opacity_label: "不透明度:", border_label: "外枠:",
+            art_title: "創造のパターン",
+            art_p1: "生命の花は、多くの人々によって根源的な神聖幾何学であると考えられています。このパターンは、同じ6回対称性を持つ重なり合う円で構成されており、その比率の中に、数学、物理学、音楽、生物学といった生命のあらゆる側面を内包しています。",
+            art_h2: "創世記の段階",
+            art_p2: "当ツールの「拡張」スライダーを使用することで、創造の日々を再現することができます：",
+            art_li1: "<strong>生命の種（7つの円）：</strong> 創造の7日間を表します。すべての構造の基礎となります。",
+            art_li2: "<strong>生命の卵：</strong> すべての生物の基本的な胚細胞構造です。",
+            art_li3: "<strong>生命の花（19の円）：</strong> 2つの大きな円に囲まれた完全なパターンで、観測可能な宇宙の境界を象徴しています。",
+            art_li4: "<strong>生命の果実（13の隠された円）：</strong> パターンを拡張する（スライダーを最大にする）と、プラトン立体の基礎が明らかになります。",
+            art_h3: "生命の樹とのつながり",
+            art_p3: "生命の花は単なる美しい図形ではありません。それはユダヤ教の神秘主義（カバラ）の建築計画図です。「生命の果実」の円の中心を取り、特定の10個の点を結ぶと、生命の樹が得られます。",
+            art_p4: "この神聖な図形は、10個のセフィロト（神の流出）と、物質世界（マルクト）と神の源（ケテル）を結ぶ22の小径を表しています。生命の花を描きながら瞑想することは、文字通り生命の樹が生まれるマトリックスを描いていることになります。",
+            art_h4: "このラボの使い方",
+            art_p5: "紙への描画とは異なり、ここでは光を使った実験が可能です。黒背景にネオンカラーを使用して、中心から広がる光の挙動を可視化してください。コントロールパネルの「再生」ボタンをオンにすると、幾何学的な成長の催眠的なアニメーションが表示され、呼吸法に最適です。",
+            footer_coffee: "☕ コーヒーを奢る", legal_aviso: "法的通知", legal_privacidad: "プライバシー", legal_cookies: "クッキー"
+        }
+    };
+
+    function setLang(lang) {
+        const trans = translations[lang] || translations['ES'];
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (trans[key]) el.innerHTML = trans[key];
+        });
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.innerText === lang);
+        });
+    }
+
+    // --- LÓGICA DEL SIMULADOR (ORIGINAL E INTACTA) ---
+    const canvas = document.getElementById('yantraCanvas');
+    const ctx = canvas.getContext('2d');
+    const canvasContainer = document.getElementById('canvas-container');
+
+    let state = {
+        bg: '#050505', stroke: '#00ffff', fill: '#ff00ff',
+        genesis: 19, radius: 80, lineWidth: 1.5, fillOpacity: 0.1, showBorder: true
+    };
+
+    let size, cx, cy, baseUnit;
+    let hexPoints = []; 
+    let animationId = null;
+
+    function init() {
+        preCalculateGrid();
+        setupListeners();
+        resizeCanvas();
+    }
+
+    function preCalculateGrid() {
+        hexPoints = [];
+        for (let q = -5; q <= 5; q++) {
+            for (let r = -5; r <= 5; r++) {
+                const x = q + r * 0.5;
+                const y = r * 0.8660254;
+                const dist = Math.sqrt(x*x + y*y);
+                if (dist < 4.8) hexPoints.push({ x: x, y: y, dist: dist });
+            }
+        }
+        hexPoints.sort((a, b) => a.dist - b.dist);
+    }
+
+    function resizeCanvas() {
+        if (!canvasContainer) return;
+        const w = canvasContainer.offsetWidth;
+        const h = canvasContainer.offsetHeight;
+        size = Math.min(w, h) * 0.95;
+        canvas.width = size;
+        canvas.height = size;
+        cx = size / 2; cy = size / 2;
+        baseUnit = size / 8; 
+        requestAnimationFrame(drawFlower);
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+
+    function drawFlower() {
+        ctx.fillStyle = state.bg;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = state.stroke;
+        ctx.lineWidth = state.lineWidth;
+        const rgb = hexToRgb(state.fill);
+        ctx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${state.fillOpacity})`;
+        const r = (state.radius / 100) * baseUnit;
+        const count = Math.min(state.genesis, hexPoints.length);
+
+        for (let i = 0; i < count; i++) {
+            const p = hexPoints[i];
+            const px = cx + (p.x * r);
+            const py = cy + (p.y * r);
+            ctx.beginPath();
+            ctx.arc(px, py, r, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+        }
+
+        if (state.showBorder && count >= 19) {
+            ctx.beginPath(); ctx.arc(cx, cy, r * 3, 0, Math.PI * 2);
+            ctx.lineWidth = state.lineWidth * 2; ctx.stroke();
+            ctx.beginPath(); ctx.arc(cx, cy, r * 3.1, 0, Math.PI * 2);
+            ctx.lineWidth = state.lineWidth; ctx.stroke();
+        }
+    }
+
+    function toggleAnimation() {
+        if (animationId) {
+            cancelAnimationFrame(animationId);
+            animationId = null;
+            document.getElementById('playGenesis').innerText = "▶";
+        } else {
+            document.getElementById('playGenesis').innerText = "⏸";
+            if (state.genesis >= 61) state.genesis = 1;
+            animateLoop();
+        }
+    }
+
+    let lastTime = 0;
+    function animateLoop(timestamp) {
+        if (!lastTime) lastTime = timestamp;
+        if (timestamp - lastTime > 60) {
+            if (state.genesis < 61) {
+                state.genesis++;
+                document.getElementById('genesisRange').value = state.genesis;
+                document.getElementById('genesisVal').innerText = state.genesis;
+                drawFlower();
+                lastTime = timestamp;
+                animationId = requestAnimationFrame(animateLoop);
+            } else toggleAnimation();
+        } else animationId = requestAnimationFrame(animateLoop);
+    }
+
+    function setupListeners() {
+        const bind = (id, prop, type = 'val') => {
+            const el = document.getElementById(id);
+            el.addEventListener('input', (e) => {
+                let v = e.target.value;
+                if (type === 'int') v = parseInt(v);
+                if (type === 'float') v = parseInt(v) / 10;
+                if (type === 'percent') v = parseInt(v) / 100;
+                state[prop] = v;
+                const display = document.getElementById(id.replace('Range', 'Val'));
+                if (display) display.innerText = (type === 'percent' ? parseInt(e.target.value) + '%' : state[prop]);
+                requestAnimationFrame(drawFlower);
+            });
+        };
+        bind('bgColor', 'bg'); bind('strokeColor', 'stroke'); bind('fillColor', 'fill');
+        bind('genesisRange', 'genesis', 'int'); bind('radiusRange', 'radius', 'int');
+        bind('widthRange', 'lineWidth', 'float'); bind('opacityRange', 'fillOpacity', 'percent');
+
+        document.getElementById('checkBorder').addEventListener('change', (e) => {
+            state.showBorder = e.target.checked;
+            requestAnimationFrame(drawFlower);
+        });
+        document.getElementById('playGenesis').addEventListener('click', toggleAnimation);
+        document.getElementById('btnPng').onclick = () => download('png');
+        document.getElementById('btnJpg').onclick = () => download('jpeg');
+    }
+
+    function download(ext) {
+        ctx.save();
+        ctx.globalCompositeOperation = 'destination-over';
+        ctx.fillStyle = state.bg;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        const link = document.createElement('a');
+        link.download = `graphics_lab_flower_${Date.now()}.${ext}`;
+        link.href = canvas.toDataURL('image/' + ext, 0.9);
+        link.click();
+        ctx.restore();
+        drawFlower();
+    }
+
+    function hexToRgb(hex) {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return { r, g, b };
+    }
+
+    init();
+</script>
+</body>
+</html>

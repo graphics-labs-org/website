@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Local dev
+.env
+.ipynb_checkpoints
+fix_*.py
+audit.py
+*.md
+!README.md
+!task.md
+!walkthrough.md
+!implementation_plan.md
+!translations/*.md
+!labs/**/*.md

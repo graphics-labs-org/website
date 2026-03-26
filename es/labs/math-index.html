@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <script>
+    // --- i18n URL Router ---
+    (function() {
+        window.__GL_LANG = 'es';
+        window.__GL_LANG_UPPER = 'ES';
+        window.__GL_LANGS = ['es', 'ca', 'en', 'fr', 'de', 'pt', 'it', 'nl', 'ja'];
+        
+        // Override localStorage to always use URL-based language
+        localStorage.setItem('gl_lang', 'es');
+        
+        // Language switcher: navigate to the equivalent page in the target language folder
+        window.switchLangUrl = function(targetLang) {
+            var path = window.location.pathname;
+            // Replace current lang segment with target lang
+            var newPath = path.replace(/^\/(es|ca|en|fr|de|pt|it|nl|ja)\//, '/' + targetLang.toLowerCase() + '/');
+            if (newPath === path) {
+                // Fallback: prepend lang
+                newPath = '/' + targetLang.toLowerCase() + '/';
+            }
+            window.location.href = newPath + window.location.hash;
+        };
+        
+        // Auto-call setLang on DOMContentLoaded to apply translations
+        // Some labs use uppercase keys (ES/EN), others lowercase (es/en)
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof setLang === 'function') {
+                // Try uppercase first (used by most lab pages with inline translations)
+                try { setLang('ES'); } catch(e) {}
+                // Also try lowercase (used by magic-square style pages)
+                try { setLang('es'); } catch(e) {}
+            }
+        });
+    })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Cuadrados mágicos, secuencias numéricas, fractales y la belleza de las matemáticas visuales. Laboratorio interactivo.">
+    <title>Departamento de Matemáticas | Graphics Labs</title>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3150277567590534"
+     crossorigin="anonymous"></script>
+    <script src="../../languages.js"></script>
+    <script src="../../translations/math-world.js"></script>
+    <style>
+        :root {
+            --primary: #00f341; 
+            --secondary: #bd00ff;
+            --glass: rgba(10, 10, 10, 0.7); 
+            --border: rgba(255, 255, 255, 0.08);
+            --text: #ffffff;
+            --muted: #bbbbbb;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', monospace, sans-serif; }
+        
+        body {
+            background-color: #050505;
+            color: var(--text);
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            user-select: none;
+        }
+
+        #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+
+        .container {
+            position: relative;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            z-index: 1;
+            flex: 1;
+        }
+
+        nav { 
+            display: flex;
+            justify-content: space-between;
+            align-items: center; 
+            padding: 30px 0; 
+            margin-bottom: 30px;
+        }
+
+        .nav-left { display: flex; align-items: center; gap: 25px; flex: 0 0 auto; }
+
+        .back-btn {
+            text-decoration: none;
+            color: var(--muted);
+            border: 1px solid var(--border);
+            min-width: 100px;
+            padding: 0 15px;
+            white-space: nowrap;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            background: rgba(255,255,255,0.05);
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+        .back-btn:hover { color: var(--primary); border-color: var(--primary); }
+
+        .brand-title { 
+            font-size: 1.2rem; 
+            font-weight: 900; 
+            letter-spacing: 2px; 
+            color: var(--primary); 
+            text-transform: uppercase;
+        }
+
+       
+        .lang-switch { 
+    display: flex; 
+    gap: 4px; 
+    flex-wrap: wrap; /* Permite que los botones salten de línea */
+    justify-content: flex-end; 
+}
+
+        .lang-switch button { 
+            background: rgba(0,0,0,0.5); 
+            border: 1px solid var(--border); 
+            color: var(--muted); 
+            width: 42px;
+            height: 32px; 
+            cursor: pointer; 
+            border-radius: 4px; 
+            font-size: 0.75rem; 
+            font-weight: 700;
+        }
+        .lang-switch button.active { background: var(--primary); color: #000; border-color: var(--primary); }
+
+        header { text-align: center; margin-bottom: 50px; }
+        h1 { font-size: 2.8rem; text-transform: uppercase; letter-spacing: 5px; margin-bottom: 10px; color: #fff; }
+        .subtitle { color: var(--muted); font-size: 1rem; font-style: italic; max-width: 800px; margin: 0 auto; line-height: 1.5; }
+
+        .description-section {
+            max-width: 800px;
+            margin: 30px auto 0;
+            color: #ccc;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            text-align: left;
+            background: rgba(10, 10, 10, 0.4);
+            padding: 25px 35px;
+            border-left: 3px solid var(--primary);
+            border-radius: 0 10px 10px 0;
+        }
+
+        .description-section p {
+            margin-bottom: 15px;
+        }
+        .description-section p:last-child {
+            margin-bottom: 0;
+        }
+
+        .labs-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); 
+            gap: 20px;
+            padding-bottom: 40px;
+        }
+
+        .card {
+            background: var(--glass);
+            backdrop-filter: blur(20px); 
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border); 
+            padding: 30px; 
+            border-radius: 15px; 
+            display: flex;
+            flex-direction: column;
+            transition: 0.4s ease;
+            min-height: 280px; 
+        }
+
+        .card:hover { 
+            border-color: var(--primary); 
+            transform: translateY(-5px); 
+            box-shadow: 0 0 20px rgba(0, 243, 65, 0.1); 
+            background: rgba(15, 15, 15, 0.85);
+        }
+
+        .card h3 { color: var(--primary); font-size: 1.25rem; margin-bottom: 12px; font-weight: 700; }
+        .card p { color: #ccc; line-height: 1.6; font-size: 0.95rem; margin-bottom: 20px; flex-grow: 1; }
+
+        .btn-lab {
+            text-decoration: none;
+            color: #fff;
+            border: 1px solid var(--secondary); 
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            transition: 0.3s;
+            background: rgba(189, 0, 255, 0.1);
+            text-transform: uppercase;
+            text-align: center;
+            font-weight: 600;
+        }
+        .btn-lab:hover { background: var(--secondary); box-shadow: 0 0 10px var(--secondary); }
+
+        /* --- RESTAURADO ADS SPACE --- */
+        .ad-container {
+            width: 100%;
+            max-width: 728px;
+            margin: 40px auto;
+            min-height: 90px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px dashed var(--border);
+            border-radius: 12px;
+            background: rgba(0,0,0,0.2);
+        }
+        .ad-placeholder-text { color: rgba(255,255,255,0.2); font-size: 0.7rem; letter-spacing: 3px; }
+
+        footer {
+            background: rgba(0,0,0,0.8); border-top: 1px solid var(--border);
+            padding: 40px 20px; text-align: center; display: flex;
+            flex-direction: column; gap: 20px; align-items: center;
+        }
+        
+        .legal-links { display: flex; gap: 25px; justify-content: center; flex-wrap: wrap; }
+        .legal-links a { color: var(--muted); text-decoration: none; font-size: 0.8rem; }
+        .legal-links a:hover { color: var(--primary); }
+        .coffee-btn { background: #FFDD00; color: #000; padding: 10px 20px; border-radius: 30px; text-decoration: none; font-weight: 800; display: inline-flex; align-items: center; gap: 8px; font-size: 0.85rem;}
+
+        @media (max-width: 1200px) { .labs-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 900px) { 
+            .labs-grid { grid-template-columns: repeat(2, 1fr); }
+            nav { flex-direction: column; gap: 20px; }
+            .lang-switch { flex: 0 0 auto; width: 100%; justify-content: center; }
+            h1 { font-size: 2.2rem; }
+        }
+        @media (max-width: 600px) { 
+            .labs-grid { grid-template-columns: 1fr; } 
+            .card { min-height: auto; padding: 25px; }
+            .card h3 { font-size: 1.15rem; }
+            .card p { font-size: 0.9rem; }
+            .ad-container { max-width: 320px; min-height: 50px; }
+        }
+    </style>
+    <link rel="canonical" href="https://graphics-labs.org/es/labs/math-index.html" />
+
+    <link rel="alternate" hreflang="es" href="https://graphics-labs.org/es/labs/math-index.html" />
+    <link rel="alternate" hreflang="ca" href="https://graphics-labs.org/ca/labs/math-index.html" />
+    <link rel="alternate" hreflang="en" href="https://graphics-labs.org/en/labs/math-index.html" />
+    <link rel="alternate" hreflang="fr" href="https://graphics-labs.org/fr/labs/math-index.html" />
+    <link rel="alternate" hreflang="de" href="https://graphics-labs.org/de/labs/math-index.html" />
+    <link rel="alternate" hreflang="pt" href="https://graphics-labs.org/pt/labs/math-index.html" />
+    <link rel="alternate" hreflang="it" href="https://graphics-labs.org/it/labs/math-index.html" />
+    <link rel="alternate" hreflang="nl" href="https://graphics-labs.org/nl/labs/math-index.html" />
+    <link rel="alternate" hreflang="ja" href="https://graphics-labs.org/ja/labs/math-index.html" />
+    <link rel="alternate" hreflang="x-default" href="https://graphics-labs.org/es/labs/math-index.html" />
+</head>
+<body oncontextmenu="return false;">
+    <canvas id="bg-canvas"></canvas>
+    
+    <div class="container">
+        <nav>
+            <div class="nav-left">
+                <a href="../index.html" class="back-btn" data-i18n="ui.back_to_labs"></a>
+                <div class="brand-title">MATH LABS</div>
+            </div>
+            <div class="lang-switch">
+                <button onclick="switchLangUrl('es')" id="btn-es">ES</button>
+                <button onclick="switchLangUrl('ca')" id="btn-ca">CA</button>
+                <button onclick="switchLangUrl('en')" id="btn-en">EN</button>
+                <button onclick="switchLangUrl('fr')" id="btn-fr">FR</button>
+                <button onclick="switchLangUrl('de')" id="btn-de">DE</button>
+                <button onclick="switchLangUrl('pt')" id="btn-pt">PT</button>
+                <button onclick="switchLangUrl('it')" id="btn-it">IT</button>
+                <button onclick="switchLangUrl('nl')" id="btn-nl">NL</button>
+                <button onclick="switchLangUrl('ja')" id="btn-ja">JP</button>
+            </div>
+        </nav>
+
+        <header>
+            <h1 data-i18n="labs.math.header_title"></h1>
+            <p class="subtitle" data-i18n="labs.math.header_subtitle"></p>
+            <div class="description-section">
+                <p data-i18n="labs.math.header_desc1"></p>
+                <p data-i18n="labs.math.header_desc2"></p>
+            </div>
+        </header>
+
+        <div class="labs-grid">
+            <div class="card"><h3 data-i18n="labs.math.card1_title"></h3><p data-i18n="labs.math.card1_desc"></p><a href="magic-square/index.html" class="btn-lab" data-i18n="ui.enter_lab"></a></div>
+            <div class="card"><h3 data-i18n="labs.math.card2_title"></h3><p data-i18n="labs.math.card2_desc"></p><a href="ulam-spiral/index.html" class="btn-lab" data-i18n="ui.enter_lab"></a></div>
+            <div class="card"><h3 data-i18n="labs.math.card3_title"></h3><p data-i18n="labs.math.card3_desc"></p><a href="pi-search/index.html" class="btn-lab" data-i18n="ui.enter_lab"></a></div>
+            <div class="card"><h3 data-i18n="labs.math.card4_title"></h3><p data-i18n="labs.math.card4_desc"></p><a href="phi-lab/index.html" class="btn-lab" data-i18n="ui.enter_lab"></a></div>
+            <div class="card"><h3 data-i18n="labs.math.card5_title"></h3><p data-i18n="labs.math.card5_desc"></p><a href="chaos-lab/index.html" class="btn-lab" data-i18n="ui.enter_lab"></a></div>
+            <div class="card"><h3 data-i18n="labs.math.card6_title"></h3><p data-i18n="labs.math.card6_desc"></p><a href="collatz-lab/index.html" class="btn-lab" data-i18n="ui.enter_lab"></a></div>
+            <div class="card"><h3 data-i18n="labs.math.card7_title"></h3><p data-i18n="labs.math.card7_desc"></p><a href="double-pendulum/index.html" class="btn-lab" data-i18n="ui.enter_lab"></a></div>
+            <div class="card"><h3 data-i18n="labs.math.card8_title"></h3><p data-i18n="labs.math.card8_desc"></p><a href="modular-lab/index.html" class="btn-lab" data-i18n="ui.enter_lab"></a></div>
+            <div class="card"><h3 data-i18n="labs.math.card9_title"></h3><p data-i18n="labs.math.card9_desc"></p><a href="fourier-lab/index.html" class="btn-lab" data-i18n="ui.enter_lab"></a></div>
+            <div class="card"><h3 data-i18n="labs.math.card10_title"></h3><p data-i18n="labs.math.card10_desc"></p><a href="game-of-life/index.html" class="btn-lab" data-i18n="ui.enter_lab"></a></div>
+        </div>
+
+        <div class="ad-container">
+            <span class="ad-placeholder-text">AD SPACE</span>
+        </div>
+    </div>
+
+    <footer>
+        <div class="legal-links">
+            <a href="../legal.html" data-i18n="legal.terms"></a>
+            <a href="../privacy.html" data-i18n="legal.privacy"></a>
+            <a href="../cookies.html" data-i18n="legal.cookies"></a>
+            <a href="mailto:pbazan@gmail.com" data-i18n="ui.contact"></a>
+        </div>
+        <span>© 2026 Graphics Labs - Math Department</span>
+        <a href="https://paypal.me/pbazan" target="_blank" class="coffee-btn">☕ <span data-i18n="ui.coffee"></span></a>
+    </footer>
+
+    <script>
+        function setLang(lang) {
+            localStorage.setItem('gl_lang', lang);
+            document.querySelectorAll('.lang-switch button').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.id === `btn-${lang}`) btn.classList.add('active');
+            });
+            const fullDict = {...translations[lang], ...mathWorld[lang]};
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const path = el.getAttribute('data-i18n').split('.');
+                let translation = fullDict;
+                path.forEach(key => { if (translation) translation = translation[key]; });
+                if (translation) el.innerHTML = translation;
+            });
+        }
+        document.addEventListener('DOMContentLoaded', () => { setLang(localStorage.getItem('gl_lang') || 'es'); });
+
+        /* --- FONDO ANIMADO ORIGINAL (RESTAURADO) --- */
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let particlesArray;
+        let mouse = { x: null, y: null, radius: 150 };
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+
+        window.addEventListener('mousemove', function(e) { mouse.x = e.x; mouse.y = e.y; });
+        window.addEventListener('touchmove', function(e) { 
+            mouse.x = e.touches[0].clientX; 
+            mouse.y = e.touches[0].clientY; 
+        }, {passive: true});
+        window.addEventListener('touchstart', function(e) { 
+            mouse.x = e.touches[0].clientX; 
+            mouse.y = e.touches[0].clientY; 
+        }, {passive: true});
+        window.addEventListener('touchend', function() { mouse.x = null; mouse.y = null; });
+        
+        const symbols = ['0', '1', 'π', '∞', '∑', '√', '∫', '≠', '≈', 'ϕ', 'e', 'x'];
+
+        class Particle {
+            constructor(x, y, dx, dy, size) {
+                this.x = x; this.y = y; this.dx = dx; this.dy = dy; this.size = size;
+                this.text = symbols[Math.floor(Math.random() * symbols.length)];
+            }
+            draw() { 
+               ctx.font = this.size + 'px serif';
+               ctx.fillStyle = 'rgba(0, 255, 65, 0.4)';
+               ctx.fillText(this.text, this.x, this.y);
+            }
+            update() {
+                if(this.x > canvas.width || this.x < 0) this.dx = -this.dx;
+                if(this.y > canvas.height || this.y < 0) this.dy = -this.dy;
+                
+                if (mouse.x != null) {
+                    let dx = mouse.x - this.x;
+                    let dy = mouse.y - this.y;
+                    let dist = Math.sqrt(dx*dx + dy*dy);
+                    
+                    if(dist < mouse.radius){
+                        const forceDirectionX = dx / dist;
+                        const forceDirectionY = dy / dist;
+                        const force = (mouse.radius - dist) / mouse.radius;
+                        this.x -= forceDirectionX * force * 5;
+                        this.y -= forceDirectionY * force * 5;
+                    }
+                }
+                
+                this.x += this.dx * 0.4;
+                this.y += this.dy * 0.4;
+                this.draw();
+            }
+        }
+
+        function init(){
+            particlesArray = [];
+            let n = (canvas.height * canvas.width) / 9000;
+            for(let i=0; i<n; i++){
+                let size = (Math.random() * 20) + 10;
+                particlesArray.push(new Particle(
+                    Math.random() * canvas.width, 
+                    Math.random() * canvas.height, 
+                    (Math.random() * 1) - 0.5, 
+                    (Math.random() * 1) - 0.5, 
+                    size
+                ));
+            }
+        }
+
+        function animate(){
+            requestAnimationFrame(animate); 
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for(let i=0; i<particlesArray.length; i++){ particlesArray[i].update(); }
+        }
+
+        let resizeTimeout;
+        window.addEventListener('resize', ()=>{ 
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                resizeCanvas();
+                init();
+            }, 100);
+        });
+        
+        init(); animate();
+    </script>
+</body>
+</html>

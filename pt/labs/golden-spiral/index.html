@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <script>
+    // --- i18n URL Router ---
+    (function() {
+        window.__GL_LANG = 'pt';
+        window.__GL_LANG_UPPER = 'PT';
+        window.__GL_LANGS = ['es', 'ca', 'en', 'fr', 'de', 'pt', 'it', 'nl', 'ja'];
+        
+        // Override localStorage to always use URL-based language
+        localStorage.setItem('gl_lang', 'pt');
+        
+        // Language switcher: navigate to the equivalent page in the target language folder
+        window.switchLangUrl = function(targetLang) {
+            var path = window.location.pathname;
+            // Replace current lang segment with target lang
+            var newPath = path.replace(/^\/(es|ca|en|fr|de|pt|it|nl|ja)\//, '/' + targetLang.toLowerCase() + '/');
+            if (newPath === path) {
+                // Fallback: prepend lang
+                newPath = '/' + targetLang.toLowerCase() + '/';
+            }
+            window.location.href = newPath + window.location.hash;
+        };
+        
+        // Auto-call setLang on DOMContentLoaded to apply translations
+        // Some labs use uppercase keys (ES/EN), others lowercase (es/en)
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof setLang === 'function') {
+                // Try uppercase first (used by most lab pages with inline translations)
+                try { setLang('PT'); } catch(e) {}
+                // Also try lowercase (used by magic-square style pages)
+                try { setLang('pt'); } catch(e) {}
+            }
+        });
+    })();
+    </script>
+    <title>Golden Spiral | Graphics Labs</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Laboratório interativo de Golden Spiral. Experimente com arte generativa e matemática visual no Graphics Labs.">
+    
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3150277567590534"
+     crossorigin="anonymous"></script>
+    <style>
+        :root {
+            --primary: #00ff41;
+            --glass: rgba(255, 255, 255, 0.05);
+            --bg-dark: #050505;
+            --nav-height: 60px;
+        }
+
+        html, body { 
+            margin: 0; padding: 0; background-color: #000; font-family: 'Segoe UI', sans-serif; color: #ddd; 
+            overflow-x: hidden; scroll-behavior: smooth;
+        }
+
+        /* 1. NAVEGACIÓN SUPERIOR (TOP NAV) */
+        .top-nav {
+            position: fixed; top: 0; left: 0; width: 100%; height: var(--nav-height);
+            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(15px);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 20px; z-index: 1000; border-bottom: 1px solid #222; box-sizing: border-box;
+        }
+        .nav-left { display: flex; align-items: center; gap: 15px; }
+        .nav-brand { color: var(--primary); font-weight: 800; letter-spacing: 2px; font-size: 1.1em; text-transform: uppercase; }
+        .nav-btn { 
+            background: var(--glass); border: 1px solid #333; color: #fff; padding: 6px 14px; 
+            border-radius: 4px; cursor: pointer; text-decoration: none; font-size: 0.8em; font-weight: bold;
+            transition: all 0.2s;
+        }
+        .nav-btn:hover { background: var(--primary); color: #000; border-color: var(--primary); }
+        
+        .nav-right { display: flex; gap: 4px; }
+        .lang-btn { 
+            width: 34px; height: 34px; border: 1px solid #333; background: #111; color: #888; 
+            font-size: 0.7em; cursor: pointer; font-weight: bold; transition: 0.2s;
+        }
+        .lang-btn.active { border-color: var(--primary); color: var(--primary); background: rgba(0, 255, 65, 0.1); }
+
+        /* 2. ESTRUCTURA APP */
+        #app-wrapper { 
+            display: flex; width: 100%; height: calc(100vh - var(--nav-height)); 
+            margin-top: var(--nav-height); position: relative; overflow: hidden;
+        }
+        
+        #canvas-container {
+            flex: 3; position: relative;
+            background: radial-gradient(circle at center, #001a06 0%, #000 80%);
+            cursor: grab; overflow: hidden; touch-action: none;
+        }
+        canvas { display: block; width: 100%; height: 100%; }
+
+        #controls-container {
+            flex: 1.2; min-width: 340px; background-color: var(--bg-dark); padding: 25px;
+            overflow-y: auto; border-left: 1px solid #222; z-index: 10;
+        }
+
+        h2 { color: var(--primary); margin: 0 0 15px 0; text-align: center; letter-spacing: 2px; text-transform: uppercase; }
+        
+        .btn-group { display: flex; gap: 10px; margin-bottom: 25px; }
+        .export-btn {
+            flex: 1; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;
+            transition: 0.2s; font-size: 0.85em;
+        }
+        #btnPng { background-color: var(--primary); color: #000; } 
+        #btnJpg { background-color: #fff; color: #000; } 
+
+        .control-group { background: var(--glass); border: 1px solid #222; border-radius: 8px; padding: 15px; margin-bottom: 20px; }
+        .control-row { display: flex; align-items: center; margin-bottom: 12px; font-size: 0.9em; justify-content: space-between; }
+        .control-label { color: #ccc; flex: 1; }
+        
+        input[type=range] { flex: 2; cursor: pointer; accent-color: var(--primary); }
+        input[type=color] { border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; padding: 0; background: none; }
+        .value-display { width: 50px; text-align: right; font-family: monospace; color: var(--primary); font-weight: bold; }
+
+        .btn-main {
+            width: 100%; padding: 14px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-bottom: 15px;
+            background: var(--primary); color: #000; font-size: 1em; transition: 0.3s; text-transform: uppercase;
+        }
+        .btn-main:hover { filter: brightness(1.1); box-shadow: 0 0 20px rgba(0, 255, 65, 0.3); }
+
+        /* 3. ADS Y CONTENIDO */
+        .ad-container {
+            width: 100%; min-height: 150px; background: #080808; margin: 50px 0;
+            border: 1px dashed #444; display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .ad-label { color: #444; font-size: 11px; margin-bottom: 10px; letter-spacing: 3px; font-weight: bold; }
+
+        .content-section { max-width: 900px; margin: 0 auto; padding: 60px 20px; }
+        article h2 { color: var(--primary); border-left: 4px solid var(--primary); padding-left: 20px; margin-top: 70px; font-size: 2.2em; text-transform: none; text-align: left;}
+        article h3 { color: #fff; border-bottom: 1px solid #333; padding-bottom: 12px; margin-top: 50px; font-size: 1.6em; }
+        article p { line-height: 1.9; text-align: justify; color: #bbb; font-size: 1.1em; margin-bottom: 25px; }
+        article ul { padding: 0; list-style: none; }
+        article li { margin-bottom: 20px; border-left: 2px solid var(--primary); padding-left: 20px; color: #aaa; }
+        article strong { color: var(--primary); }
+
+        /* 4. FOOTER ESTANDARIZADO */
+        footer { background-color: #020202; padding: 80px 20px; text-align: center; border-top: 1px solid #222; }
+        .paypal-btn {
+            background: #0070BA; color: white; padding: 14px 28px; border-radius: 30px;
+            text-decoration: none; font-weight: bold; display: inline-block; margin-bottom: 40px;
+            box-shadow: 0 5px 20px rgba(0, 112, 186, 0.3); transition: 0.2s;
+        }
+        .paypal-btn:hover { transform: translateY(-3px); }
+        .footer-links { margin: 25px 0; }
+        .footer-links a { color: #666; text-decoration: none; margin: 0 15px; font-size: 0.9em; transition: color 0.2s; }
+        .footer-links a:hover { color: var(--primary); }
+        .copyright { color: #444; font-size: 0.85em; margin-top: 30px; letter-spacing: 1px; }
+
+        @media (max-width: 800px) {
+            #app-wrapper { display: block; height: auto; }
+            #canvas-container { height: 60vh; }
+            #controls-container { width: 100%; box-sizing: border-box; }
+        }
+    </style>
+    <link rel="canonical" href="https://graphics-labs.org/pt/labs/golden-spiral/" />
+
+    <link rel="alternate" hreflang="es" href="https://graphics-labs.org/es/labs/golden-spiral/" />
+    <link rel="alternate" hreflang="ca" href="https://graphics-labs.org/ca/labs/golden-spiral/" />
+    <link rel="alternate" hreflang="en" href="https://graphics-labs.org/en/labs/golden-spiral/" />
+    <link rel="alternate" hreflang="fr" href="https://graphics-labs.org/fr/labs/golden-spiral/" />
+    <link rel="alternate" hreflang="de" href="https://graphics-labs.org/de/labs/golden-spiral/" />
+    <link rel="alternate" hreflang="pt" href="https://graphics-labs.org/pt/labs/golden-spiral/" />
+    <link rel="alternate" hreflang="it" href="https://graphics-labs.org/it/labs/golden-spiral/" />
+    <link rel="alternate" hreflang="nl" href="https://graphics-labs.org/nl/labs/golden-spiral/" />
+    <link rel="alternate" hreflang="ja" href="https://graphics-labs.org/ja/labs/golden-spiral/" />
+    <link rel="alternate" hreflang="x-default" href="https://graphics-labs.org/es/labs/golden-spiral/" />
+</head>
+<body>
+
+<nav class="top-nav">
+    <div class="nav-left">
+        <a href="../../index.html" class="nav-btn">HUB</a>
+        <button onclick="window.history.length > 1 ? history.back() : window.location.href='../../index.html'" class="nav-btn">BACK</button>
+        <span class="nav-brand">GRAPHICS LABS</span>
+    </div>
+    <div class="nav-right">
+        <button class="lang-btn active" onclick="switchLangUrl('es')">ES</button>
+        <button class="lang-btn" onclick="switchLangUrl('ca')">CA</button>
+        <button class="lang-btn" onclick="switchLangUrl('en')">EN</button>
+        <button class="lang-btn" onclick="switchLangUrl('fr')">FR</button>
+        <button class="lang-btn" onclick="switchLangUrl('de')">DE</button>
+        <button class="lang-btn" onclick="switchLangUrl('pt')">PT</button>
+        <button class="lang-btn" onclick="switchLangUrl('it')">IT</button>
+        <button class="lang-btn" onclick="switchLangUrl('nl')">NL</button>
+        <button class="lang-btn" onclick="switchLangUrl('ja')">JA</button>
+    </div>
+</nav>
+
+<div id="app-wrapper">
+    <div id="canvas-container">
+        <canvas id="fibonacciCanvas"></canvas>
+    </div>
+
+    <div id="controls-container">
+        <h2 data-i18n="sim_title">La Espiral Áurea</h2>
+        
+        <div class="btn-group">
+            <button id="btnPng" class="export-btn" data-i18n="btn_png">💾 Guardar PNG</button>
+            <button id="btnJpg" class="export-btn" data-i18n="btn_jpg">📸 Guardar JPG</button>
+        </div>
+
+        <button id="btnGolden" class="btn-main" data-i18n="btn_golden">🌻 Ángulo Perfecto (137.5°)</button>
+
+        <div class="control-group">
+            <h3 style="margin:0 0 15px 0; color:#fff; font-size:1em; border-bottom:1px solid #333; padding-bottom:5px;" data-i18n="growth_title">Parámetros de Crecimiento</h3>
+            
+            <div class="control-row">
+                <span class="control-label" data-i18n="angle_label">📐 Ángulo Divergencia</span>
+                <input type="range" id="angle" min="130" max="145" step="0.05" value="137.5">
+                <span id="angleVal" class="value-display">137.50°</span>
+            </div>
+            <p style="font-size:0.75em; color:#888; margin-top:-5px; margin-bottom:15px;" data-i18n="angle_tip">Mueve muy despacio. El orden está en ~137.5°</p>
+
+            <div class="control-row">
+                <span class="control-label" data-i18n="count_label">🌱 Cant. Semillas</span>
+                <input type="range" id="count" min="100" max="2000" step="10" value="800">
+                <span id="countVal" class="value-display">800</span>
+            </div>
+            
+            <div class="control-row">
+                <span class="control-label" data-i18n="spread_label">✨ Separación (Zoom)</span>
+                <input type="range" id="spread" min="2" max="20" step="0.5" value="6">
+                <span id="spreadVal" class="value-display">6.0</span>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <h3 style="margin:0 0 15px 0; color:#fff; font-size:1em; border-bottom:1px solid #333; padding-bottom:5px;" data-i18n="aesthetics_title">Estética</h3>
+             <div class="control-row">
+                <span class="control-label" data-i18n="size_label">Tamaño Semilla</span>
+                <input type="range" id="dotSize" min="1" max="10" step="0.5" value="3">
+                <span id="dotSizeVal" class="value-display">3.0</span>
+            </div>
+            <div class="control-row">
+                <span class="control-label" data-i18n="color_main">Color Principal</span>
+                <input type="color" id="colorMain" value="#ffd700"> </div>
+            <div class="control-row">
+                <span class="control-label" data-i18n="color_center">Color Centro</span>
+                <input type="color" id="colorCenter" value="#ff4500"> </div>
+        </div>
+    </div>
+</div>
+
+<section class="content-section">
+    <div class="ad-container">
+        <span class="ad-label">AD SPACE</span>
+        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3150277567590534" data-ad-slot="9544025518" data-ad-format="auto" data-full-width-responsive="true"></ins>
+        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+
+    <article id="main-content">
+        <h2 data-i18n="art_title">La Huella Digital de la Naturaleza</h2>
+        <p data-i18n="art_p1">Bienvenido al patrón de crecimiento más eficiente del universo. Lo que estás viendo no es un simple dibujo espiral; es una simulación matemática del proceso conocido como <strong>Phyllotaxis</strong> (del griego "disposición de las hojas").</p>
+        <p data-i18n="art_p2">Es el mismo algoritmo que utilizan los girasoles para ordenar sus semillas, las piñas para formar sus escamas, los cactus, las suculentas e incluso galaxias enteras. La naturaleza no elige este patrón por estética, sino por pura <strong>eficiencia de supervivencia</strong>.</p>
+
+        <h3 data-i18n="art_h2">El Secreto del Ángulo Áureo (137.5°)</h3>
+        <p data-i18n="art_p3">La magia de esta herramienta reside en el primer deslizador: el <strong>Ángulo de Divergencia</strong>. Imagina que eres una planta y tienes que hacer brotar una nueva hoja o semilla. ¿Dónde la pones para que no haga sombra a las anteriores y reciba la máxima luz posible?</p>
+        <p data-i18n="art_p4">La respuesta matemática perfecta es girar exactamente <strong>137.50776... grados</strong> (el Ángulo Áureo) antes de colocar la siguiente. Este número se deriva de la famosa proporción áurea ($inline$ \phi $inline$, Phi = 1.618...).</p>
+        <ul>
+            <li data-i18n="art_li1"><strong>Pruébalo tú mismo:</strong> Usa el botón "Restaurar Ángulo Perfecto" para ver el patrón del girasol. Luego, mueve el deslizador del ángulo muy lentamente.</li>
+            <li data-i18n="art_li2"><strong>El Caos y el Orden:</strong> Verás que si te desvías solo 0.1 o 0.2 grados de 137.5°, el patrón perfecto se rompe en líneas rectas o espirales confusas. Esto demuestra cuán preciso es el diseño de la naturaleza. Solo hay una manera de ser óptimo; todo lo demás es menos eficiente.</li>
+        </ul>
+
+        <h3 data-i18n="art_h3">Relación con la Secuencia de Fibonacci</h3>
+        <p data-i18n="art_p5">Si observas el patrón perfecto (en 137.5°), verás espirales que giran en sentido horario y otras en sentido antihorario. ¡Cuéntalas!.</p>
+        <p data-i18n="art_p6">Te sorprenderá descubrir que el número de espirales en una dirección y en la otra son siempre <strong>dos números consecutivos de la Secuencia de Fibonacci</strong> (ej: 13 y 21, o 21 y 34, o 34 y 55, dependiendo del tamaño de la flor).</p>
+
+        <h3 data-i18n="art_h4">¿Para qué usar esta herramienta?</h3>
+        <p data-i18n="art_p7">Este laboratorio visual es una herramienta de contemplación poderosa:</p>
+        <ul>
+            <li data-i18n="art_li3"><strong>Conexión con la Naturaleza:</strong> Entender que las matemáticas no son algo frío y ajeno, sino el lenguaje con el que está escrita la vida biológica.</li>
+            <li data-i18n="art_li4"><strong>Meditación Visual:</strong> Observar el centro brillante y cómo el orden emerge del aparente caos puede inducir estados de calma y asombro.</li>
+            <li data-i18n="art_li5"><strong>Inspiración de Diseño:</strong> Artistas y arquitectos han usado este patrón durante milenios para crear composiciones armónicas y agradables al ojo humano.</li>
+        </ul>
+    </article>
+
+    <div class="ad-container">
+        <span class="ad-label">AD SPACE</span>
+        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3150277567590534" data-ad-slot="9544025518" data-ad-format="auto" data-full-width-responsive="true"></ins>
+        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+</section>
+
+<footer>
+    <a href="https://www.paypal.com/paypalme/pbazan" target="_blank" class="paypal-btn" data-i18n="footer_coffee">☕ Invítame a un café</a>
+    <div class="footer-links">
+        <a href="../legal.html#aviso" data-i18n="legal_aviso">Aviso Legal</a>
+        <a href="../legal.html#privacidad" data-i18n="legal_privacidad">Privacidad</a>
+        <a href="../legal.html#cookies" data-i18n="legal_cookies">Cookies</a>
+        <a href="mailto:pbazan@gmail.com">Contacto</a>
+    </div>
+    <p class="copyright">Copyright © 2026 Graphics Labs. Todos los derechos reservados.</p>
+</footer>
+
+<script>
+    // --- SISTEMA I18N (9 IDIOMAS, TEXTOS COMPLETOS) ---
+const translations = {
+    ES: {
+        sim_title: "La Espiral Áurea", btn_png: "💾 Guardar PNG", btn_jpg: "📸 Guardar JPG", btn_golden: "🌻 Ángulo Perfecto (137.5°)",
+        growth_title: "Parámetros de Crecimiento", angle_label: "📐 Ángulo Divergencia", angle_tip: "Mueve muy despacio. El orden está en ~137.5°",
+        count_label: "🌱 Cant. Semillas", spread_label: "✨ Separación (Zoom)", aesthetics_title: "Estética", size_label: "Tamaño Semilla",
+        color_main: "Color Principal", color_center: "Color Centro", footer_coffee: "☕ Invítame a un café", legal_aviso: "Aviso Legal",
+        legal_privacidad: "Privacidad", legal_cookies: "Cookies",
+        art_title: "La Huella Digital de la Naturaleza",
+        art_p1: "Bienvenido al patrón de crecimiento más eficiente del universo. Lo que estás viendo no es un simple dibujo espiral; es una simulación matemática del proceso conocido como Phyllotaxis (del griego \"disposición de las hojas\").",
+        art_p2: "Es el mismo algoritmo que utilizan los girasoles para ordenar sus semillas, las piñas para formar sus escamas, los cactus, las suculentas e incluso galaxias enteras. La naturaleza no elige este patrón por estética, sino por pura eficiencia de supervivencia.",
+        art_h2: "El Secreto del Ángulo Áureo (137.5°)",
+        art_p3: "La magia de esta herramienta reside en el primer deslizador: el Ángulo de Divergencia. Imagina que eres una planta y tienes que hacer brotar una nueva hoja o semilla. ¿Dónde la pones para que no haga sombra a las anteriores y reciba la máxima luz posible?",
+        art_p4: "La respuesta matemática perfecta es girar exactamente 137.50776... grados (el Ángulo Áureo) antes de colocar la siguiente. Este número se deriva de la famosa proporción áurea ($\phi$, Phi = 1.618...).",
+        art_li1: "<strong>Pruébalo tú mismo:</strong> Usa el botón \"Restaurar Ángulo Perfecto\" para ver el patrón del girasol. Luego, mueve el deslizador del ángulo muy lentamente.",
+        art_li2: "<strong>El Caos y el Orden:</strong> Verás que si te desvías solo 0.1 o 0.2 grados de 137.5°, el patrón perfecto se rompe en líneas rectas o espirales confusas. Esto demuestra cuán preciso es el diseño de la naturaleza. Solo hay una manera de ser óptimo; todo lo demás es menos eficiente.",
+        art_h3: "Relación con la Secuencia de Fibonacci",
+        art_p5: "Si observas el patrón perfecto (en 137.5°), verás espirales que giran en sentido horario y otras en sentido antihorario. ¡Cuéntalas!.",
+        art_p6: "Te sorprenderá descubrir que el número de espirales en una dirección y en la otra son siempre dos números consecutivos de la Secuencia de Fibonacci (ej: 13 y 21, o 21 y 34, o 34 y 55, dependiendo del tamaño de la flor).",
+        art_h4: "¿Para qué usar esta herramienta?",
+        art_p7: "Este laboratorio visual es una herramienta de contemplación poderosa:",
+        art_li3: "<strong>Conexión con la Naturaleza:</strong> Entender que las matemáticas no son algo frío y ajeno, sino el lenguaje con el que está escrita la vida biológica.",
+        art_li4: "<strong>Meditación Visual:</strong> Observar el centro brillante y cómo el orden emerge del aparente caos puede inducir estados de calma y asombro.",
+        art_li5: "<strong>Inspiración de Diseño:</strong> Artistas y arquitectos han usado este patrón durante milenios para crear composiciones armónicas y agradables al ojo humano."
+    },
+    CA: {
+        sim_title: "L'Espiral Àuria", btn_png: "💾 Desa PNG", btn_jpg: "📸 Desa JPG", btn_golden: "🌻 Angle Perfecte (137.5°)",
+        growth_title: "Paràmetres de Creixement", angle_label: "📐 Angle Divergència", angle_tip: "Mou molt a poc a poc. L'ordre és a ~137.5°",
+        count_label: "🌱 Cant. Llavors", spread_label: "✨ Separació (Zoom)", aesthetics_title: "Estètica", size_label: "Mida Llavor",
+        color_main: "Color Principal", color_center: "Color Centre", footer_coffee: "☕ Convida'm a un cafè", legal_aviso: "Avís Legal",
+        legal_privacidad: "Privadesa", legal_cookies: "Cookies",
+        art_title: "L'Empremta Digital de la Natura",
+        art_p1: "Benvingut al patró de creixement més eficient de l'univers. El que estàs veient no és un simple dibuix espiral; és una simulació matemàtica del procés conegut com a Phyllotaxis (del grec \"disposició de les fulles\").",
+        art_p2: "És el mateix algorisme que utilitzen els girasols per ordenar les seves llavors, les pinyes per formar les seves escates, els cactus, les suculentes i fins i tot galàxies senceres. La natura no tria aquest patró per estètica, sinó per pura eficiència de supervivència.",
+        art_h2: "El Secret de l'Angle Auri (137.5°)",
+        art_p3: "La màgia d'aquesta eina resideix en el primer lliscador: l'Angle de Divergència. Imagina que ets una planta i has de fer brollar una nova fulla o llavor. On la poses perquè no faci ombra a les anteriors i rebi la màxima llum possible?",
+        art_p4: "La resposta matemàtica perfecta és girar exactament 137.50776... graus (l'Angle Auri) abans de col·locar la següent. Aquest número es deriva de la famosa proporció àuria ($\phi$, Phi = 1.618...).",
+        art_li1: "<strong>Prova-ho tu mateix:</strong> Utilitza el botó \"Restaura l'Angle Perfecte\" per veure el patró del girasol. Després, mou el lliscador de l'angle molt lentament.",
+        art_li2: "<strong>El Caos i l'Ordre:</strong> Veuràs que si et desvies només 0.1 o 0.2 graus de 137.5°, el patró perfecte es trenca en línies rectes o espirals confuses. Això demostra com de precís és el disseny de la natura. Només hi ha una manera de ser òptim; tota la resta és menys eficient.",
+        art_h3: "Relació amb la Seqüència de Fibonacci",
+        art_p5: "Si observes el patró perfecte (a 137.5°), veuràs espirals que giren en sentit horari i d'altres en sentit antihorari. Compta-les!.",
+        art_p6: "Et sorprendrà descobrir que el nombre d'espirals en una direcció i en l'altra són sempre dos nombres consecutius de la Seqüència de Fibonacci (ex: 13 i 21, o 21 i 34, o 34 i 55, depenent de la mida de la flor).",
+        art_h4: "Per a què fer servir aquesta eina?",
+        art_p7: "Aquest laboratori visual és una eina de contemplació poderosa:",
+        art_li3: "<strong>Connexió amb la Natura:</strong> Entendre que les matemàtiques no són una cosa freda i aliena, sinó el llenguatge amb què està escrita la vida biològica.",
+        art_li4: "<strong>Meditació Visual:</strong> Observar el centre brillant i com l'ordre emergeix de l'aparent caos pot induir estats de calma i astorament.",
+        art_li5: "<strong>Inspiració de Disseny:</strong> Artistes i arquitectes han fet servir aquest patró durant mil·lennis per crear composicions harmòniques i agradables a l'ull humà."
+    },
+    EN: {
+        sim_title: "The Golden Spiral", btn_png: "💾 Save PNG", btn_jpg: "📸 Save JPG", btn_golden: "🌻 Perfect Angle (137.5°)",
+        growth_title: "Growth Parameters", angle_label: "📐 Divergence Angle", angle_tip: "Move very slowly. Order is at ~137.5°",
+        count_label: "🌱 Seed Count", spread_label: "✨ Spread (Zoom)", aesthetics_title: "Aesthetics", size_label: "Seed Size",
+        color_main: "Main Color", color_center: "Center Color", footer_coffee: "☕ Buy me a coffee", legal_aviso: "Legal Notice",
+        legal_privacidad: "Privacy", legal_cookies: "Cookies",
+        art_title: "Nature's Digital Fingerprint",
+        art_p1: "Welcome to the universe's most efficient growth pattern. What you're seeing isn't just a spiral drawing; it's a mathematical simulation of the process known as Phyllotaxis (from the Greek \"arrangement of leaves\").",
+        art_p2: "It's the same algorithm used by sunflowers to order their seeds, pine cones to form their scales, cacti, succulents, and even entire galaxies. Nature doesn't choose this pattern for aesthetics, but for pure survival efficiency.",
+        art_h2: "The Secret of the Golden Angle (137.5°)",
+        art_p3: "The magic of this tool lies in the first slider: the Divergence Angle. Imagine you're a plant and you have to sprout a new leaf or seed. Where do you put it so it doesn't shade the previous ones and receives the maximum possible light?",
+        art_p4: "The perfect mathematical answer is to rotate exactly 137.50776... degrees (the Golden Angle) before placing the next one. This number is derived from the famous golden ratio ($\phi$, Phi = 1.618...).",
+        art_li1: "<strong>Try it yourself:</strong> Use the \"Restore Perfect Angle\" button to see the sunflower pattern. Then, move the angle slider very slowly.",
+        art_li2: "<strong>Chaos and Order:</strong> You'll see that if you deviate only 0.1 or 0.2 degrees from 137.5°, the perfect pattern breaks into straight lines or confusing spirals. This proves how precise nature's design is. There is only one way to be optimal; everything else is less efficient.",
+        art_h3: "Relationship with the Fibonacci Sequence",
+        art_p5: "If you observe the perfect pattern (at 137.5°), you'll see spirals turning clockwise and others counter-clockwise. Count them!.",
+        art_p6: "You'll be surprised to discover that the number of spirals in one direction and the other are always two consecutive numbers from the Fibonacci Sequence (e.g., 13 and 21, or 21 and 34, depending on the size of the flower).",
+        art_h4: "Why use this tool?",
+        art_p7: "This visual laboratory is a powerful tool for contemplation:",
+        art_li3: "<strong>Connection with Nature:</strong> Understanding that mathematics is not something cold and alien, but the language in which biological life is written.",
+        art_li4: "<strong>Visual Meditation:</strong> Observing the bright center and how order emerges from apparent chaos can induce states of calm and wonder.",
+        art_li5: "<strong>Design Inspiration:</strong> Artists and architects have used this pattern for millennia to create harmonic and pleasing compositions for the human eye."
+    },
+    FR: {
+        sim_title: "La Spirale d'Or", btn_png: "💾 Enregistrer PNG", btn_jpg: "📸 Enregistrer JPG", btn_golden: "🌻 Angle Parfait (137.5°)",
+        growth_title: "Paramètres de Croissance", angle_label: "📐 Angle de Divergence", angle_tip: "Déplacez très lentement. L'ordre est à ~137.5°",
+        count_label: "🌱 Nb de Graines", spread_label: "✨ Écartement (Zoom)", aesthetics_title: "Esthétique", size_label: "Taille Graine",
+        color_main: "Couleur Principale", color_center: "Couleur Centre", footer_coffee: "☕ Offrez-moi un café", legal_aviso: "Mentions Légales",
+        legal_privacidad: "Confidentialité", legal_cookies: "Cookies",
+        art_title: "L'Empreinte Digitale de la Nature",
+        art_p1: "Bienvenue dans le modèle de croissance le plus efficace de l'univers. Ce que vous voyez n'est pas un simple dessin en spirale ; c'est une simulation mathématique du processus connu sous le nom de Phyllotaxie (du grec \"disposition des feuilles\").",
+        art_p2: "C'est le même algorithme utilisé par les tournesols pour ordonner leurs graines, les pommes de pin pour former leurs écailles, les cactus, les succulentes et même des galaxies entières. La nature ne choisit pas ce modèle pour l'esthétique, mais pour une pure efficacité de survie.",
+        art_h2: "Le Secret de l'Angle d'Or (137.5°)",
+        art_p3: "La magie de cet outil réside dans le premier curseur : l'Angle de Divergence. Imaginez que vous êtes une plante et que vous devez faire pousser une nouvelle feuille ou graine. Où la placez-vous pour qu'elle ne fasse pas d'ombre aux précédentes et reçoive le maximum de lumière possible ?",
+        art_p4: "La réponse mathématique parfaite est de tourner exactement de 137.50776... degrés (l'Angle d'Or) avant de placer la suivante. Ce nombre est dérivé du célèbre nombre d'or ($\phi$, Phi = 1.618...).",
+        art_li1: "<strong>Essayez vous-même :</strong> Utilisez le bouton \"Restaurer l'Angle Parfait\" pour voir le modèle du tournesol. Ensuite, déplacez le curseur d'angle très lentement.",
+        art_li2: "<strong>Le Chaos et l'Ordre :</strong> Vous verrez que si vous déviez de seulement 0.1 ou 0.2 degré de 137.5°, le modèle parfait se brise en lignes droites ou en spirales confuses. Cela prouve à quel point le design de la nature est précis. Il n'y a qu'une seule façon d'être optimal ; tout le reste est moins efficace.",
+        art_h3: "Relation avec la Suite de Fibonacci",
+        art_p5: "Si vous observez le modèle parfait (à 137.5°), vous verrez des spirales qui tournent dans le sens horaire et d'autres dans le sens anti-horaire. Comptez-les !.",
+        art_p6: "Vous serez surpris de découvrir que le nombre de spirales dans une direction et dans l'autre sont toujours deux nombres consécutifs de la Suite de Fibonacci (ex : 13 et 21, ou 21 et 34, ou 34 et 55, selon la taille de la fleur).",
+        art_h4: "Pourquoi utiliser cet outil ?",
+        art_p7: "Ce laboratoire visuel est un puissant outil de contemplation :",
+        art_li3: "<strong>Connexion avec la Nature :</strong> Comprendre que les mathématiques ne sont pas quelque chose de froid et d'étranger, mais la langue dans laquelle la vie biologique est écrite.",
+        art_li4: "<strong>Méditation Visuelle :</strong> Observer le centre brillant et comment l'ordre émerge du chaos apparent peut induire des états de calme et d'émerveillement.",
+        art_li5: "<strong>Inspiration de Design :</strong> Les artistes et architectes utilisent ce modèle depuis des millénaires pour créer des compositions harmonieuses et agréables à l'œil humain."
+    },
+    DE: {
+        sim_title: "Die Goldene Spirale", btn_png: "💾 PNG Speichern", btn_jpg: "📸 JPG Speichern", btn_golden: "🌻 Perfekter Winkel (137.5°)",
+        growth_title: "Wachstumsparameter", angle_label: "📐 Divergenzwinkel", angle_tip: "Sehr langsam bewegen. Ordnung liegt bei ~137.5°",
+        count_label: "🌱 Anzahl Samen", spread_label: "✨ Spreizung (Zoom)", aesthetics_title: "Ästhetik", size_label: "Samengröße",
+        color_main: "Hauptfarbe", color_center: "Zentrumfarbe", footer_coffee: "☕ Spendier mir einen Kaffee", legal_aviso: "Impressum",
+        legal_privacidad: "Datenschutz", legal_cookies: "Cookies",
+        art_title: "Der digitale Fingerabdruck der Natur",
+        art_p1: "Willkommen beim effizientesten Wachstumsmuster des Universums. Was Sie hier sehen, ist keine einfache Spiralzeichnung; es ist eine mathematische Simulation des Prozesses, der als Phyllotaxis (griechisch für \"Blattstellung\") bekannt ist.",
+        art_p2: "Es ist derselbe Algorithmus, den Sonnenblumen verwenden, um ihre Samen anzuordnen, Pinienzapfen, um ihre Schuppen zu bilden, Kakteen, Sukkulenten und sogar ganze Galaxien. Die Natur wählt dieses Muster nicht aus Ästhetik, sondern aus purer Überlebenseffizienz.",
+        art_h2: "Das Geheimnis des Goldenen Winkels (137.5°)",
+        art_p3: "Die Magie dieses Werkzeugs liegt im ersten Schieberegler: dem Divergenzwinkel. Stellen Sie sich vor, Sie sind eine Pflanze und müssen ein neues Blatt oder einen Samen sprießen lassen. Wo platzieren Sie es, damit es die vorherigen nicht beschattet und so viel Licht wie möglich erhält?",
+        art_p4: "Die perfekte mathematische Antwort lautet, sich genau um 137.50776... Grad (den Goldenen Winkel) zu drehen, bevor man das nächste platziert. Diese Zahl leitet sich vom berühmten Goldenen Schnitt ($\phi$, Phi = 1.618...) ab.",
+        art_li1: "<strong>Probieren Sie es selbst aus:</strong> Verwenden Sie die Schaltfläche \"Perfekten Winkel wiederherstellen\", um das Sonnenblumenmuster zu sehen. Bewegen Sie dann den Winkelschieberegler ganz langsam.",
+        art_li2: "<strong>Chaos und Ordnung:</strong> Sie werden sehen, dass wenn Sie nur um 0.1 oder 0.2 Grad von 137.5° abweichen, das perfekte Muster in gerade Linien oder verwirrende Spiralen zerbricht. Dies beweist, wie präzise das Design der Natur ist. Es gibt nur einen Weg, optimal zu sein; alles andere ist weniger effizient.",
+        art_h3: "Beziehung zur Fibonacci-Folge",
+        art_p5: "Wenn Sie das perfekte Muster (bei 137.5°) betrachten, sehen Sie Spiralen, die sich im Uhrzeigersinn drehen, und andere gegen den Uhrzeigersinn. Zählen Sie sie nach!.",
+        art_p6: "Sie werden überrascht sein zu entdecken, dass die Anzahl der Spiralen in der einen und in der anderen Richtung immer zwei aufeinanderfolgende Zahlen der Fibonacci-Folge sind (z. B. 13 und 21 oder 21 und 34 oder 34 und 55, je nach Größe der Blume).",
+        art_h4: "Wozu dient dieses Werkzeug?",
+        art_p7: "Dieses visuelle Labor ist ein kraftvolles Werkzeug zur Kontemplation:",
+        art_li3: "<strong>Verbindung zur Natur:</strong> Zu verstehen, dass Mathematik nichts Kaltes und Fremdes ist, sondern die Sprache, in der das biologische Leben geschrieben ist.",
+        art_li4: "<strong>Visuelle Meditation:</strong> Das leuchtende Zentrum zu beobachten und wie Ordnung aus dem scheinbaren Chaos entsteht, kann Zustände der Ruhe und des Staunens hervorrufen.",
+        art_li5: "<strong>Design-Inspiration:</strong> Künstler und Architekten verwenden dieses Muster seit Jahrtausenden, um harmonische und für das menschliche Auge angenehme Kompositionen zu schaffen."
+    },
+    PT: {
+        sim_title: "A Espiral Áurea", btn_png: "💾 Salvar PNG", btn_jpg: "📸 Salvar JPG", btn_golden: "🌻 Ângulo Perfeito (137.5°)",
+        growth_title: "Parâmetros de Crescimento", angle_label: "📐 Ângulo de Divergência", angle_tip: "Mova muito devagar. A ordem está em ~137.5°",
+        count_label: "🌱 Qtd. Sementes", spread_label: "✨ Separação (Zoom)", aesthetics_title: "Estética", size_label: "Tamanho Semente",
+        color_main: "Cor Principal", color_center: "Cor Centro", footer_coffee: "☕ Pague-me um café", legal_aviso: "Aviso Legal",
+        legal_privacidad: "Privacidade", legal_cookies: "Cookies",
+        art_title: "A Impressão Digital da Natureza",
+        art_p1: "Bem-vindo ao padrão de crescimento mais eficiente do universo. O que está a ver não é um simples desenho em espiral; é uma simulação matemática do processo conhecido como Filotaxia (do grego \"disposição das folhas\").",
+        art_p2: "É o mesmo algoritmo que os girassóis utilizam para ordenar as suas sementes, as pinhas para formar as suas escamas, os cactos, as suculentas e até galáxias inteiras. A natureza não escolhe este padrão por estética, mas por pura eficiência de sobrevivência.",
+        art_h2: "O Segredo do Ângulo Áureo (137.5°)",
+        art_p3: "A magia desta ferramenta reside no primeiro seletor: o Ângulo de Divergência. Imagine que é uma planta e tem de fazer brotar uma nova folha ou semente. Onde a coloca para que não faça sombra às anteriores e receba a máxima luz possível?",
+        art_p4: "A resposta matemática perfeita é girar exatamente 137.50776... graus (o Ângulo Áureo) antes de colocar a seguinte. Este número deriva da famosa proporção áurea ($\phi$, Phi = 1.618...).",
+        art_li1: "<strong>Experimente você mesmo:</strong> Use o botão \"Restaurar Ângulo Perfeito\" para ver o padrão do girassol. Depois, mova o seletor de ângulo muito lentamente.",
+        art_li2: "<strong>O Caos e a Ordem:</strong> Verá que se se desviar apenas 0.1 ou 0.2 graus de 137.5°, o padrão perfeito quebra-se em linhas retas ou espirais confusas. Isto demonstra quão preciso é o design da natureza. Só há uma forma de ser ideal; tudo o resto é menos eficiente.",
+        art_h3: "Relação com a Sequência de Fibonacci",
+        art_p5: "Se observar o padrão perfeito (em 137.5°), verá espirais que giram no sentido horário e outras no sentido anti-horário. Conte-as!.",
+        art_p6: "Ficará surpreendido ao descobrir que o número de espirais numa direção e na outra são sempre dois números consecutivos da Sequência de Fibonacci (ex: 13 e 21, ou 21 e 34, ou 34 e 55, dependendo do tamanho da flor).",
+        art_h4: "Para que usar esta ferramenta?",
+        art_p7: "Este laboratório visual é uma ferramenta de contemplação poderosa:",
+        art_li3: "<strong>Conexão com a Natureza:</strong> Entender que a matemática não é algo frio e alheio, mas a linguagem com que está escrita a vida biológica.",
+        art_li4: "<strong>Meditação Visual:</strong> Observar o centro brilhante e como a ordem emerge do aparente caos pode induzir estados de calma e assombro.",
+        art_li5: "<strong>Inspiração de Design:</strong> Artistas e arquitetos usam este padrão há milénios para criar composições harmónicas e agradáveis ao olho humano."
+    },
+    IT: {
+        sim_title: "La Spirale Aurea", btn_png: "💾 Salva PNG", btn_jpg: "📸 Salva JPG", btn_golden: "🌻 Angolo Perfetto (137.5°)",
+        growth_title: "Parametri di Crescita", angle_label: "📐 Angolo Divergenza", angle_tip: "Muovi molto piano. L'ordine è a ~137.5°",
+        count_label: "🌱 Qta. Semi", spread_label: "✨ Separazione (Zoom)", aesthetics_title: "Estetica", size_label: "Dim. Seme",
+        color_main: "Colore Principale", color_center: "Colore Centro", footer_coffee: "☕ Offrimi un caffè", legal_aviso: "Note Legali",
+        legal_privacidad: "Privacy", legal_cookies: "Cookies",
+        art_title: "L'Impronta Digitale della Natura",
+        art_p1: "Benvenuto nel modello di crescita più efficiente dell'universo. Quello che stai vedendo non è un semplice disegno a spirale; è una simulazione matematica del processo noto come Fillotassi (dal greco \"disposizione delle foglie\").",
+        art_p2: "È lo stesso algoritmo che usano i girasoli per ordinare i loro semi, le pigne per formare le loro squame, i cactus, le succulente e persino intere galassie. La natura non sceglie questo modello per estetica, ma per pura efficienza di sopravvivenza.",
+        art_h2: "Il Segreto dell'Angolo Aureo (137.5°)",
+        art_p3: "La magia di questo strumento risiede nel primo cursore: l'Angolo di Divergenza. Immagina di essere una pianta e di dover far germogliare una nuova foglia o un seme. Dove lo metti affinché non faccia ombra ai precedenti e riceva la massima luce possibile?",
+        art_p4: "La risposta matematica perfetta è ruotare esattamente di 137.50776... gradi (l'Angolo Aureo) prima di posizionare il successivo. Questo numero deriva dalla famosa proporzione aurea ($\phi$, Phi = 1.618...).",
+        art_li1: "<strong>Prova tu stesso:</strong> Usa il pulsante \"Ripristina Angolo Perfetto\" per vedere il modello del girasole. Quindi, muovi il cursore dell'angolo molto lentamente.",
+        art_li2: "<strong>Il Caos e l'Ordine:</strong> Vedrai che se devii di soli 0.1 o 0.2 gradi da 137.5°, il modello perfetto si rompe in linee rette o spirali confuse. Questo dimostra quanto sia preciso il design della natura. C'è solo un modo per essere ottimali; tutto il resto è meno efficiente.",
+        art_h3: "Relazione con la Successione di Fibonacci",
+        art_p5: "Se osservi il modello perfetto (a 137.5°), vedrai spirali che girano in senso orario e altre in senso antiorario. Contale!.",
+        art_p6: "Sarai sorpreso di scoprire che il numero di spirali in una direzione e nell'altra sono sempre due numeri consecutivi della Successione di Fibonacci (es: 13 e 21, o 21 e 34, o 34 e 55, a seconda delle dimensioni del fiore).",
+        art_h4: "Perché usare questo strumento?",
+        art_p7: "Questo laboratorio visuale è un potente strumento di contemplazione:",
+        art_li3: "<strong>Connessione con la Natura:</strong> Capire che la matematica non è qualcosa di freddo ed estraneo, ma il linguaggio con cui è scritta la vita biologica.",
+        art_li4: "<strong>Meditazione Visuale:</strong> Osservare il centro brillante e come l'ordine emerge dall'apparente caos può indurre stati di calma e meraviglia.",
+        art_li5: "<strong>Ispirazione di Design:</strong> Artisti e architetti hanno usato questo modello per millenni per creare composizioni armoniche e gradevoli all'occhio umano."
+    },
+    NL: {
+        sim_title: "De Gulden Spiraal", btn_png: "💾 PNG Opslaan", btn_jpg: "📸 JPG Opslaan", btn_golden: "🌻 Perfecte Hoek (137.5°)",
+        growth_title: "Groeiparameters", angle_label: "📐 Divergentiehoek", angle_tip: "Beweeg heel langzaam. De orde ligt bij ~137.5°",
+        count_label: "🌱 Aantal Zaden", spread_label: "✨ Spreiding (Zoom)", aesthetics_title: "Esthetiek", size_label: "Zaadgrootte",
+        color_main: "Hoofdkleur", color_center: "Centrumkleur", footer_coffee: "☕ Trakteer me op een koffie", legal_aviso: "Juridisch",
+        legal_privacidad: "Privacy", legal_cookies: "Cookies",
+        art_title: "De digitale vingerafdruk van de natuur",
+        art_p1: "Welkom bij het meest efficiënte groeipatroon van het universum. Wat u ziet is geen eenvoudige spiraaltekening; het is een wiskundige simulatie van het proces dat bekend staat als Phyllotaxis (Grieks voor \"bladrangschikking\").",
+        art_p2: "Het is hetzelfde algoritme dat zonnebloemen gebruiken om hun zaden te ordenen, dennenappels om hun schubben te vormen, cactussen, vetplanten en zelfs hele sterrenstelsels. De natuur kiest dit patroon niet uit esthetiek, maar uit pure overlevingsefficiëntie.",
+        art_h2: "Het geheim van de Gulden Hoek (137.5°)",
+        art_p3: "De magie van deze tool ligt in de eerste schuifregelaar: de Divergentiehoek. Stel je voor dat je een plant bent en je moet een nieuw blad of zaadje laten ontkiemen. Waar plaats je het zodat het de vorige niet in de schaduw zet en maximaal licht ontvangt?",
+        art_p4: "Het perfecte wiskundige antwoord is om precies 137.50776... graden te draaien (de Gulden Hoek) voordat u de volgende plaatst. Dit getal is afgeleid van de beroemde gulden snede ($\phi$, Phi = 1.618...).",
+        art_li1: "<strong>Probeer het zelf:</strong> Gebruik de knop \"Perfecte Hoek herstellen\" om het zonnebloempatroon te zien. Beweeg de hoekregelaar vervolgens heel langzaam.",
+        art_li2: "<strong>Chaos en Orde:</strong> U zult zien dat als u slechts 0.1 of 0.2 graden afwijkt van 137.5°, het perfecte patroon uiteenvalt in rechte lijnen of verwarrende spiralen. Dit bewijst hoe nauwkeurig het ontwerp van de natuur is. Er is maar één manier om optimaal te zijn; al het andere is minder efficiënt.",
+        art_h3: "Relatie met de Fibonacci-reeks",
+        art_p5: "Als u het perfecte patroon observeert (bij 137.5°), ziet u spiralen die met de klok mee draaien en andere tegen de klok in. Tel ze maar na!.",
+        art_p6: "U zult verrast zijn te ontdekken dat het aantal spiralen in de ene richting en de andere altijd twee opeenvolgende getallen van de Fibonacci-reeks zijn (bijv. 13 en 21, of 21 en 34, afhankelijk van de grootte van de bloem).",
+        art_h4: "Waarvoor gebruikt u deze tool?",
+        art_p7: "Dit visuele laboratorium is een krachtig hulpmiddel voor contemplatie:",
+        art_li3: "<strong>Verbinding met de natuur:</strong> Begrijpen dat wiskunde niet iets kouds en vreemds is, maar de taal waarin het biologische leven is geschreven.",
+        art_li4: "<strong>Visuele meditatie:</strong> Het observeren van het heldere centrum en hoe orde voortkomt uit schijnbare chaos kan staten van kalmte en verwondering opwekken.",
+        art_li5: "<strong>Ontwerpinspiratie:</strong> Kunstenaars en architecten gebruiken dit patroon al duizenden jaren om harmonieuze en voor het menselijk oog aangename composities te creëren."
+    },
+    JA: {
+        sim_title: "黄金螺旋", btn_png: "💾 PNG保存", btn_jpg: "📸 JPG保存", btn_golden: "🌻 完璧な角度 (137.5°)",
+        growth_title: "成長パラメータ", angle_label: "📐 発散角", angle_tip: "非常にゆっくり動かしてください。秩序は~137.5°にあります",
+        count_label: "🌱 種の数", spread_label: "✨ 間隔 (ズーム)", aesthetics_title: "審美性", size_label: "種のサイズ",
+        color_main: "メインカラー", color_center: "中心の色", footer_coffee: "☕ コーヒーを一杯おごる", legal_aviso: "法的通知",
+        legal_privacidad: "プライバシー", legal_cookies: "クッキー",
+        art_title: "自然界のデジタル指紋",
+        art_p1: "宇宙で最も効率的な成長パターンへようこそ。あなたが見ているのは単なる螺旋の絵ではありません。葉序（ギリシャ語で「葉の配置」）として知られるプロセスの数学的シミュレーションです。",
+        art_p2: "これは、ヒマワリが種を並べ、松ぼっくりが鱗片を形成し、サボテン、多肉植物、さらには銀河全体が使用しているのと同じアルゴリズムです。自然は美学のためではなく、純粋に生存効率のためにこのパターンを選択します。",
+        art_h2: "黄金角の秘密 (137.5°)",
+        art_p3: "このツールの魔法は最初のスライダー、発散角にあります。あなたが植物で、新しい葉や種を芽吹かせなければならないと想像してください。前のものに影を落とさず、最大限の光を受け取るにはどこに配置しますか？",
+        art_p4: "数学的な完璧な答えは、次を配置する前に正確に137.50776...度（黄金角）回転させることです。この数値は有名な黄金比（$\phi$、Phi = 1.618...）から導き出されています。",
+        art_li1: "<strong>自分で試してみる：</strong> 「完璧な角度を復元」ボタンを使用して、ヒマワリのパターンを確認してください。その後、角度スライダーを非常にゆっくりと動かします。",
+        art_li2: "<strong>混沌と秩序：</strong> 137.5°からわずか0.1度または0.2度逸れるだけで、完璧なパターンが直線や混乱した螺旋に崩れるのがわかります。これは自然のデザインがいかに精密であるかを証明しています。最適であるための方法は一つしかありません。それ以外はすべて効率が落ちるのです。",
+        art_h3: "フィボナッチ数列との関係",
+        art_p5: "完璧なパターン（137.5°）を観察すると、時計回りに回転する螺旋と反時計回りに回転する螺旋が見えます。数えてみてください！",
+        art_p6: "一方向と他方向の螺旋の数は、常にフィボナッチ数列の隣接する2つの数字（例：13と21、または21と34など、花のサイズによって異なります）であることに驚くでしょう。",
+        art_h4: "このツールを何に使うのか？",
+        art_p7: "この視覚ラボは、強力な瞑想ツールです：",
+        art_li3: "<strong>自然とのつながり：</strong> 数学は冷たくて縁遠いものではなく、生物学的な命が書かれている言語であることを理解すること。",
+        art_li4: "<strong>視覚的瞑想：</strong> 輝く中心と、一見混沌とした状態から秩序が生まれる様子を観察することは、穏やかさと驚きの状態を誘発します。",
+        art_li5: "<strong>デザインのインスピレーション：</strong> 芸術家や建築家は、何千年もの間、このパターンを使用して、人間に調和のとれた心地よい構成を作成してきました。"
+    }
+};
+
+    function setLang(lang) {
+        const trans = translations[lang] || translations['EN'];
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (trans[key]) {
+                if (el.tagName === 'INPUT' && el.type === 'button') el.value = trans[key];
+                else el.innerHTML = trans[key];
+            }
+        });
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.innerText === lang);
+        });
+    }
+
+    // --- LÓGICA DEL SIMULADOR (INTACTA) ---
+    const canvas = document.getElementById('fibonacciCanvas');
+    const ctx = canvas.getContext('2d');
+    const state = {
+        angle: 137.5, count: 800, spread: 6.0, dotSize: 3.0,
+        colorMain: '#ffd700', colorCenter: '#ff4500', currentZoom: 1.0 
+    };
+
+    function init() {
+        resize();
+        window.addEventListener('resize', resize);
+        setupControls();
+        addInteractionListeners();
+        draw();
+    }
+
+    function resize() {
+        const parent = canvas.parentElement;
+        canvas.width = parent.clientWidth;
+        canvas.height = parent.clientHeight;
+        draw();
+    }
+
+    function draw() {
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        ctx.globalCompositeOperation = 'lighter'; 
+        const goldenAngleRad = state.angle * (Math.PI / 180); 
+
+        for (let n = 0; n < state.count; n++) {
+            const theta = n * goldenAngleRad;
+            const radius = state.spread * state.currentZoom * Math.sqrt(n);
+            const x = centerX + radius * Math.cos(theta);
+            const y = centerY + radius * Math.sin(theta);
+            const scaleFactor = 0.5 + (n / state.count) * 0.5;
+            const currentDotSize = state.dotSize * scaleFactor * (state.currentZoom * 0.8 + 0.2);
+
+            const colorRatio = n / state.count;
+            const r1 = parseInt(state.colorCenter.slice(1,3), 16);
+            const g1 = parseInt(state.colorCenter.slice(3,5), 16);
+            const b1 = parseInt(state.colorCenter.slice(5,7), 16);
+            const r2 = parseInt(state.colorMain.slice(1,3), 16);
+            const g2 = parseInt(state.colorMain.slice(3,5), 16);
+            const b2 = parseInt(state.colorMain.slice(5,7), 16);
+            
+            const r = Math.round(r1 + (r2 - r1) * colorRatio);
+            const g = Math.round(g1 + (g2 - g1) * colorRatio);
+            const b = Math.round(b1 + (b2 - b1) * colorRatio);
+            const finalColor = `rgb(${r},${g},${b})`;
+
+            const grad = ctx.createRadialGradient(x, y, 0, x, y, currentDotSize);
+            grad.addColorStop(0, finalColor);
+            grad.addColorStop(1, `rgba(${r},${g},${b},0)`);
+
+            ctx.beginPath();
+            ctx.arc(x, y, currentDotSize, 0, Math.PI * 2);
+            ctx.fillStyle = grad;
+            ctx.fill();
+        }
+        ctx.globalCompositeOperation = 'source-over';
+    }
+
+    function addInteractionListeners() {
+        canvas.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const zoomSpeed = 0.05;
+            state.currentZoom *= (e.deltaY < 0) ? (1 + zoomSpeed) : (1 - zoomSpeed);
+            state.currentZoom = Math.min(Math.max(0.2, state.currentZoom), 5);
+            draw();
+        }, { passive: false });
+    }
+
+    function setupControls() {
+        document.getElementById('angle').oninput = (e) => {
+            state.angle = parseFloat(e.target.value);
+            document.getElementById('angleVal').innerText = state.angle.toFixed(2) + '°';
+            draw();
+        };
+        document.getElementById('count').oninput = (e) => {
+            state.count = parseInt(e.target.value);
+            document.getElementById('countVal').innerText = state.count;
+            draw();
+        };
+        document.getElementById('spread').oninput = (e) => {
+            state.spread = parseFloat(e.target.value);
+            document.getElementById('spreadVal').innerText = state.spread.toFixed(1);
+            draw();
+        };
+        document.getElementById('dotSize').oninput = (e) => {
+            state.dotSize = parseFloat(e.target.value);
+            document.getElementById('dotSizeVal').innerText = state.dotSize.toFixed(1);
+            draw();
+        };
+        document.getElementById('colorMain').oninput = (e) => { state.colorMain = e.target.value; draw(); };
+        document.getElementById('colorCenter').oninput = (e) => { state.colorCenter = e.target.value; draw(); };
+        document.getElementById('btnGolden').onclick = () => {
+            state.angle = 137.5;
+            document.getElementById('angle').value = 137.5;
+            document.getElementById('angleVal').innerText = "137.50°";
+            draw();
+        };
+        document.getElementById('btnPng').onclick = () => saveImage('png');
+        document.getElementById('btnJpg').onclick = () => saveImage('jpeg');
+    }
+
+    function saveImage(format) {
+        const link = document.createElement('a');
+        link.download = `fibonacci_spiral_graphics_labs.${format}`;
+        link.href = canvas.toDataURL(format === 'jpeg' ? 'image/jpeg' : 'image/png');
+        link.click();
+    }
+
+    init();
+</script>
+</body>
+</html>

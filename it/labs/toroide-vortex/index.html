@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <script>
+    // --- i18n URL Router ---
+    (function() {
+        window.__GL_LANG = 'it';
+        window.__GL_LANG_UPPER = 'IT';
+        window.__GL_LANGS = ['es', 'ca', 'en', 'fr', 'de', 'pt', 'it', 'nl', 'ja'];
+        
+        // Override localStorage to always use URL-based language
+        localStorage.setItem('gl_lang', 'it');
+        
+        // Language switcher: navigate to the equivalent page in the target language folder
+        window.switchLangUrl = function(targetLang) {
+            var path = window.location.pathname;
+            // Replace current lang segment with target lang
+            var newPath = path.replace(/^\/(es|ca|en|fr|de|pt|it|nl|ja)\//, '/' + targetLang.toLowerCase() + '/');
+            if (newPath === path) {
+                // Fallback: prepend lang
+                newPath = '/' + targetLang.toLowerCase() + '/';
+            }
+            window.location.href = newPath + window.location.hash;
+        };
+        
+        // Auto-call setLang on DOMContentLoaded to apply translations
+        // Some labs use uppercase keys (ES/EN), others lowercase (es/en)
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof setLang === 'function') {
+                // Try uppercase first (used by most lab pages with inline translations)
+                try { setLang('IT'); } catch(e) {}
+                // Also try lowercase (used by magic-square style pages)
+                try { setLang('it'); } catch(e) {}
+            }
+        });
+    })();
+    </script>
+    <title>Toroide Vortex | Graphics Labs</title>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3150277567590534"
+     crossorigin="anonymous"></script>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Laboratorio interattivo di Toroide Vortex. Sperimenta con arte generativa e matematica visiva su Graphics Labs.">
+    
+    <script>
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.onkeydown = function(e) {
+            if(event.keyCode == 123) return false;
+            if(e.ctrlKey && (e.key === 'z' || e.key === 'y')) return true;
+            if(e.ctrlKey && e.shiftKey && (e.keyCode == 'I'.charCodeAt(0) || e.keyCode == 'J'.charCodeAt(0))) return false;
+            if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) return false;
+        }
+    </script>
+
+    <style>
+        :root {
+            --primary: #00ff41;
+            --glass: rgba(255, 255, 255, 0.05);
+            --nav-bg: rgba(0, 0, 0, 0.85);
+        }
+
+        body { margin: 0; background-color: #000; font-family: 'Segoe UI', sans-serif; color: #ddd; overflow-x: hidden; display: flex; flex-direction: column; }
+        
+        /* --- SISTEMA DE NAVEGACIÓN SUPERIOR --- */
+        .top-nav {
+            position: fixed; top: 0; left: 0; width: 100%; height: 65px;
+            background: var(--nav-bg); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 20px; box-sizing: border-box; z-index: 1000;
+            border-bottom: 1px solid var(--glass);
+        }
+        .nav-left { display: flex; align-items: center; gap: 15px; }
+        .nav-brand { color: var(--primary); font-weight: 900; letter-spacing: 2px; font-size: 1.2em; text-decoration: none; }
+        .nav-btn { 
+            background: var(--glass); border: 1px solid #333; color: #fff; padding: 6px 12px; 
+            border-radius: 4px; text-decoration: none; font-size: 0.8em; font-weight: bold; transition: 0.3s;
+        }
+        .nav-btn:hover { background: var(--primary); color: #000; border-color: var(--primary); }
+
+        .lang-selector { display: flex; gap: 5px; }
+        .lang-btn { 
+            background: transparent; border: 1px solid #444; color: #888; padding: 4px 8px; 
+            border-radius: 3px; cursor: pointer; font-size: 0.7em; transition: 0.3s;
+        }
+        .lang-btn.active { border-color: var(--primary); color: var(--primary); background: rgba(0, 255, 65, 0.1); }
+
+        /* --- LAYOUT APP --- */
+        #app-wrapper { display: flex; width: 100%; height: 100vh; padding-top: 65px; box-sizing: border-box; border-bottom: 2px solid #222; }
+        
+        #canvas-container {
+            flex: 3; display: flex; justify-content: center; align-items: center;
+            background: radial-gradient(circle at center, #111 0%, #000 100%);
+            padding: 20px; overflow: hidden; position: relative;
+            perspective: 1000px; cursor: grab; 
+        }
+        #canvas-container:active { cursor: grabbing; }
+        canvas { filter: drop-shadow(0 0 20px rgba(0, 255, 65, 0.2)); max-width: 100%; max-height: 100%; touch-action: none; }
+        
+        #controls-container {
+            flex: 2; min-width: 340px; background-color: #0a0a0a; padding: 20px;
+            overflow-y: auto; box-shadow: -5px 0 20px rgba(0,0,0,0.8); border-left: 1px solid #222;
+        }
+
+        h2 { color: var(--primary); margin-bottom: 20px; text-align: center; letter-spacing: 2px; text-shadow: 0 0 15px rgba(0, 255, 65, 0.4); text-transform: uppercase; }
+        
+        .btn-group { display: flex; gap: 10px; margin-bottom: 25px; }
+        .export-btn {
+            flex: 1; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;
+            transition: transform 0.1s, filter 0.2s;
+        }
+        .export-btn:hover { filter: brightness(1.2); }
+        #btnPng { background-color: var(--primary); color: #000; } 
+        #btnJpg { background-color: #fff; color: #000; } 
+
+        .control-group { background: var(--glass); border: 1px solid #333; border-radius: 8px; padding: 15px; margin-bottom: 18px; }
+        .control-row { display: flex; align-items: center; margin-bottom: 12px; font-size: 0.9em; }
+        .control-label { flex: 1; color: #ccc; font-weight: 500; }
+        
+        input[type=range] { flex-grow: 2; cursor: pointer; margin-right: 10px; accent-color: var(--primary); }
+        input[type=color] { border: none; width: 40px; height: 30px; border-radius: 4px; cursor: pointer; padding: 0; background: transparent; }
+        .value-display { width: 40px; text-align: center; font-family: monospace; font-weight: bold; color: var(--primary); }
+
+        /* --- ADS & CONTENT --- */
+        .ad-container {
+            border: 1px dashed #444; background: #0a0a0a; color: #555;
+            padding: 20px; margin: 40px auto; max-width: 900px; text-align: center;
+            font-family: 'Courier New', monospace; font-size: 0.8em; letter-spacing: 2px;
+        }
+
+        .content-section { max-width: 900px; margin: 0 auto; padding: 20px; }
+        article h2 { color: var(--primary); border-left: 4px solid var(--primary); padding-left: 15px; margin-top: 50px; font-size: 1.8em;}
+        article h3 { color: #eee; margin-top: 30px; font-size: 1.4em; }
+        article p { margin-bottom: 20px; font-size: 1.1em; color: #ccc; line-height: 1.8; text-align: justify; }
+        article ul { color: #ccc; line-height: 1.6; margin-bottom: 30px; list-style: none; padding: 0; }
+        article li { margin-bottom: 15px; padding-left: 20px; border-left: 2px solid var(--primary); }
+        article strong { color: #fff; }
+        
+        /* --- FOOTER --- */
+        footer { background-color: #050505; padding: 60px 20px; text-align: center; border-top: 1px solid #222; font-size: 0.9em; color: #666; }
+        .paypal-btn {
+            display: inline-block; background: #0070ba; color: #fff; padding: 12px 25px; 
+            border-radius: 50px; text-decoration: none; font-weight: bold; margin-bottom: 30px;
+            transition: 0.3s; box-shadow: 0 4px 15px rgba(0, 112, 186, 0.3);
+        }
+        .paypal-btn:hover { transform: scale(1.05); }
+        .footer-links { margin: 20px 0; }
+        .footer-links a { color: #888; text-decoration: none; margin: 0 10px; }
+        .footer-links a:hover { color: var(--primary); }
+
+        @media (max-width: 800px) {
+            #app-wrapper { flex-direction: column; height: auto; }
+            #canvas-container { height: 50vh; }
+            #controls-container { min-width: 100%; }
+            .lang-selector { display: none; }
+        }
+    </style>
+    <link rel="canonical" href="https://graphics-labs.org/it/labs/toroide-vortex/" />
+
+    <link rel="alternate" hreflang="es" href="https://graphics-labs.org/es/labs/toroide-vortex/" />
+    <link rel="alternate" hreflang="ca" href="https://graphics-labs.org/ca/labs/toroide-vortex/" />
+    <link rel="alternate" hreflang="en" href="https://graphics-labs.org/en/labs/toroide-vortex/" />
+    <link rel="alternate" hreflang="fr" href="https://graphics-labs.org/fr/labs/toroide-vortex/" />
+    <link rel="alternate" hreflang="de" href="https://graphics-labs.org/de/labs/toroide-vortex/" />
+    <link rel="alternate" hreflang="pt" href="https://graphics-labs.org/pt/labs/toroide-vortex/" />
+    <link rel="alternate" hreflang="it" href="https://graphics-labs.org/it/labs/toroide-vortex/" />
+    <link rel="alternate" hreflang="nl" href="https://graphics-labs.org/nl/labs/toroide-vortex/" />
+    <link rel="alternate" hreflang="ja" href="https://graphics-labs.org/ja/labs/toroide-vortex/" />
+    <link rel="alternate" hreflang="x-default" href="https://graphics-labs.org/es/labs/toroide-vortex/" />
+</head>
+<body>
+
+<nav class="top-nav">
+    <div class="nav-left">
+        <a href="../../index.html" class="nav-btn" data-i18n="nav_hub">HUB</a>
+        <a href="javascript:history.back()" class="nav-btn" data-i18n="nav_back">BACK</a>
+        <span class="nav-brand">GRAPHICS LABS</span>
+    </div>
+    <div class="lang-selector">
+        <button class="lang-btn active" onclick="changeLanguage('es')">ES</button>
+        <button class="lang-btn" onclick="changeLanguage('ca')">CA</button>
+        <button class="lang-btn" onclick="changeLanguage('en')">EN</button>
+        <button class="lang-btn" onclick="changeLanguage('fr')">FR</button>
+        <button class="lang-btn" onclick="changeLanguage('de')">DE</button>
+        <button class="lang-btn" onclick="changeLanguage('pt')">PT</button>
+        <button class="lang-btn" onclick="changeLanguage('it')">IT</button>
+        <button class="lang-btn" onclick="changeLanguage('nl')">NL</button>
+        <button class="lang-btn" onclick="changeLanguage('ja')">JA</button>
+    </div>
+</nav>
+
+<div id="app-wrapper">
+    <div id="canvas-container">
+        <canvas id="torusCanvas"></canvas>
+    </div>
+
+    <div id="controls-container">
+        <h2 data-i18n="sim_title">TOROIDE VÓRTEX</h2>
+        
+        <div class="btn-group">
+            <button id="btnPng" class="export-btn">💾 PNG</button>
+            <button id="btnJpg" class="export-btn">📸 JPG</button>
+        </div>
+
+        <div id="sliders-dock">
+            <div class="control-group">
+                <h3 style="margin-top:0; color:#eee; font-size:1em; border-bottom:1px solid #444; padding-bottom:5px;" data-i18n="group_shape">Forma & Estructura</h3>
+                <div class="control-row">
+                    <span class="control-label" data-i18n="label_radiusM">Radio Mayor:</span>
+                    <input type="range" id="radiusMRange" min="10" max="100" value="60">
+                </div>
+                <div class="control-row">
+                    <span class="control-label" data-i18n="label_radiusT">Grosor Tubo:</span>
+                    <input type="range" id="radiusTRange" min="5" max="80" value="30">
+                </div>
+                <div class="control-row">
+                    <span class="control-label" data-i18n="label_density">Densidad:</span>
+                    <input type="range" id="densityRange" min="10" max="100" value="40">
+                    <span id="densityVal" class="value-display">40</span>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3 style="margin-top:0; color:#eee; font-size:1em; border-bottom:1px solid #444; padding-bottom:5px;" data-i18n="group_rot">Auto-Rotación</h3>
+                <div class="control-row">
+                    <span class="control-label" data-i18n="label_speedX">Velocidad X:</span>
+                    <input type="range" id="speedXRange" min="0" max="50" value="10">
+                </div>
+                <div class="control-row">
+                    <span class="control-label" data-i18n="label_speedY">Velocidad Y:</span>
+                    <input type="range" id="speedYRange" min="0" max="50" value="20">
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3 style="margin-top:0; color:#eee; font-size:1em; border-bottom:1px solid #444; padding-bottom:5px;" data-i18n="group_aesthetic">Estética</h3>
+                <div class="control-row">
+                    <span class="control-label" data-i18n="label_color">Color Neón:</span>
+                    <input type="color" id="lineColor" value="#00ff41">
+                </div>
+                <div class="control-row">
+                    <span class="control-label" data-i18n="label_bg">Fondo:</span>
+                    <input type="color" id="bgColor" value="#000000">
+                </div>
+                <div class="control-row">
+                    <span class="control-label" data-i18n="label_zoom">Zoom (Cámara):</span>
+                    <input type="range" id="zoomRange" min="200" max="1000" value="600">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<section class="content-section">
+    <article>
+        <h2 data-i18n="art_h1">El Toroide: La Forma del Flujo Universal</h2>
+        <p data-i18n="art_p1">El <strong>Toroide</strong> no es solo una figura geométrica en forma de donut; es el patrón fundamental que utiliza la naturaleza para mantener la vida en todas las escalas. Desde el campo magnético que protege a la Tierra, hasta la estructura de un átomo, una manzana o un huracán, todo sistema energético autosostenible sigue esta forma.</p>
+        
+        <h3 data-i18n="art_h2">Interactúa con el Vórtex</h3>
+        <p data-i18n="art_p2"><strong>¡Tócalo!</strong> En esta versión del laboratorio, puedes agarrar el toroide con el ratón (o con el dedo en tu móvil) y girarlo libremente para examinarlo desde cualquier ángulo. Siente cómo la estructura 3D responde a tu movimiento, sumando tu energía a su rotación natural.</p>
+
+        <h3 data-i18n="art_h3">¿Cómo funciona este patrón?</h3>
+        <p data-i18n="art_p3">Observa la animación en nuestro <strong>Lab</strong>. La energía fluye desde un extremo, circula alrededor del centro y vuelve a entrar por el otro extremo. Es un ciclo de retroalimentación infinita. Este movimiento de "implosión" y "explosión" simultánea es lo que permite que el universo se regenere a sí mismo constantemente.</p>
+
+        <div class="ad-container">
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-3150277567590534"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+
+        <h3 data-i18n="art_h4">Punto Cero y Manifestación</h3>
+        <p data-i18n="art_p4">El centro del toroide es el <strong>Punto Cero</strong> (Singularidad), un lugar de quietud absoluta y equilibrio perfecto donde la materia y la energía se originan y regresan. En la meditación, este punto representa el "corazón sagrado", el espacio de silencio interior donde reside la conciencia pura.</p>
+
+        <h3 data-i18n="art_h5">Aplicaciones Prácticas del Lab</h3>
+        <p data-i18n="art_p5">Esta herramienta visual tiene efectos poderosos para el entrenamiento mental:</p>
+        <ul>
+            <li data-i18n="art_li1"><strong>Respiración Coherente:</strong> Sincroniza tu respiración con el giro del toroide. Inhala mientras visualizas la energía subiendo y expandiéndose, exhala mientras baja y se contrae hacia el centro.</li>
+            <li data-i18n="art_li2"><strong>Visualización 3D:</strong> Entrenar tu cerebro para percibir objetos en el espacio fortalece la inteligencia espacial y la intuición geométrica.</li>
+            <li data-i18n="art_li3"><strong>Estudio de Campos:</strong> Ajusta la "Densidad" y el "Grosor" para entender intuitivamente cómo los campos electromagnéticos se densifican o expanden en el espacio.</li>
+        </ul>
+    </article>
+</section>
+
+<div class="ad-container">
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-3150277567590534"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+
+<footer>
+    <a href="https://www.paypal.com/paypalme/pbazan" target="_blank" class="paypal-btn" data-i18n="footer_coffee">☕ Invítame a un café</a>
+    <div class="footer-links">
+        <a href="../../legal.html#aviso" data-i18n="footer_legal">Aviso Legal</a>
+        <a href="../../legal.html#privacidad" data-i18n="footer_privacy">Privacidad</a>
+        <a href="../../legal.html#cookies" data-i18n="footer_cookies">Cookies</a>
+        <a href="mailto:pbazan@gmail.com" data-i18n="footer_contact">Contacto</a>
+    </div>
+    <p>Copyright © 2026 Graphics Labs. <span data-i18n="footer_rights">Todos los derechos reservados.</span></p>
+</footer>
+
+<script>
+    // --- SISTEMA TRADUCCIÓN (I18N) COMPLETO ---
+    const translations = {
+        es: {
+            nav_hub: "HUB", nav_back: "VOLVER", sim_title: "TOROIDE VÓRTEX",
+            group_shape: "Forma & Estructura", label_radiusM: "Radio Mayor:", label_radiusT: "Grosor Tubo:", label_density: "Densidad:",
+            group_rot: "Auto-Rotación", label_speedX: "Velocidad X:", label_speedY: "Velocidad Y:",
+            group_aesthetic: "Estética", label_color: "Color Neón:", label_bg: "Fondo:", label_zoom: "Zoom (Cámara):",
+            art_h1: "El Toroide: La Forma del Flujo Universal",
+            art_p1: "El Toroide no es solo una figura geométrica en forma de donut; es el patrón fundamental que utiliza la naturaleza para mantener la vida en todas las escalas. Desde el campo magnético que protege a la Tierra, hasta la estructura de un átomo, una manzana o un huracán, todo sistema energético autosostenible sigue esta forma.",
+            art_h2: "Interactúa con el Vórtex",
+            art_p2: "¡Tócalo! En esta versión del laboratorio, puedes agarrar el toroide con el ratón (o con el dedo en tu móvil) y girarlo libremente para examinarlo desde cualquier ángulo. Siente cómo la estructura 3D responde a tu movimiento, sumando tu energía a su rotación natural.",
+            art_h3: "¿Cómo funciona este patrón?",
+            art_p3: "Observa la animación en nuestro Lab. La energía fluye desde un extremo, circula alrededor del centro y vuelve a entrar por el otro extremo. Es un ciclo de retroalimentación infinita. Este movimiento de \"implosión\" y \"explosión\" simultánea es lo que permite que el universo se regenere a sí mismo constantemente.",
+            art_h4: "Punto Cero y Manifestación",
+            art_p4: "El centro del toroide es el Punto Cero (Singularidad), un lugar de quietud absoluta y equilibrio perfecto donde la materia y la energía se originan y regresan. En la meditación, este punto representa el \"corazón sagrado\", el espacio de silencio interior donde reside la conciencia pura.",
+            art_h5: "Aplicaciones Prácticas del Lab",
+            art_p5: "Esta herramienta visual tiene efectos poderosos para el entrenamiento mental:",
+            art_li1: "Respiración Coherente: Sincroniza tu respiración con el giro del toroide. Inhala mientras visualizas la energía subiendo y expandiéndose, exhala mientras baja y se contrae hacia el centro.",
+            art_li2: "Visualización 3D: Entrenar tu cerebro para percibir objetos en el espacio fortalece la inteligencia espacial y la intuición geométrica.",
+            art_li3: "Estudio de Campos: Ajusta la \"Densidad\" y el \"Grosor\" para entender intuitivamente cómo los campos electromagnéticos se densifican o expanden en el espacio.",
+            footer_coffee: "☕ Invítame a un café", footer_legal: "Aviso Legal", footer_privacy: "Privacidad", footer_cookies: "Cookies", footer_contact: "Contacto", footer_rights: "Todos los derechos reservados."
+        },
+        en: {
+            nav_hub: "HUB", nav_back: "BACK", sim_title: "VORTEX TORUS",
+            group_shape: "Shape & Structure", label_radiusM: "Major Radius:", label_radiusT: "Tube Thickness:", label_density: "Density:",
+            group_rot: "Auto-Rotation", label_speedX: "X Speed:", label_speedY: "Y Speed:",
+            group_aesthetic: "Aesthetics", label_color: "Neon Color:", label_bg: "Background:", label_zoom: "Zoom (Camera):",
+            art_h1: "The Torus: The Form of Universal Flow",
+            art_p1: "The Torus is not just a donut-shaped geometric figure; it is the fundamental pattern that nature uses to sustain life at all scales. From the magnetic field that protects the Earth, to the structure of an atom, an apple, or a hurricane, every self-sustaining energy system follows this form.",
+            art_h2: "Interact with the Vortex",
+            art_p2: "Touch it! In this version of the lab, you can grab the torus with the mouse (or with your finger on your mobile) and rotate it freely to examine it from any angle. Feel how the 3D structure responds to your movement, adding your energy to its natural rotation.",
+            art_h3: "How does this pattern work?",
+            art_p3: "Observe the animation in our Lab. Energy flows from one end, circulates around the center, and re-enters through the other end. It is an infinite feedback loop. This movement of simultaneous \"implosion\" and \"explosion\" is what allows the universe to constantly regenerate itself.",
+            art_h4: "Zero Point and Manifestation",
+            art_p4: "The center of the torus is the Zero Point (Singularity), a place of absolute stillness and perfect balance where matter and energy originate and return. In meditation, this point represents the \"sacred heart,\" the space of inner silence where pure consciousness resides.",
+            art_h5: "Practical Lab Applications",
+            art_p5: "This visual tool has powerful effects for mental training:",
+            art_li1: "Coherent Breathing: Synchronize your breathing with the rotation of the torus. Inhale while visualizing the energy rising and expanding, exhale as it falls and contracts towards the center.",
+            art_li2: "3D Visualization: Training your brain to perceive objects in space strengthens spatial intelligence and geometric intuition.",
+            art_li3: "Field Study: Adjust \"Density\" and \"Thickness\" to intuitively understand how electromagnetic fields densify or expand in space.",
+            footer_coffee: "☕ Buy me a coffee", footer_legal: "Legal Notice", footer_privacy: "Privacy", footer_cookies: "Cookies", footer_contact: "Contact", footer_rights: "All rights reserved."
+        },
+        ca: {
+            nav_hub: "HUB", nav_back: "TORNAR", sim_title: "TOROIDE VÒRTEX",
+            group_shape: "Forma i Estructura", label_radiusM: "Radi Major:", label_radiusT: "Gruix Tub:", label_density: "Densitat:",
+            group_rot: "Auto-Rotació", label_speedX: "Velocitat X:", label_speedY: "Velocitat Y:",
+            group_aesthetic: "Estètica", label_color: "Color Neó:", label_bg: "Fons:", label_zoom: "Zoom (Càmera):",
+            art_h1: "El Toroide: La Forma del Flux Universal",
+            art_p1: "El Toroide no és només una figura geomètrica en forma de donut; és el patró fonamental que utilitza la natura per mantenir la vida en totes les escales. Des del camp magnètic que protegeix la Terra, fins a l'estructura d'un àtom, una poma o un huracà, tot sistema energètic autosostenible segueix aquesta forma.",
+            art_h2: "Interactua amb el Vòrtex",
+            art_p2: "Toca'l! En aquesta versió del laboratori, pots agafar el toroide amb el ratolí (o amb el dit al mòbil) i girar-lo lliurement per examinar-lo des de qualsevol angle. Sent com l'estructura 3D respon al teu moviment, sumant la teva energia a la seva rotació natural.",
+            art_h3: "Com funciona aquest patró?",
+            art_p3: "Observa l'animació en el nostre Lab. L'energia flueix des d'un extrem, circula al voltant del centre i torna a entrar per l'altre extrem. És un cicle de retroalimentació infinita. Aquest moviment d'\"implosió\" i \"explosió\" simultània és el que permet que l'univers es regeneri constantment.",
+            art_h4: "Punt Zero i Manifestació",
+            art_p4: "El centre del toroide és el Punt Zero (Singularitat), un lloc de quietud absoluta i equilibri perfecte on la matèria i l'energia s'originen i retornen. En la meditació, aquest punt representa el \"cor sagrat\", l'espai de silenci interior on resideix la consciència pura.",
+            art_h5: "Aplicacions Pràctiques del Lab",
+            art_p5: "Aquesta eina visual té efectes poderosos per a l'entrenament mental:",
+            art_li1: "Respiració Coherent: Sincronitza la teva respiració amb el gir del toroide. Inhala mentre visualitzes l'energia pujant i expandint-se, exhala mentre baixa i es contrau cap al centre.",
+            art_li2: "Visualització 3D: Entrenar el teu cervell per percebre objectes en l'espai enforteix la intel·ligència espacial i la intuïció geomètrica.",
+            art_li3: "Estudi de Camps: Ajusta la \"Densitat\" i el \"Gruix\" per entendre intuïtivament com els camps electromagnètics es densifiquen o s'expandeixen en l'espai.",
+            footer_coffee: "☕ Convida'm a un cafè", footer_legal: "Avís Legal", footer_privacy: "Privadesa", footer_cookies: "Cookies", footer_contact: "Contacte", footer_rights: "Tots els drets reservats."
+        },
+        fr: {
+            nav_hub: "HUB", nav_back: "RETOUR", sim_title: "TOROÏDE VORTEX",
+            group_shape: "Forme & Structure", label_radiusM: "Grand Rayon :", label_radiusT: "Épaisseur Tube :", label_density: "Densité :",
+            group_rot: "Auto-Rotation", label_speedX: "Vitesse X :", label_speedY: "Vitesse Y :",
+            group_aesthetic: "Esthétique", label_color: "Couleur Néon :", label_bg: "Fond :", label_zoom: "Zoom (Caméra) :",
+            art_h1: "Le Toroïde : La Forme du Flux Universel",
+            art_p1: "Le Toroïde n'est pas seulement une figure géométrique en forme de donut ; c'est le modèle fondamental utilisé par la nature pour maintenir la vie à toutes les échelles. Du champ magnétique qui protège la Terre à la structure d'un atome, d'une pomme ou d'un ouragan, tout système énergétique autosuffisant suit cette forme.",
+            art_h2: "Interagissez avec le Vortex",
+            art_p2: "Touchez-le ! Dans cette version du laboratoire, vous pouvez saisir le toroïde avec la souris (ou avec votre doigt sur mobile) et le faire pivoter librement pour l'examiner sous n'importe quel angle. Sentez comment la structure 3D répond à votre mouvement, ajoutant votre énergie à sa rotation naturelle.",
+            art_h3: "Comment fonctionne ce modèle ?",
+            art_p3: "Observez l'animation dans notre Lab. L'énergie circule d'une extrémité à l'autre, tourne autour du centre et revient par l'autre côté. C'est un cycle de rétroaction infinie. Ce mouvement d'\"implosion\" et d'\"explosion\" simultanées est ce qui permet à l'univers de se régénérer constamment.",
+            art_h4: "Point Zéro et Manifestation",
+            art_p4: "Le centre du toroïde est le Point Zéro (Singularité), un lieu de calme absolu et d'équilibre parfait où la matière et l'énergie prennent naissance et reviennent. En méditation, ce point représente le \"cœur sacré\", l'espace de silence intérieur où réside la conscience pure.",
+            art_h5: "Applications Pratiques du Lab",
+            art_p5: "Cet outil visuel a des effets puissants pour l'entraînement mental :",
+            art_li1: "Respiration Cohérente : Synchronisez votre respiration avec la rotation du toroïde. Inspirez en visualisant l'énergie monter et s'étendre, expirez lorsqu'elle descend et se contracte vers le centre.",
+            art_li2: "Visualisation 3D : Entraîner votre cerveau à percevoir des objets dans l'espace renforce l'intelligence spatiale et l'intuition géométrique.",
+            art_li3: "Étude des Champs : Ajustez la \"Densité\" et l'\"Épaisseur\" pour comprendre intuitivement comment les champs électromagnétiques se densifient ou s'étendent dans l'espace.",
+            footer_coffee: "☕ Offrez-moi un café", footer_legal: "Mentions Légales", footer_privacy: "Confidentialité", footer_cookies: "Cookies", footer_contact: "Contact", footer_rights: "Tous droits réservés."
+        },
+        de: {
+            nav_hub: "HUB", nav_back: "ZURÜCK", sim_title: "VORTEX-TORUS",
+            group_shape: "Form & Struktur", label_radiusM: "Großer Radius:", label_radiusT: "Rohrdicke:", label_density: "Dichte:",
+            group_rot: "Auto-Rotation", label_speedX: "Geschwindigkeit X:", label_speedY: "Geschwindigkeit Y:",
+            group_aesthetic: "Ästhetik", label_color: "Neon-Farbe:", label_bg: "Hintergrund:", label_zoom: "Zoom (Kamera):",
+            art_h1: "Der Torus: Die Form des universellen Flusses",
+            art_p1: "Der Torus ist nicht nur eine geometrische Figur in Form eines Donuts; er ist das grundlegende Muster, das die Natur verwendet, um das Leben auf allen Ebenen aufrechtzuerhalten. Vom Magnetfeld, das die Erde schützt, bis hin zur Struktur eines Atoms, eines Apfels oder eines Hurrikans folgt jedes selbsterhaltende Energiesystem dieser Form.",
+            art_h2: "Interagiere mit dem Wirbel",
+            art_p2: "Berühre ihn! In dieser Version des Labors kannst du den Torus mit der Maus (oder mit dem Finger auf dem Handy) greifen und frei drehen, um ihn aus jedem Winkel zu betrachten. Spüre, wie die 3D-Struktur auf deine Bewegung reagiert und deine Energie zu seiner natürlichen Rotation hinzufügt.",
+            art_h3: "Wie funktioniert dieses Muster?",
+            art_p3: "Beobachte die Animation in unserem Lab. Energie fließt von einem Ende aus, zirkuliert um das Zentrum und tritt am anderen Ende wieder ein. Es ist ein unendlicher Rückkopplungszyklus. Diese Bewegung der gleichzeitigen \"Implosion\" und \"Explosion\" ermöglicht es dem Universum, sich ständig selbst zu regenerieren.",
+            art_h4: "Nullpunkt und Manifestation",
+            art_p4: "Das Zentrum des Torus ist der Nullpunkt (Singularität), ein Ort absoluter Stille und perfekten Gleichgewichts, an dem Materie und Energie entstehen und zurückkehren. In der Meditation repräsentiert dieser Punkt das \"heilige Herz\", den Raum der inneren Stille, in dem das reine Bewusstsein wohnt.",
+            art_h5: "Praktische Anwendungen des Labs",
+            art_p5: "Dieses visuelle Werkzeug hat starke Auswirkungen auf das mentale Training:",
+            art_li1: "Kohärente Atmung: Synchronisiere deine Atmung mit der Drehung des Torus. Atme ein, während du visualisierst, wie die Energie aufsteigt und sich ausdehnt, und atme aus, wenn sie absinkt und sich zum Zentrum hin zusammenzieht.",
+            art_li2: "3D-Visualisierung: Das Training deines Gehirns, Objekte im Raum wahrzunehmen, stärkt die räumliche Intelligenz und die geometrische Intuition.",
+            art_li3: "Feldstudie: Passe die \"Dichte\" und \"Dicke\" an, um intuitiv zu verstehen, wie elektromagnetische Felder im Raum dichter werden oder sich ausdehnen.",
+            footer_coffee: "☕ Spendier mir einen Kaffee", footer_legal: "Impressum", footer_privacy: "Datenschutz", footer_cookies: "Cookies", footer_contact: "Kontakt", footer_rights: "Alle Rechte vorbehalten."
+        },
+        pt: {
+            nav_hub: "HUB", nav_back: "VOLTAR", sim_title: "TOROIDE VÓRTEX",
+            group_shape: "Forma & Estrutura", label_radiusM: "Raio Maior:", label_radiusT: "Espessura Tubo:", label_density: "Densidade:",
+            group_rot: "Auto-Rotação", label_speedX: "Velocidade X:", label_speedY: "Velocidade Y:",
+            group_aesthetic: "Estética", label_color: "Cor Neon:", label_bg: "Fundo:", label_zoom: "Zoom (Câmara):",
+            art_h1: "O Toroide: A Forma do Fluxo Universal",
+            art_p1: "O Toroide não é apenas uma figura geométrica em forma de donut; é o padrão fundamental que a natureza utiliza para manter a vida em todas as escalas. Desde o campo magnético que protege a Terra até à estrutura de um átomo, uma maçã ou um furacão, todo o sistema energético autossustentável segue esta forma.",
+            art_h2: "Interaja com o Vórtex",
+            art_p2: "Toque-lhe! Nesta versão do laboratório, pode agarrar o toroide com o rato (ou com o dedo no seu telemóvel) e rodá-lo livremente para o examinar de qualquer ângulo. Sinta como a estrutura 3D responde ao seu movimento, somando a sua energia à sua rotação natural.",
+            art_h3: "Como funciona este padrão?",
+            art_p3: "Observe a animação no nosso Lab. A energia flui de uma extremidade, circula em redor do centro e volta a entrar pela outra extremidade. É um ciclo de feedback infinito. Este movimento de \"implosão\" e \"explosão\" simultânea é o que permite que o universo se regenere constantemente.",
+            art_h4: "Ponto Zero e Manifestação",
+            art_p4: "O centro do toroide é o Ponto Zero (Singularidade), um lugar de quietude absoluta e equilíbrio perfeito onde a matéria e a energia se originam e regressam. Na meditação, este ponto representa o \"coração sagrado\", o espaço de silêncio interior onde reside a consciência pura.",
+            art_h5: "Aplicações Práticas do Lab",
+            art_p5: "Esta ferramenta visual tem efeitos poderosos para o treino mental:",
+            art_li1: "Respiração Coerente: Sincronize a sua respiração com o giro do toroide. Inale enquanto visualiza a energia a subir e a expandir-se, exale enquanto baixa e se contrai em direção ao centro.",
+            art_li2: "Visualização 3D: Treinar o seu cérebro para perceber objetos no espaço fortalece a inteligência espacial e a intuição geométrica.",
+            art_li3: "Estudo de Campos: Ajuste a \"Densidade\" e a \"Espessura\" para entender intuitivamente como os campos eletromagnéticos se densificam ou expandem no espaço.",
+            footer_coffee: "☕ Pague-me um café", footer_legal: "Aviso Legal", footer_privacy: "Privacidade", footer_cookies: "Cookies", footer_contact: "Contacto", footer_rights: "Todos os direitos reservados."
+        },
+        it: {
+            nav_hub: "HUB", nav_back: "INDIETRO", sim_title: "TOROIDE VORTICE",
+            group_shape: "Forma & Struttura", label_radiusM: "Raggio Maggiore:", label_radiusT: "Spessore Tubo:", label_density: "Densità:",
+            group_rot: "Auto-Rotazione", label_speedX: "Velocità X:", label_speedY: "Velocità Y:",
+            group_aesthetic: "Estetica", label_color: "Colore Neon:", label_bg: "Sfondo:", label_zoom: "Zoom (Camera):",
+            art_h1: "Il Toroide: La Forma del Flusso Universale",
+            art_p1: "Il Toroide non è solo una figura geometrica a forma di ciambella; è il modello fondamentale che la natura usa per sostenere la vita a tutte le scale. Dal campo magnetico che protegge la Terra alla struttura di un atomo, di una mela o di un uragano, ogni sistema energetico autosufficiente segue questa forma.",
+            art_h2: "Interagisci con il Vortice",
+            art_p2: "Toccalo! In questa versione del laboratorio, puoi afferrare il toroide con il mouse (o con il dito sul cellulare) e ruotarlo liberamente per esaminarlo da qualsiasi angolazione. Senti come la struttura 3D risponde al tuo movimento, aggiungendo la tua energia alla sua rotazione naturale.",
+            art_h3: "Come funziona questo modello?",
+            art_p3: "Osserva l'animazione nel nostro Lab. L'energia fluisce da un'estremità, circola intorno al centro e rientra dall'altra estremità. È un ciclo di feedback infinito. Questo movimento di \"implosione\" ed \"esplosione\" simultanea è ciò che permette all'universo di rigenerarsi costantemente.",
+            art_h4: "Punto Zero e Manifestazione",
+            art_p4: "Il centro del toroide è il Punto Zero (Singolarità), un luogo di quiete assoluta e di equilibrio perfetto dove la materia e l'energia si originano e ritornano. Nella meditazione, questo punto rappresenta il \"cuore sacro\", lo spazio di silenzio interiore dove risiede la pura coscienza.",
+            art_h5: "Applicazioni Pratiche del Lab",
+            art_p5: "Questo strumento visivo ha effetti potenti per l'allenamento mentale:",
+            art_li1: "Respirazione Coerente: Sincronizza il tuo respiro con la rotazione del toroide. Inspira mentre visualizzi l'energia che sale ed espande, espira mentre scende e si contrae verso il centro.",
+            art_li2: "Visualizzazione 3D: Allenare il tuo cervello a percepire oggetti nello spazio rafforza l'intelligenza spaziale e l'intuizione geometrica.",
+            art_li3: "Studio dei Campi: Regola la \"Densità\" e lo \"Spessore\" per capire intuitivamente come i campi elettromagnetici si densificano o si espandono nello spazio.",
+            footer_coffee: "☕ Offrimi un caffè", footer_legal: "Avviso Legale", footer_privacy: "Privacy", footer_cookies: "Cookies", footer_contact: "Contatto", footer_rights: "Tutti i diritti riservati."
+        },
+        nl: {
+            nav_hub: "HUB", nav_back: "TERUG", sim_title: "VORTEX TORUS",
+            group_shape: "Vorm & Structuur", label_radiusM: "Grote Straal:", label_radiusT: "Buisdikte:", label_density: "Dichtheid:",
+            group_rot: "Auto-Rotatie", label_speedX: "Snelheid X:", label_speedY: "Snelheid Y:",
+            group_aesthetic: "Esthetiek", label_color: "Neon Kleur:", label_bg: "Achtergrond:", label_zoom: "Zoom (Camera):",
+            art_h1: "De Torus: De Vorm van de Universele Stroom",
+            art_p1: "De Torus is niet alleen een geometrische figuur in de vorm van een donut; het is het fundamentele patroon dat de natuur gebruikt om leven op alle schalen in stand te houden. Van het magnetisch veld dat de aarde beschermt tot de structuur van een atoom, een appel of een orkaan: elk zelfvoorzienend energiesysteem volgt deze vorm.",
+            art_h2: "Interactie met de Vortex",
+            art_p2: "Raak het aan! In deze versie van het lab kun je de torus met de muis (of met je vinger op je mobiel) vastpakken en vrij draaien om hem vanuit elke hoek te bekijken. Voel hoe de 3D-structuur reageert op jouw beweging en jouw energie toevoegt aan de natuurlijke rotatie.",
+            art_h3: "Hoe werkt dit patroon?",
+            art_p3: "Bekijk de animatie in ons Lab. Energie stroomt van het ene uiteinde, circuleert rond het centrum en komt aan het andere uiteinde weer naar binnen. Het is een oneindige feedbackcyclus. Deze beweging van gelijktijdige \"implosie\" en \"explosie\" is wat het universum in staat stelt zichzelf constant te regenereren.",
+            art_h4: "Nulpunt en Manifestatie",
+            art_p4: "Het centrum van de torus is het Nulpunt (Singulariteit), een plek van absolute stilte en perfect evenwicht waar materie en energie ontstaan en terugkeren. In meditatie vertegenwoordigt dit punt het \"heilige hart\", de ruimte van innerlijke stilte waar puur bewustzijn verblijft.",
+            art_h5: "Praktische Lab-toepassingen",
+            art_p5: "Dit visuele hulpmiddel heeft krachtige effecten voor mentale training:",
+            art_li1: "Coherente Ademhaling: Synchroniseer je ademhaling met de rotatie van de torus. Adem in terwijl je visualiseert dat de energie omhoog gaat en uitdijt, adem uit terwijl deze daalt en samentrekt naar het centrum.",
+            art_li2: "3D-Visualisatie: Het trainen van je brein om objecten in de ruimte waar te nemen, versterkt ruimtelijke intelligentie en geometrische intuïtie.",
+            art_li3: "Veldstudie: Pas de \"Dichtheid\" en \"Dikte\" aan om intuïtief te begrijpen hoe elektromagnetische velden in de ruimte verdichten of uitdijen.",
+            footer_coffee: "☕ Trakteer me op een koffie", footer_legal: "Juridische Kennisgeving", footer_privacy: "Privacy", footer_cookies: "Cookies", footer_contact: "Contact", footer_rights: "Alle rechten voorbehouden."
+        },
+        ja: {
+            nav_hub: "ハブ", nav_back: "戻る", sim_title: "ボルテックス・トーラス",
+            group_shape: "形状と構造", label_radiusM: "主半径:", label_radiusT: "管の太さ:", label_density: "密度:",
+            group_rot: "自動回転", label_speedX: "X軸速度:", label_speedY: "Y軸速度:",
+            group_aesthetic: "外観", label_color: "ネオンカラー:", label_bg: "背景:", label_zoom: "ズーム:",
+            art_h1: "トーラス：普遍的な流れの形",
+            art_p1: "トーラスは単なるドーナツ型の幾何学図形ではありません。それは自然があらゆるスケールで命を維持するために使用する根本的なパターンです。地球を守る磁場から、原子の構造、リンゴ、あるいはハリケーンに至るまで、あらゆる自立的なエネルギーシステムはこの形に従っています。",
+            art_h2: "ボルテックスとの対話",
+            art_p2: "触れてみてください！このラボのバージョンでは、マウス（またはモバイルの指）でトーラスを掴み、自由に回転させてあらゆる角度から観察できます。3D構造があなたの動きに反応し、あなたのエネルギーが自然な回転に加わるのを感じてください。",
+            art_h3: "このパターンはどのように機能しますか？",
+            art_p3: "ラボのアニメーションを観察してください。エネルギーは一方の端から流れ出し、中心を循環して、もう一方の端から再び入ります。それは無限のフィードバックループです。この「内破」と「外破」の同時運動こそが、宇宙が絶えず自己再生することを可能にしています。",
+            art_h4: "ゼロポイントと現出",
+            art_p4: "トーラスの中心はゼロポイント（特異点）であり、物質とエネルギーが発生し、戻っていく絶対的な静寂と完璧な均衡の場所です。瞑想において、この点は「聖なる心」、純粋な意識が宿る内なる静寂の空間を表します。",
+            art_h5: "ラボの実践的な応用",
+            art_p5: "この視覚的ツールは、メンタルトレーニングに強力な効果をもたらします：",
+            art_li1: "コヒーレント呼吸：呼吸をトーラスの回転と同期させます。エネルギーが上昇し拡大するのを視覚化しながら吸い込み、中心に向かって下降し収縮するのを視覚化しながら吐き出します。",
+            art_li2: "3D視覚化：空間内の物体を認識するように脳をトレーニングすることで、空間知能と幾何学的直感が高まります。",
+            art_li3: "場の研究：「密度」と「太さ」を調整して、電磁場が空間でどのように濃密になったり拡大したりするかを直感的に理解します。",
+            footer_coffee: "☕ コーヒーを一杯おごる", footer_legal: "法的通知", footer_privacy: "プライバシー", footer_cookies: "クッキー", footer_contact: "お問い合わせ", footer_rights: "無断複写・転載を禁じます。"
+        }
+    };
+
+    function changeLanguage(lang) {
+        document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+        // Buscar el botón correcto por el texto
+        const btns = document.querySelectorAll('.lang-btn');
+        btns.forEach(btn => { if(btn.innerText.toLowerCase() === lang) btn.classList.add('active'); });
+
+        const texts = translations[lang] || translations['en'];
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (texts[key]) el.innerHTML = texts[key];
+        });
+    }
+
+    // --- LÓGICA DEL SIMULADOR (INALTERADA) ---
+    const canvas = document.getElementById('torusCanvas');
+    const ctx = canvas.getContext('2d');
+    const container = document.getElementById('canvas-container');
+
+    let state = {
+        radiusM: 60, radiusT: 30, density: 40,
+        speedX: 0.01, speedY: 0.02,
+        color: '#00ff41', bg: '#000000', zoom: 600,
+        angleX: 0, angleY: 0,
+        isDragging: false, lastX: 0, lastY: 0
+    };
+
+    let cx, cy;
+    let points = []; 
+
+    function init() {
+        resizeCanvas();
+        setupListeners();
+        animate();
+    }
+
+    function resizeCanvas() {
+        if (!container) return;
+        const size = Math.min(container.offsetWidth, container.offsetHeight) * 0.95;
+        canvas.width = size;
+        canvas.height = size;
+        cx = size / 2;
+        cy = size / 2;
+    }
+
+    function calculateTorus() {
+        points = [];
+        const R = state.radiusM * 1.5; 
+        const r = state.radiusT * 1.5;
+        const steps = state.density;
+        for (let i = 0; i < steps; i++) {
+            const u = (i * 2 * Math.PI) / steps;
+            for (let j = 0; j < steps; j++) {
+                const v = (j * 2 * Math.PI) / steps;
+                const pX = (R + r * Math.cos(u)) * Math.cos(v);
+                const pY = (R + r * Math.cos(u)) * Math.sin(v);
+                const pZ = r * Math.sin(u);
+                points.push({x: pX, y: pY, z: pZ});
+            }
+        }
+    }
+
+    function rotatePoint(p, ax, ay) {
+        let y1 = p.y * Math.cos(ax) - p.z * Math.sin(ax);
+        let z1 = p.y * Math.sin(ax) + p.z * Math.cos(ax);
+        let x2 = p.x * Math.cos(ay) + z1 * Math.sin(ay);
+        let z2 = -p.x * Math.sin(ay) + z1 * Math.cos(ay);
+        return {x: x2, y: y1, z: z2};
+    }
+
+    function project(p) {
+        const fov = state.zoom;
+        const scale = fov / (fov + p.z);
+        return { x: p.x * scale + cx, y: p.y * scale + cy, scale: scale };
+    }
+
+    function animate() {
+        ctx.fillStyle = state.bg;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        if (!state.isDragging) {
+            state.angleX += state.speedX;
+            state.angleY += state.speedY;
+        }
+        calculateTorus();
+        ctx.fillStyle = state.color;
+        for (let i = 0; i < points.length; i++) {
+            const p3d = rotatePoint(points[i], state.angleX, state.angleY);
+            const p2d = project(p3d);
+            const size = Math.max(0.5, 2.5 * p2d.scale);
+            const alpha = (p2d.scale - 0.5) * 2;
+            ctx.globalAlpha = Math.max(0.1, Math.min(1, alpha));
+            ctx.fillRect(p2d.x, p2d.y, size, size);
+        }
+        ctx.globalAlpha = 1.0;
+        requestAnimationFrame(animate);
+    }
+
+    function handleStart(x, y) {
+        state.isDragging = true;
+        state.lastX = x; state.lastY = y;
+        container.style.cursor = "grabbing";
+    }
+
+    function handleMove(x, y) {
+        if (state.isDragging) {
+            const deltaX = x - state.lastX;
+            const deltaY = y - state.lastY;
+            state.angleY += deltaX * 0.01;
+            state.angleX -= deltaY * 0.01; 
+            state.lastX = x; state.lastY = y;
+        }
+    }
+
+    function handleEnd() {
+        state.isDragging = false;
+        container.style.cursor = "grab";
+    }
+
+    function setupListeners() {
+        const bind = (id, prop, type) => {
+            document.getElementById(id).addEventListener('input', (e) => {
+                let v = e.target.value;
+                if(type === 'int') v = parseInt(v);
+                if(type === 'float') v = parseInt(v) / 1000;
+                state[prop] = v;
+                if(id === 'densityRange') document.getElementById('densityVal').innerText = v;
+            });
+        }
+        bind('radiusMRange', 'radiusM', 'int');
+        bind('radiusTRange', 'radiusT', 'int');
+        bind('densityRange', 'density', 'int');
+        bind('zoomRange', 'zoom', 'int');
+        bind('speedXRange', 'speedX', 'float');
+        bind('speedYRange', 'speedY', 'float');
+        document.getElementById('lineColor').addEventListener('input', (e) => state.color = e.target.value);
+        document.getElementById('bgColor').addEventListener('input', (e) => {
+            state.bg = e.target.value;
+            container.style.background = `radial-gradient(circle at center, #111 0%, ${state.bg} 100%)`;
+        });
+        canvas.addEventListener('pointerdown', e => { e.preventDefault(); handleStart(e.clientX, e.clientY); });
+        window.addEventListener('pointermove', e => { handleMove(e.clientX, e.clientY); });
+        window.addEventListener('pointerup', handleEnd);
+        document.getElementById('btnPng').addEventListener('click', () => download('png'));
+        document.getElementById('btnJpg').addEventListener('click', () => download('jpeg'));
+    }
+
+    function download(ext) {
+        const link = document.createElement('a');
+        link.download = `toroide_vortex_${Date.now()}.${ext}`;
+        link.href = canvas.toDataURL('image/' + ext, 0.9);
+        link.click();
+    }
+
+    window.addEventListener('resize', () => setTimeout(resizeCanvas, 100));
+    init();
+</script>
+</body>
+</html>

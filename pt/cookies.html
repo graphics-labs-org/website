@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <script>
+    // --- i18n URL Router ---
+    (function() {
+        window.__GL_LANG = 'pt';
+        window.__GL_LANG_UPPER = 'PT';
+        window.__GL_LANGS = ['es', 'ca', 'en', 'fr', 'de', 'pt', 'it', 'nl', 'ja'];
+        
+        // Override localStorage to always use URL-based language
+        localStorage.setItem('gl_lang', 'pt');
+        
+        // Language switcher: navigate to the equivalent page in the target language folder
+        window.switchLangUrl = function(targetLang) {
+            var path = window.location.pathname;
+            // Replace current lang segment with target lang
+            var newPath = path.replace(/^\/(es|ca|en|fr|de|pt|it|nl|ja)\//, '/' + targetLang.toLowerCase() + '/');
+            if (newPath === path) {
+                // Fallback: prepend lang
+                newPath = '/' + targetLang.toLowerCase() + '/';
+            }
+            window.location.href = newPath + window.location.hash;
+        };
+        
+        // Auto-call setLang on DOMContentLoaded to apply translations
+        // Some labs use uppercase keys (ES/EN), others lowercase (es/en)
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof setLang === 'function') {
+                // Try uppercase first (used by most lab pages with inline translations)
+                try { setLang('PT'); } catch(e) {}
+                // Also try lowercase (used by magic-square style pages)
+                try { setLang('pt'); } catch(e) {}
+            }
+        });
+    })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Política de Cookies | Graphics Labs</title>
+    <meta name="description" content="Política de cookies de Graphics Labs. Información sobre las cookies utilizadas.">
+    <style>
+        :root { --primary: #00f3ff; --bg: #050505; --text: #ddd; --glass: rgba(20, 20, 20, 0.9); }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; line-height: 1.6; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: var(--glass); padding: 40px; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; }
+        h1 { color: var(--primary); text-transform: uppercase; border-bottom: 1px solid var(--primary); padding-bottom: 10px; }
+        h2 { color: #fff; margin-top: 30px; }
+        a { color: var(--primary); text-decoration: none; }
+        .back-btn { display: inline-block; margin-bottom: 20px; padding: 5px 15px; border: 1px solid var(--primary); color: var(--primary); border-radius: 4px; }
+        .back-btn:hover { background: var(--primary); color: #000; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; color: #fff; }
+        th, td { border: 1px solid rgba(255,255,255,0.2); padding: 10px; text-align: left; }
+        th { background: rgba(0, 243, 255, 0.1); color: var(--primary); }
+    </style>
+    <link rel="canonical" href="https://graphics-labs.org/pt/cookies.html" />
+
+    <link rel="alternate" hreflang="es" href="https://graphics-labs.org/es/cookies.html" />
+    <link rel="alternate" hreflang="ca" href="https://graphics-labs.org/ca/cookies.html" />
+    <link rel="alternate" hreflang="en" href="https://graphics-labs.org/en/cookies.html" />
+    <link rel="alternate" hreflang="fr" href="https://graphics-labs.org/fr/cookies.html" />
+    <link rel="alternate" hreflang="de" href="https://graphics-labs.org/de/cookies.html" />
+    <link rel="alternate" hreflang="pt" href="https://graphics-labs.org/pt/cookies.html" />
+    <link rel="alternate" hreflang="it" href="https://graphics-labs.org/it/cookies.html" />
+    <link rel="alternate" hreflang="nl" href="https://graphics-labs.org/nl/cookies.html" />
+    <link rel="alternate" hreflang="ja" href="https://graphics-labs.org/ja/cookies.html" />
+    <link rel="alternate" hreflang="x-default" href="https://graphics-labs.org/es/cookies.html" />
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-btn">← Volver a Graphics Labs</a>
+
+        <h1>Política de Cookies</h1>
+        <p>En Graphics Labs utilizamos cookies propias y de terceros para mejorar la experiencia de navegación y ofrecer contenidos de interés.</p>
+
+        <h2>¿Qué son las Cookies?</h2>
+        <p>Una cookie es un fichero que se descarga en su ordenador al acceder a determinadas páginas web. Las cookies permiten a una página web, entre otras cosas, almacenar y recuperar información sobre los hábitos de navegación de un usuario o de su equipo.</p>
+
+        <h2>Tipos de tecnologías utilizadas en esta web</h2>
+        
+        <h3>1. Almacenamiento Local (LocalStorage)</h3>
+        <p>Utilizamos el almacenamiento local del navegador para guardar su preferencia de idioma y no tener que seleccionarlo en cada visita.</p>
+        <table>
+            <tr>
+                <th>Nombre</th>
+                <th>Finalidad</th>
+                <th>Duración</th>
+            </tr>
+            <tr>
+                <td>gl_lang</td>
+                <td>Guardar el idioma seleccionado (es, en, ca, etc.)</td>
+                <td>Persistente</td>
+            </tr>
+        </table>
+
+        <h3>2. Cookies de Publicidad (Google AdSense)</h3>
+        <p>Este sitio web utiliza Google AdSense, un servicio de publicidad de Google Inc. ("Google"). Google utiliza cookies para ayudar a mostrar anuncios relevantes.</p>
+        <p>Estas cookies permiten a Google y a sus socios mostrar anuncios basados en las visitas del usuario a este u otros sitios web. Los usuarios pueden inhabilitar la publicidad personalizada accediendo a la <a href="https://www.google.com/settings/ads" target="_blank">Configuración de anuncios de Google</a>.</p>
+
+        <h2>Gestión de Cookies</h2>
+        <p>Puede usted permitir, bloquear o eliminar las cookies instaladas en su equipo mediante la configuración de las opciones del navegador instalado en su ordenador (Chrome, Firefox, Safari, Edge, etc.).</p>
+    </div>
+</body>
+</html>
