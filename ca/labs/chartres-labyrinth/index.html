@@ -1,47 +1,40 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ca">
+
 <head>
     <meta charset="UTF-8">
     <script>
-    // --- i18n URL Router ---
-    (function() {
-        window.__GL_LANG = 'ca';
-        window.__GL_LANG_UPPER = 'CA';
-        window.__GL_LANGS = ['es', 'ca', 'en', 'fr', 'de', 'pt', 'it', 'nl', 'ja'];
-        
-        // Override localStorage to always use URL-based language
-        localStorage.setItem('gl_lang', 'ca');
-        
-        // Language switcher: navigate to the equivalent page in the target language folder
-        window.switchLangUrl = function(targetLang) {
-            var path = window.location.pathname;
-            // Replace current lang segment with target lang
-            var newPath = path.replace(/^\/(es|ca|en|fr|de|pt|it|nl|ja)\//, '/' + targetLang.toLowerCase() + '/');
-            if (newPath === path) {
-                // Fallback: prepend lang
-                newPath = '/' + targetLang.toLowerCase() + '/';
-            }
-            window.location.href = newPath + window.location.hash;
-        };
-        
-        // Auto-call setLang on DOMContentLoaded to apply translations
-        // Some labs use uppercase keys (ES/EN), others lowercase (es/en)
-        document.addEventListener('DOMContentLoaded', function() {
-            if (typeof setLang === 'function') {
-                // Try uppercase first (used by most lab pages with inline translations)
-                try { setLang('CA'); } catch(e) {}
-                // Also try lowercase (used by magic-square style pages)
-                try { setLang('ca'); } catch(e) {}
-            }
-        });
-    })();
+        // --- i18n URL Router ---
+        (function () {
+            var _p = window.location.pathname.match(/\/(es|ca|en|fr|de|pt|it|nl|ja)\//i);
+            window.__GL_LANG = _p ? _p[1].toLowerCase() : 'ca';
+            window.__GL_LANG_UPPER = window.__GL_LANG.toUpperCase();
+            window.__GL_LANGS = ['es', 'ca', 'en', 'fr', 'de', 'pt', 'it', 'nl', 'ja'];
+
+            window.switchLangUrl = function (targetLang) {
+                var path = window.location.pathname;
+                var langPattern = /\/(es|ca|en|fr|de|pt|it|nl|ja)\//i;
+
+                // Si ya estamos en el idioma seleccionado, cancelamos la redirección
+                var match = path.match(langPattern);
+                if (match && match[1].toLowerCase() === targetLang.toLowerCase()) {
+                    return;
+                }
+
+                var newPath = path.replace(langPattern, '/' + targetLang.toLowerCase() + '/');
+                if (newPath === path) {
+                    newPath = '/' + targetLang.toLowerCase() + '/';
+                }
+                window.location.href = newPath + window.location.hash;
+            };
+        })();
     </script>
     <title>Chartres Labyrinth | Graphics Labs</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="description" content="Laboratori interactiu de Chartres Labyrinth. Experimenta amb art generatiu i matemàtiques visuals a Graphics Labs.">
     
+
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3150277567590534"
-     crossorigin="anonymous"></script>
+        crossorigin="anonymous"></script>
 
     <style>
         :root {
@@ -50,76 +43,448 @@
             --border: rgba(255, 255, 255, 0.08);
         }
 
-        html, body { 
-            margin: 0; padding: 0; background-color: #050505; font-family: 'Segoe UI', sans-serif; color: #ddd; 
-            overflow-x: hidden; overscroll-behavior: none;
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #050505;
+            font-family: 'Segoe UI', sans-serif;
+            color: #ddd;
+            overflow-x: hidden;
+            overscroll-behavior: none;
         }
 
         /* --- NAVEGACIÓN ESTÁNDAR --- */
-        nav { 
-            display: flex; justify-content: space-between; align-items: center; 
-            padding: 10px 20px; background: #000; border-bottom: 1px solid var(--border);
-            height: 60px; position: sticky; top: 0; z-index: 1000;
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background: #000;
+            border-bottom: 1px solid var(--border);
+            height: 60px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
-        .nav-left { display: flex; align-items: center; gap: 15px; }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
         .nav-btn {
-            text-decoration: none; color: #888; border: 1px solid var(--border);
-            padding: 6px 12px; border-radius: 4px; font-size: 0.7rem;
-            background: rgba(255,255,255,0.05); text-transform: uppercase; font-weight: 700; cursor: pointer;
+            text-decoration: none;
+            color: #888;
+            border: 1px solid var(--border);
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            background: rgba(255, 255, 255, 0.05);
+            text-transform: uppercase;
+            font-weight: 700;
+            cursor: pointer;
         }
-        .nav-btn:hover { color: var(--primary); border-color: var(--primary); }
-        .brand-title { font-size: 1.1rem; font-weight: 900; letter-spacing: 2px; color: var(--primary); text-transform: uppercase; }
-        
-        .lang-switch { display: flex; gap: 4px; }
-        .lang-switch button { 
-            background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: #888; 
-            width: 32px; height: 28px; cursor: pointer; border-radius: 4px; font-size: 0.65rem; font-weight: 700; transition: 0.2s;
+
+        .nav-btn:hover {
+            color: var(--primary);
+            border-color: var(--primary);
         }
-        .lang-switch button.active { background: var(--primary); color: #000; border-color: var(--primary); }
 
-        #app-wrapper { display: flex; width: 100%; height: calc(100vh - 60px); overflow: hidden; position: relative; }
-        #canvas-container { flex: 3; position: relative; background: radial-gradient(circle at center, #1a2a3a 0%, #000 80%); cursor: pointer; overflow: hidden; touch-action: none; }
-        canvas { display: block; width: 100%; height: 100%; }
-        #controls-container { flex: 2; min-width: 320px; background-color: #0a0a0a; padding: 25px; overflow-y: auto; border-left: 1px solid #333; z-index: 10; }
+        .brand-title {
+            font-size: 1.1rem;
+            font-weight: 900;
+            letter-spacing: 2px;
+            color: var(--primary);
+            text-transform: uppercase;
+        }
 
-        h2 { color: #d4af37; margin: 0 0 15px 0; text-align: center; letter-spacing: 2px; text-transform: uppercase; }
-        .btn-group { display: flex; gap: 10px; margin-bottom: 25px; }
-        .export-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.9em; }
-        #btnPng { background-color: #d4af37; color: #000; } 
-        #btnJpg { background-color: #fff; color: #000; } 
+        .lang-switch {
+            display: flex;
+            gap: 4px;
+        }
 
-        .control-group { background: rgba(255,255,255,0.03); border: 1px solid #333; border-radius: 8px; padding: 15px; margin-bottom: 20px; }
-        .control-row { display: flex; align-items: center; margin-bottom: 12px; font-size: 0.9em; justify-content: space-between; }
-        .control-label { color: #ccc; font-weight: 500; flex: 1; }
-        input[type=range] { flex: 2; cursor: pointer; accent-color: #d4af37; }
-        input[type=color] { border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; padding: 0; }
-        .value-display { flex: 0.5; text-align: right; font-family: monospace; color: #d4af37; font-size: 0.9em; }
+        .lang-switch button {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border);
+            color: #888;
+            width: 32px;
+            height: 28px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            transition: 0.2s;
+        }
+
+        .lang-switch button.active {
+            background: var(--primary);
+            color: #000;
+            border-color: var(--primary);
+        }
+
+        #app-wrapper {
+            display: flex;
+            width: 100%;
+            height: calc(100vh - 60px);
+            overflow: hidden;
+            position: relative;
+        }
+
+        #canvas-container {
+            flex: 3;
+            position: relative;
+            background: radial-gradient(circle at center, #1a2a3a 0%, #000 80%);
+            cursor: pointer;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        #controls-container {
+            flex: 2;
+            min-width: 320px;
+            background-color: #0a0a0a;
+            padding: 25px;
+            overflow-y: auto;
+            border-left: 1px solid #333;
+            z-index: 10;
+        }
+
+        h2 {
+            color: #d4af37;
+            margin: 0 0 15px 0;
+            text-align: center;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .export-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        #btnPng {
+            background-color: #d4af37;
+            color: #000;
+        }
+
+        #btnJpg {
+            background-color: #fff;
+            color: #000;
+        }
+
+        .control-group {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .control-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 0.9em;
+            justify-content: space-between;
+        }
+
+        .control-label {
+            color: #ccc;
+            font-weight: 500;
+            flex: 1;
+        }
+
+        input[type=range] {
+            flex: 2;
+            cursor: pointer;
+            accent-color: #d4af37;
+        }
+
+        input[type=color] {
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .value-display {
+            flex: 0.5;
+            text-align: right;
+            font-family: monospace;
+            color: #d4af37;
+            font-size: 0.9em;
+        }
 
         .btn-main {
-            width: 100%; padding: 15px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-bottom: 10px;
-            background: linear-gradient(45deg, #d4af37, #8a6e23); color: #fff; font-size: 1.1em; transition: 0.3s;
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #d4af37, #8a6e23);
+            color: #fff;
+            font-size: 1.1em;
+            transition: 0.3s;
         }
 
-        .content-section { max-width: 900px; margin: 0 auto; padding: 60px 20px; background-color: #050505; position: relative; z-index: 20; }
-        .ad-container { width: 100%; min-height: 120px; background: #0f0f0f; margin: 40px 0; border: 1px dashed #333; display: flex; align-items: center; justify-content: center; color: #444; font-size: 0.8em; letter-spacing: 3px; font-weight: bold; }
-        article h2 { color: #d4af37; border-left: 4px solid #d4af37; padding-left: 15px; margin-top: 60px; font-size: 2em; }
-        article h3 { color: #fff; margin-top: 40px; font-size: 1.5em; border-bottom: 1px solid #333; padding-bottom: 10px; }
-        article p { margin-bottom: 20px; font-size: 1.1em; color: #ccc; line-height: 1.8; text-align: justify; }
-        article ul { list-style: none; padding: 0; }
-        article li { margin-bottom: 15px; padding-left: 20px; border-left: 2px solid #d4af37; color: #bbb; }
+        .content-section {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 60px 20px;
+            background-color: #050505;
+            position: relative;
+            z-index: 20;
+        }
 
-        footer { background-color: #000; padding: 60px 20px; text-align: center; border-top: 1px solid #222; position: relative; z-index: 20; }
-        .footer-links { margin-bottom: 25px; }
-        .footer-links a { color: #888; text-decoration: none; margin: 0 15px; font-size: 0.85rem; }
-        .coffee-btn { background-color: #FFDD00; color: #000; padding: 10px 20px; border-radius: 30px; text-decoration: none; font-weight: 800; display: inline-flex; align-items: center; gap: 8px; margin-bottom: 20px; }
+        .ad-container {
+            width: 100%;
+            min-height: 120px;
+            background: #0f0f0f;
+            margin: 40px 0;
+            border: 1px dashed #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #444;
+            font-size: 0.8em;
+            letter-spacing: 3px;
+            font-weight: bold;
+        }
+
+        article h2 {
+            color: #d4af37;
+            border-left: 4px solid #d4af37;
+            padding-left: 15px;
+            margin-top: 60px;
+            font-size: 2em;
+        }
+
+        article h3 {
+            color: #fff;
+            margin-top: 40px;
+            font-size: 1.5em;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+        }
+
+        article p {
+            margin-bottom: 20px;
+            font-size: 1.1em;
+            color: #ccc;
+            line-height: 1.8;
+            text-align: justify;
+        }
+
+        article ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        article li {
+            margin-bottom: 15px;
+            padding-left: 20px;
+            border-left: 2px solid #d4af37;
+            color: #bbb;
+        }
+
+        footer {
+            background-color: #000;
+            padding: 60px 20px;
+            text-align: center;
+            border-top: 1px solid #222;
+            position: relative;
+            z-index: 20;
+        }
+
+        .footer-links {
+            margin-bottom: 25px;
+        }
+
+        .footer-links a {
+            color: #888;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 0.85rem;
+        }
+
+        .coffee-btn {
+            background-color: #FFDD00;
+            color: #000;
+            padding: 10px 20px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
 
         @media (max-width: 800px) {
-            #app-wrapper { flex-direction: column; height: auto; }
-            #canvas-container { height: 50vh; }
-            .brand-title { display: none; }
+            #app-wrapper {
+                flex-direction: column;
+                height: auto;
+            }
+
+            #canvas-container {
+                height: 50vh;
+            }
+
+            .brand-title {
+                display: none;
+            }
         }
-    </style>
-    <link rel="canonical" href="https://graphics-labs.org/ca/labs/chartres-labyrinth/" />
+
+        /* ==GL-NAV== */
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 20px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            flex-wrap: wrap;
+            gap: 10px;
+            box-sizing: border-box;
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-bc {
+            font-size: .8rem;
+            font-weight: 900;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+        }
+
+        .nav-bc .gl-hub {
+            color: rgba(255, 255, 255, .45);
+            text-decoration: none;
+            transition: color .2s;
+        }
+
+        .nav-bc .gl-hub:hover {
+            color: rgba(255, 255, 255, .85);
+        }
+
+        .nav-bc .gl-sep {
+            color: rgba(255, 255, 255, .2);
+            margin: 0 7px;
+            font-weight: 400;
+        }
+
+        .nav-bc .gl-sec {
+            color: var(--primary);
+            text-decoration: none;
+            transition: opacity .2s;
+        }
+
+        .nav-bc .gl-sec:hover {
+            opacity: .75;
+        }
+
+        .lang-switch {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .lang-switch button,
+        .lang-selector button,
+        .lang-btn {
+            background: rgba(0, 0, 0, .4);
+            border: 1px solid rgba(255, 255, 255, .1);
+            color: #999;
+            width: 38px;
+            height: 28px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: .7rem;
+            font-weight: 700;
+            transition: .2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lang-switch button:hover,
+        .lang-selector button:hover,
+        .lang-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .lang-switch button.active,
+        .lang-selector button.active,
+        .lang-btn.active {
+            background: var(--primary);
+            color: #000;
+            border-color: var(--primary);
+        }
+
+        @media(max-width:620px) {
+            .top-nav {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 12px 15px;
+            }
+
+            .lang-switch,
+            .lang-selector {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* ==/GL-NAV== */
+    
+        /* Fix SEO H1 Automático */
+        h1[id*="title"], h1[data-i18n*="title"], h1[data-i18n*="app"], h1[data-i18n*="lab"] {
+            font-size: 1.5rem;
+            color: var(--primary, #00ff41);
+            margin-bottom: 20px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+</style>
+    
 
     <link rel="alternate" hreflang="es" href="https://graphics-labs.org/es/labs/chartres-labyrinth/" />
     <link rel="alternate" hreflang="ca" href="https://graphics-labs.org/ca/labs/chartres-labyrinth/" />
@@ -131,371 +496,456 @@
     <link rel="alternate" hreflang="nl" href="https://graphics-labs.org/nl/labs/chartres-labyrinth/" />
     <link rel="alternate" hreflang="ja" href="https://graphics-labs.org/ja/labs/chartres-labyrinth/" />
     <link rel="alternate" hreflang="x-default" href="https://graphics-labs.org/es/labs/chartres-labyrinth/" />
+    <meta name="description"
+        content="Laboratori interactiu de Chartres Labyrinth. Experimenta amb art generatiu i matemàtiques visuals a Graphics Labs.">
+    <link rel="canonical" href="https://graphics-labs.org/ca/labs/chartres-labyrinth/" />
 </head>
+
 <body>
 
-<nav>
-    <div class="nav-left">
-        <a href="../../index.html" class="nav-btn" data-i18n="nav_hub">HUB PRINCIPAL</a>
-        <a onclick="if(history.length > 1) { history.back(); } else { window.location.href='../../index.html'; }" class="nav-btn" data-i18n="nav_back">Volver atrás</a>
-        <div class="brand-title">GRAPHICS LABS</div>
-    </div>
-    <div class="lang-switch">
-        <button onclick="switchLangUrl('es')" id="btn-es">ES</button>
-        <button onclick="switchLangUrl('ca')" id="btn-ca">CA</button>
-        <button onclick="switchLangUrl('en')" id="btn-en">EN</button>
-        <button onclick="switchLangUrl('fr')" id="btn-fr">FR</button>
-        <button onclick="switchLangUrl('de')" id="btn-de">DE</button>
-        <button onclick="switchLangUrl('pt')" id="btn-pt">PT</button>
-        <button onclick="switchLangUrl('it')" id="btn-it">IT</button>
-        <button onclick="switchLangUrl('nl')" id="btn-nl">NL</button>
-        <button onclick="switchLangUrl('ja')" id="btn-ja">JA</button>
-    </div>
-</nav>
-
-<div id="app-wrapper">
-    <div id="canvas-container">
-        <canvas id="labyrinthCanvas"></canvas>
-    </div>
-
-    <div id="controls-container">
-        <h2 data-i18n="title_app">El Camino Interior</h2>
-        <div class="btn-group">
-            <button id="btnPng" class="export-btn" data-i18n="btn_png">💾 Guardar PNG</button>
-            <button id="btnJpg" class="export-btn" data-i18n="btn_jpg">📸 Guardar JPG</button>
-        </div>
-        <button id="btnToggleWalk" class="btn-main" data-i18n="btn_start">🚶‍♂️ Iniciar Peregrinación</button>
-        <p id="statusText" style="text-align:center; color:#888; font-size:0.9em; margin-top:-5px;" data-i18n="status_initial">Haz clic para empezar</p>
-
-        <div class="control-group">
-            <h3 style="margin:0 0 15px 0; color:#fff; font-size:1em; border-bottom:1px solid #444; padding-bottom:5px;" data-i18n="group_design">Ritmo & Diseño</h3>
-            <div class="control-row">
-                <span class="control-label" data-i18n="label_speed">⏳ Velocidad</span>
-                <input type="range" id="speed" min="1" max="10" step="0.5" value="3">
-                <span id="speedVal" class="value-display">3.0</span>
-            </div>
-            <div class="control-row">
-                <span class="control-label" data-i18n="label_circuits">🌀 Circuitos</span>
-                <input type="range" id="circuits" min="3" max="11" step="2" value="7">
-                <span id="circuitVal" class="value-display">7</span>
-            </div>
-            <div class="control-row">
-                <span class="control-label" data-i18n="label_wall">Grosor Muro</span>
-                <input type="range" id="wallWidth" min="1" max="10" step="1" value="4">
+    <nav class="top-nav">
+        <div class="nav-left">
+            <div class="nav-bc">
+                <a href="../../index.html" class="gl-hub">GRAPHICS LABS</a>
+                <span class="gl-sep">&gt;</span>
+                <a href="../geometria-sagrada-index.html" class="gl-sec">GEO-S</a>
             </div>
         </div>
+        <div class="lang-switch">
+            <button onclick="switchLangUrl('es')" id="btn-es" class="lang-btn">ES</button>
+            <button onclick="switchLangUrl('ca')" id="btn-ca" class="lang-btn">CA</button>
+            <button onclick="switchLangUrl('en')" id="btn-en" class="lang-btn">EN</button>
+            <button onclick="switchLangUrl('fr')" id="btn-fr" class="lang-btn">FR</button>
+            <button onclick="switchLangUrl('de')" id="btn-de" class="lang-btn">DE</button>
+            <button onclick="switchLangUrl('pt')" id="btn-pt" class="lang-btn">PT</button>
+            <button onclick="switchLangUrl('it')" id="btn-it" class="lang-btn">IT</button>
+            <button onclick="switchLangUrl('nl')" id="btn-nl" class="lang-btn">NL</button>
+            <button onclick="switchLangUrl('ja')" id="btn-ja" class="lang-btn">JA</button>
+        </div>
+    </nav>
 
-        <div class="control-group">
-            <h3 style="margin:0 0 15px 0; color:#fff; font-size:1em; border-bottom:1px solid #444; padding-bottom:5px;" data-i18n="group_atmos">Atmósfera</h3>
-            <div class="control-row"><span class="control-label" data-i18n="label_c_wall">Color Muros</span><input type="color" id="colorWalls" value="#555555"></div>
-            <div class="control-row"><span class="control-label" data-i18n="label_c_path">Color Camino</span><input type="color" id="colorPath" value="#111111"></div>
-            <div class="control-row"><span class="control-label" data-i18n="label_c_orb">Color Orbe</span><input type="color" id="colorOrb" value="#d4af37"></div>
+    <div id="app-wrapper">
+        <div id="canvas-container">
+            <canvas id="labyrinthCanvas"></canvas>
+        </div>
+
+        <div id="controls-container">
+            <h1 data-i18n="title_app">El Camino Interior</h1>
+            <div class="btn-group">
+                <button id="btnPng" class="export-btn" data-i18n="btn_png">💾 Guardar PNG</button>
+                <button id="btnJpg" class="export-btn" data-i18n="btn_jpg">📸 Guardar JPG</button>
+            </div>
+            <button id="btnToggleWalk" class="btn-main" data-i18n="btn_start">🚶‍♂️ Iniciar Peregrinación</button>
+            <p id="statusText" style="text-align:center; color:#888; font-size:0.9em; margin-top:-5px;"
+                data-i18n="status_initial">Haz clic para empezar</p>
+
+            <div class="control-group">
+                <h3 style="margin:0 0 15px 0; color:#fff; font-size:1em; border-bottom:1px solid #444; padding-bottom:5px;"
+                    data-i18n="group_design">Ritmo & Diseño</h3>
+                <div class="control-row">
+                    <span class="control-label" data-i18n="label_speed">⏳ Velocidad</span>
+                    <input type="range" id="speed" min="1" max="10" step="0.5" value="3">
+                    <span id="speedVal" class="value-display">3.0</span>
+                </div>
+                <div class="control-row">
+                    <span class="control-label" data-i18n="label_circuits">🌀 Circuitos</span>
+                    <input type="range" id="circuits" min="3" max="11" step="2" value="7">
+                    <span id="circuitVal" class="value-display">7</span>
+                </div>
+                <div class="control-row">
+                    <span class="control-label" data-i18n="label_wall">Grosor Muro</span>
+                    <input type="range" id="wallWidth" min="1" max="10" step="1" value="4">
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3 style="margin:0 0 15px 0; color:#fff; font-size:1em; border-bottom:1px solid #444; padding-bottom:5px;"
+                    data-i18n="group_atmos">Atmósfera</h3>
+                <div class="control-row"><span class="control-label" data-i18n="label_c_wall">Color Muros</span><input
+                        type="color" id="colorWalls" value="#555555"></div>
+                <div class="control-row"><span class="control-label" data-i18n="label_c_path">Color Camino</span><input
+                        type="color" id="colorPath" value="#111111"></div>
+                <div class="control-row"><span class="control-label" data-i18n="label_c_orb">Color Orbe</span><input
+                        type="color" id="colorOrb" value="#d4af37"></div>
+            </div>
         </div>
     </div>
-</div>
 
-<section class="content-section">
-    <div class="ad-container">
-        <ins class="adsbygoogle"
-             style="display:block"
-             data-ad-client="ca-pub-3150277567590534"
-             data-ad-format="auto"
-             data-full-width-responsive="true"></ins>
-        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    <section class="content-section">
+        <div class="ad-container">
+            <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3150277567590534"
+                data-ad-format="auto" data-full-width-responsive="true"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
         </div>
-    <article>
-        <h2 data-i18n="seo_h2_1">Laberinto: El Camino hacia el Centro de Ti Mismo</h2>
-        <p data-i18n="seo_p_1">A menudo confundimos "Laberinto" (Labyrinth) con "Laberinto de perdición" (Maze). La diferencia es espiritual:</p>
-        <ul data-i18n="seo_list_1">
-            <li><strong>Un Maze</strong> tiene muchas opciones, caminos sin salida y está diseñado para confundirte y que pierdas el rumbo. Es un juego del ego.</li>
-            <li><strong>Un Laberinto Sagrado</strong> (como el de Chartres) tiene <strong>un solo camino</strong> (unicursal). No hay decisiones que tomar, no puedes perderte. Solo tienes que confiar en el sendero. Es una herramienta del alma.</li>
-        </ul>
+        <article>
+            <h2 data-i18n="seo_h2_1">Laberinto: El Camino hacia el Centro de Ti Mismo</h2>
+            <p data-i18n="seo_p_1">A menudo confundimos "Laberinto" (Labyrinth) con "Laberinto de perdición" (Maze). La
+                diferencia es espiritual:</p>
+            <ul data-i18n="seo_list_1">
+                <li><strong>Un Maze</strong> tiene muchas opciones, caminos sin salida y está diseñado para confundirte
+                    y que pierdas el rumbo. Es un juego del ego.</li>
+                <li><strong>Un Laberinto Sagrado</strong> (como el de Chartres) tiene <strong>un solo camino</strong>
+                    (unicursal). No hay decisiones que tomar, no puedes perderte. Solo tienes que confiar en el sendero.
+                    Es una herramienta del alma.</li>
+            </ul>
 
-        <h3 data-i18n="seo_h3_1">El Viaje del Héroe: Significado de los Circuitos</h3>
-        <p data-i18n="seo_p_2">En la Geometría Sagrada, el camino del laberinto no es aleatorio; es un mapa del <strong>Viaje del Alma</strong>. Dependiendo del número de circuitos (vueltas) que elijas en el generador, la energía del recorrido cambia:</p>
-        <ul data-i18n="seo_list_2">
-            <li><strong>3 Circuitos (El Origen):</strong> El diseño más simple y primordial. Representa las tres partes del ser (Cuerpo, Mente, Espíritu) o el ciclo del tiempo (Pasado, Presente, Futuro). Es un camino directo y reconfortante, ideal para principiantes o niños.</li>
-            <li><strong>5 Circuitos (El Guerrero):</strong> Asociado al cambio y la adaptación. Al tener cinco vueltas, se conecta con los 5 elementos y los 5 sentidos. Es un diseño de equilibrio, un paso intermedio entre lo físico y lo espiritual.</li>
-            <li><strong>7 Circuitos (El Clásico Cretense):</strong> El diseño más antiguo y famoso de la antigüedad. Aquí aprendemos una lección vital de paciencia.
-            <br><em>La trampa del ego:</em> Entras y el camino te lleva casi inmediatamente cerca del centro (al anillo 3). Te da una "falsa sensación" de que ya has llegado a la meta. Pero justo entonces, el camino te expulsa hacia el anillo más exterior, lejos del objetivo. Nos enseña que, en la vida, el camino más corto no siempre es una línea recta.</li>
-            <li><strong>9 Circuitos (La Gestación):</strong> El número 9 representa la culminación de un ciclo (como los 9 meses de embarazo). Es un laberinto de transición, introspección profunda y preparación para un renacimiento espiritual.</li>
-            <li><strong>11 Circuitos (La Maestría de Chartres):</strong> El diseño definitivo de las catedrales góticas. La vibración más alta.
-            <br><em>El Gran Viaje:</em> Ocurre lo mismo que en el de 7 circuitos pero a mayor escala. Entras y caminas recto por el pasillo hasta el anillo 5, rozando la divinidad, para luego ser enviado a la periferia a purgar el ego ("Purgatorio"). Es una peregrinación completa que alinea los chakras superiores antes de permitirte entrar finalmente en la Roseta central.</li>
-        </ul>
+            <h3 data-i18n="seo_h3_1">El Viaje del Héroe: Significado de los Circuitos</h3>
+            <p data-i18n="seo_p_2">En la Geometría Sagrada, el camino del laberinto no es aleatorio; es un mapa del
+                <strong>Viaje del Alma</strong>. Dependiendo del número de circuitos (vueltas) que elijas en el
+                generador, la energía del recorrido cambia:
+            </p>
+            <ul data-i18n="seo_list_2">
+                <li><strong>3 Circuitos (El Origen):</strong> El diseño más simple y primordial. Representa las tres
+                    partes del ser (Cuerpo, Mente, Espíritu) o el ciclo del tiempo (Pasado, Presente, Futuro). Es un
+                    camino directo y reconfortante, ideal para principiantes o niños.</li>
+                <li><strong>5 Circuitos (El Guerrero):</strong> Asociado al cambio y la adaptación. Al tener cinco
+                    vueltas, se conecta con los 5 elementos y los 5 sentidos. Es un diseño de equilibrio, un paso
+                    intermedio entre lo físico y lo espiritual.</li>
+                <li><strong>7 Circuitos (El Clásico Cretense):</strong> El diseño más antiguo y famoso de la antigüedad.
+                    Aquí aprendemos una lección vital de paciencia.
+                    <br><em>La trampa del ego:</em> Entras y el camino te lleva casi inmediatamente cerca del centro (al
+                    anillo 3). Te da una "falsa sensación" de que ya has llegado a la meta. Pero justo entonces, el
+                    camino te expulsa hacia el anillo más exterior, lejos del objetivo. Nos enseña que, en la vida, el
+                    camino más corto no siempre es una línea recta.
+                </li>
+                <li><strong>9 Circuitos (La Gestación):</strong> El número 9 representa la culminación de un ciclo (como
+                    los 9 meses de embarazo). Es un laberinto de transición, introspección profunda y preparación para
+                    un renacimiento espiritual.</li>
+                <li><strong>11 Circuitos (La Maestría de Chartres):</strong> El diseño definitivo de las catedrales
+                    góticas. La vibración más alta.
+                    <br><em>El Gran Viaje:</em> Ocurre lo mismo que en el de 7 circuitos pero a mayor escala. Entras y
+                    caminas recto por el pasillo hasta el anillo 5, rozando la divinidad, para luego ser enviado a la
+                    periferia a purgar el ego ("Purgatorio"). Es una peregrinación completa que alinea los chakras
+                    superiores antes de permitirte entrar finalmente en la Roseta central.
+                </li>
+            </ul>
 
-        <h3 data-i18n="seo_h3_2">Cómo usar esta herramienta para Meditar</h3>
-        <p data-i18n="seo_p_3">Hemos diseñado este espacio para calmar la ansiedad y centrar la mente. Te sugerimos dos formas de uso:</p>
-        <ol data-i18n="seo_list_3">
-            <li><strong>Respiración Sincronizada (Modo Auto):</strong> Pulsa "Iniciar Peregrinación". Sigue la orbe de luz con tu mirada. Inhala profundamente mientras la luz recorre un circuito hacia adentro, y exhala cuando cambie de rumbo hacia afuera. Ajusta la velocidad para que coincida con tu ritmo cardíaco.</li>
-            <li><strong>Recorrido Visual:</strong> Detén la animación. Usa tu dedo (en móvil) o el puntero del ratón para recorrer el camino lentamente, consciente de cada giro, sintiendo cómo te alejas y te acercas al centro, confiando en que el camino te lleva.</li>
-        </ol>
-    </article>
-    <div class="ad-container">
-        <ins class="adsbygoogle"
-             style="display:block"
-             data-ad-client="ca-pub-3150277567590534"
-             data-ad-format="auto"
-             data-full-width-responsive="true"></ins>
-        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+            <h3 data-i18n="seo_h3_2">Cómo usar esta herramienta para Meditar</h3>
+            <p data-i18n="seo_p_3">Hemos diseñado este espacio para calmar la ansiedad y centrar la mente. Te sugerimos
+                dos formas de uso:</p>
+            <ol data-i18n="seo_list_3">
+                <li><strong>Respiración Sincronizada (Modo Auto):</strong> Pulsa "Iniciar Peregrinación". Sigue la orbe
+                    de luz con tu mirada. Inhala profundamente mientras la luz recorre un circuito hacia adentro, y
+                    exhala cuando cambie de rumbo hacia afuera. Ajusta la velocidad para que coincida con tu ritmo
+                    cardíaco.</li>
+                <li><strong>Recorrido Visual:</strong> Detén la animación. Usa tu dedo (en móvil) o el puntero del ratón
+                    para recorrer el camino lentamente, consciente de cada giro, sintiendo cómo te alejas y te acercas
+                    al centro, confiando en que el camino te lleva.</li>
+            </ol>
+        </article>
+        <div class="ad-container">
+            <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3150277567590534"
+                data-ad-format="auto" data-full-width-responsive="true"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
         </div>
-</section>
+    </section>
 
-<footer>
-    <a href="https://www.paypal.com/paypalme/pbazan" target="_blank" class="coffee-btn">
-        ☕ <span data-i18n="footer_coffee">Invítame a un café (PayPal)</span>
-    </a>
-    <div class="footer-links">
-        <a href="../legal.html#aviso" data-i18n="link_legal">Aviso Legal</a> | 
-        <a href="../legal.html#privacidad" data-i18n="link_priv">Privacidad</a> | 
-        <a href="../legal.html#cookies" data-i18n="link_cook">Cookies</a> | 
-        <a href="mailto:pbazan@gmail.com" data-i18n="link_cont">Contacto</a>
-    </div>
-    <p>Copyright © 2026 Graphics Labs. Todos los derechos reservados.</p>
-</footer>
+    <footer>
+        <a href="https://www.paypal.com/paypalme/pbazan" target="_blank" class="coffee-btn">
+            ☕ <span data-i18n="footer_coffee">Invítame a un café (PayPal)</span>
+        </a>
+        <div class="footer-links">
+            <a href="../legal.html#aviso" data-i18n="link_legal">Aviso Legal</a> |
+            <a href="../legal.html#privacidad" data-i18n="link_priv">Privacidad</a> |
+            <a href="../legal.html#cookies" data-i18n="link_cook">Cookies</a> |
+            <a href="mailto:pbazan@gmail.com" data-i18n="link_cont">Contacto</a>
+        </div>
+        <p>Copyright © 2026 Graphics Labs. Todos los derechos reservados.</p>
+    </footer>
 
-<script>
-const translations = {
-    es: {
-        nav_hub: "HUB", nav_back: "BACK", title_app: "El Camino Interior", btn_png: "💾 Guardar PNG", btn_jpg: "📸 Guardar JPG", btn_start: "🚶‍♂️ Iniciar Peregrinación", status_initial: "Haz clic para empezar", group_design: "Ritmo & Diseño", label_speed: "⏳ Velocidad", label_circuits: "🌀 Circuitos", label_wall: "Grosor Muro", group_atmos: "Atmósfera", label_c_wall: "Color Muros", label_c_path: "Color Camino", label_c_orb: "Color Orbe", 
-        seo_h2_1: "Laberinto: El Camino hacia el Centro de Ti Mismo", 
-        seo_p_1: "A menudo confundimos \"Laberinto\" (Labyrinth) con \"Laberinto de perdición\" (Maze). La diferencia es espiritual:", 
-        seo_list_1: "<li><strong>Un Maze</strong> tiene muchas opciones, caminos sin salida y está diseñado para confundirte y que pierdas el rumbo. Es un juego del ego.</li><li><strong>Un Laberinto Sagrado</strong> (como el de Chartres) tiene <strong>un solo camino</strong> (unicursal). No hay decisiones que tomar, no puedes perderte. Solo tienes que confiar en el sendero. Es una herramienta del alma.</li>", 
-        seo_h3_1: "El Viaje del Héroe: Significado de los Circuitos", 
-        seo_p_2: "En la Geometría Sagrada, el camino del laberinto no es aleatorio; es un mapa del <strong>Viaje del Alma</strong>. Dependiendo del número de circuitos (vueltas) que elijas en el generador, la energía del recorrido cambia:", 
-        seo_list_2: "<li><strong>3 Circuitos (El Origen):</strong> El diseño más simple y primordial. Representa las tres partes del ser (Cuerpo, Mente, Espíritu) o el ciclo del tiempo (Pasado, Presente, Futuro). Es un camino directo y reconfortante, ideal para principiantes o niños.</li><li><strong>5 Circuitos (El Guerrero):</strong> Asociado al cambio y la adaptación. Al tener cinco vueltas, se conecta con los 5 elementos y los 5 sentidos. Es un diseño de equilibrio, un paso intermedio entre lo físico y lo espiritual.</li><li><strong>7 Circuitos (El Clásico Cretense):</strong> El diseño más antiguo y famoso de la antigüedad. Aquí aprendemos una lección vital de paciencia.<br><em>La trampa del ego:</em> Entras y el camino te lleva casi inmediatamente cerca del centro (al anillo 3). Te da una \"falsa sensación\" de que ya has llegado a la meta. Pero justo entonces, el camino te expulsa hacia el anillo más exterior, lejos del objetivo. Nos enseña que, en la vida, el camino más corto no siempre es una línea recta.</li><li><strong>9 Circuitos (La Gestación):</strong> El número 9 representa la culminación de un ciclo (como los 9 meses de embarazo). Es un laberinto de transición, introspección profunda y preparación para un renacimiento espiritual.</li><li><strong>11 Circuitos (La Maestría de Chartres):</strong> El diseño definitivo de las catedrales góticas. La vibración más alta. <br><em>El Gran Viaje:</em> Ocurre lo mismo que en el de 7 circuitos pero a mayor escala. Entras y caminas recto por el pasillo hasta el anillo 5, rozando la divinidad, para luego ser enviado a la periferia a purgar el ego (\"Purgatorio\"). Es una peregrinación completa que alinea los chakras superiores antes de permitirte entrar finalmente en la Roseta central.</li>", 
-        seo_h3_2: "Cómo usar esta herramienta para Meditar", 
-        seo_p_3: "Hemos diseñado este espacio para calmar la ansiedad y centrar la mente. Te sugerimos dos formas de uso:", 
-        seo_list_3: "<li><strong>Respiración Sincronizada (Modo Auto):</strong> Pulsa \"Iniciar Peregrinación\". Sigue la luz con tu mirada e inhala profundamente mientras la luz recorre un circuito hacia adentro, y exhala cuando cambie de rumbo hacia afuera. Ajusta la velocidad para que coincida con tu ritmo cardíaco.</li><li><strong>Recorrido Visual:</strong> Detén la animación. Usa tu dedo o puntero para recorrer el camino lentamente consciente de cada giro, sintiendo cómo te alejas y te acercas al centro, confiando en que el camino te lleva.</li>", 
-        footer_coffee: "Invítame a un café (PayPal)", link_legal: "Aviso Legal", link_priv: "Privacidad", link_cook: "Cookies", link_cont: "Contacto", js_pause: "⏸ Pausar", js_continue: "▶ Continuar", js_reset: "↺ Reiniciar Camino", js_inhale: "Inhalando... Exhalando...", js_follow: "Sigue la luz con tu respiración...", js_reached: "Has llegado a tu Centro."
-    },
-    ca: {
-        nav_hub: "HUB", nav_back: "BACK", title_app: "El Camí Interior", btn_png: "💾 Guardar PNG", btn_jpg: "📸 Guardar JPG", btn_start: "🚶‍♂️ Iniciar Pelegrinació", status_initial: "Fes clic per començar", group_design: "Ritme i Disseny", label_speed: "⏳ Velocitat", label_circuits: "🌀 Circuits", label_wall: "Gruix de Mur", group_atmos: "Atmosfera", label_c_wall: "Color Murs", label_c_path: "Color Camí", label_c_orb: "Color Orbe", 
-        seo_h2_1: "Laberint: El Camí cap al Centre de Tu Mateix", 
-        seo_p_1: "Sovint confonem \"Laberint\" (Labyrinth) amb \"Laberint de perdició\" (Maze). La diferència és espiritual:", 
-        seo_list_1: "<li><strong>Un Maze</strong> té moltes opcions, camins sense sortida i està dissenyat per confondre't i que perdis el rumb. És un joc de l'ego.</li><li><strong>Un Laberint Sagrat</strong> (com el de Chartres) té <strong>un sol camí</strong> (unicursal). No hi ha decisions a prendre, no pots perdre't. Només has de confiar en el sender. És una eina de l'ànima.</li>", 
-        seo_h3_1: "El Viatge de l'Heroi: Significat dels Circuits", 
-        seo_p_2: "En la Geometria Sagrada, el camí del laberint no és aleatori; és un mapa del <strong>Viatge de l'Ànima</strong>. Depenent del nombre de circuits (voltes) que triïs al generador, l'energia del recorregut canvia:", 
-        seo_list_2: "<li><strong>3 Circuits (L'Origen):</strong> El disseny més simple i primordial. Representa les tres parts de l'ésser (Cos, Ment, Esperit) o el cicle del temps. És un camí directe i reconfortant, ideal per a principiants o nens.</li><li><strong>5 Circuits (El Guerrer):</strong> Associat al canvi i l'adaptació. Es connecta amb els 5 elements i els 5 sentits. És un disseny d'equilibri entre el físic i l'espiritual.</li><li><strong>7 Circuits (El Clàssic Cretenc):</strong> El disseny més antic. Aquí aprenem una lliçó vital de paciència.<br><em>La trampa de l'ego:</em> Entres i el camí et porta gairebé immediatament prop del centre. Però just llavors, el camí t'expulsa cap a l'anell més exterior, lluny de l'objectiu.</li><li><strong>9 Circuits (La Gestació):</strong> El número 9 representa la culminació d'un cicle (com els 9 mesos d'embaràs). És un laberint de transició i introspecció profunda.</li><li><strong>11 Circuits (La Maestria de Chartres):</strong> El disseny definitiu de les catedrals gòtiques. La vibració més alta. <br><em>El Gran Viatge:</em> Entres i camines recte fins a l'anell 5, fregant la divinitat, per després ser enviat a la perifèria a purgar l'ego. És una pelegrinació completa que alinea els xacres superiors.</li>", 
-        seo_h3_2: "Com usar aquesta eina per Meditar", 
-        seo_p_3: "Hem dissenyat aquest espai per calmar l'ansietat i centrar la ment. Et suggerim dues formes d'ús:", 
-        seo_list_3: "<li><strong>Respiració Sincronitzada (Mode Auto):</strong> Prem \"Iniciar Pelegrinació\". Segueix la llum amb la mirada i inspira/exhala segons el ritme.</li><li><strong>Recorregut Visual:</strong> Atura l'animació. Usa el dit o punter per recórrer el camí lentament conscient de cada gir.</li>", 
-        footer_coffee: "Convida'm a un cafè (PayPal)", link_legal: "Avís Legal", link_priv: "Privadesa", link_cook: "Cookies", link_cont: "Contacte", js_pause: "⏸ Pausar", js_continue: "▶ Continuar", js_reset: "↺ Reiniciar Camí", js_inhale: "Inhalant... Exhalant...", js_follow: "Segueix la llum amb la teva respiració...", js_reached: "Has arribat al teu Centre."
-    },
-    en: {
-        nav_hub: "HUB", nav_back: "BACK", title_app: "The Inner Path", btn_png: "💾 Save PNG", btn_jpg: "📸 Save JPG", btn_start: "🚶‍♂️ Start Pilgrimage", status_initial: "Click to start", group_design: "Rhythm & Design", label_speed: "⏳ Speed", label_circuits: "🌀 Circuits", label_wall: "Wall Width", group_atmos: "Atmosphere", label_c_wall: "Wall Color", label_c_path: "Path Color", label_c_orb: "Orb Color", 
-        seo_h2_1: "Labyrinth: The Path to Your Inner Center", 
-        seo_p_1: "We often confuse \"Labyrinth\" with \"Maze\". The difference is spiritual:", 
-        seo_list_1: "<li><strong>A Maze</strong> has many options, dead ends, and is designed to confuse you. It is a game of the ego.</li><li><strong>A Sacred Labyrinth</strong> (like Chartres) has <strong>only one path</strong> (unicursal). There are no decisions to make; you cannot get lost. You just trust the path. It is a tool for the soul.</li>", 
-        seo_h3_1: "The Hero's Journey: Meaning of the Circuits", 
-        seo_p_2: "In Sacred Geometry, the labyrinth path is not random; it's a map of the <strong>Soul's Journey</strong>. Depending on the number of circuits you choose, the energy changes:", 
-        seo_list_2: "<li><strong>3 Circuits (The Origin):</strong> The simplest and most primordial design. Represents the three parts of being (Body, Mind, Spirit) or the cycle of time. A comforting path, ideal for beginners or children.</li><li><strong>5 Circuits (The Warrior):</strong> Associated with change and adaptation. Connects with the 5 elements and 5 senses. A balanced design, an intermediate step between the physical and spiritual.</li><li><strong>7 Circuits (The Classical Cretan):</strong> The oldest design. Here we learn a vital lesson in patience.<br><em>Ego's trap:</em> You enter and get close to the center almost immediately (to ring 3). But then, the path sends you to the outermost ring, far from the goal. It teaches us that the shortest path is not always a straight line.</li><li><strong>9 Circuits (Gestation):</strong> The number 9 represents the culmination of a cycle (like the 9 months of pregnancy). A labyrinth of transition and deep introspection.</li><li><strong>11 Circuits (Chartres Mastery):</strong> The definitive gothic cathedral design. The highest vibration. <br><em>The Great Journey:</em> You walk straight through the hall to ring 5, touching the divine, only to be sent to the periphery to purge the ego (\"Purgatory\"). A complete pilgrimage that aligns the upper chakras.</li>", 
-        seo_h3_2: "How to use this tool for Meditation", 
-        seo_p_3: "Designed to calm anxiety and center the mind. We suggest two ways to use it:", 
-        seo_list_3: "<li><strong>Synchronized Breathing (Auto Mode):</strong> Press \"Start Pilgrimage\". Follow the light with your eyes. Inhale deeply as the light moves inward, and exhale as it moves outward.</li><li><strong>Visual Journey:</strong> Stop the animation. Use your finger or pointer to trace the path slowly, aware of each turn, trusting the path leads you home.</li>", 
-        footer_coffee: "Buy me a coffee (PayPal)", link_legal: "Legal Notice", link_priv: "Privacy", link_cook: "Cookies", link_cont: "Contact", js_pause: "⏸ Pause", js_continue: "▶ Continue", js_reset: "↺ Restart Path", js_inhale: "Inhaling... Exhaling...", js_follow: "Follow the light with your breath...", js_reached: "You have reached your Center."
-    },
-    fr: {
-        nav_hub: "HUB", nav_back: "BACK", title_app: "Le Chemin Intérieur", btn_png: "💾 Sauvegarder PNG", btn_jpg: "📸 Sauvegarder JPG", btn_start: "🚶‍♂️ Initier le Pèlerinage", status_initial: "Cliquez pour commencer", group_design: "Rythme & Design", label_speed: "⏳ Vitesse", label_circuits: "🌀 Circuits", label_wall: "Épaisseur Mur", group_atmos: "Atmosphère", label_c_wall: "Couleur Murs", label_c_path: "Couleur Chemin", label_c_orb: "Couleur Orbe", 
-        seo_h2_1: "Labyrinthe : Le Chemin vers le Centre de Soi", 
-        seo_p_1: "On confond souvent \"Labyrinthe\" (Labyrinth) avec \"Dédale\" (Maze). La différence est spirituelle :", 
-        seo_list_1: "<li><strong>Un Maze</strong> a de nombreuses options, des impasses et est conçu pour vous perdre. C'est un jeu de l'ego.</li><li><strong>Un Labyrinthe Sacré</strong> (comme celui de Chartres) a <strong>un seul chemin</strong> (unicursal). Il n'y a pas de décisions à prendre. Il faut juste faire confiance au sentier. C'est un outil de l'âme.</li>", 
-        seo_h3_1: "Le Voyage du Héros : Signification des Circuits", 
-        seo_p_2: "Dans la Géométrie Sacrée, le chemin n'est pas aléatoire ; c'est une carte du <strong>Voyage de l'Âme</strong>. Selon le nombre de circuits, l'énergie change :", 
-        seo_list_2: "<li><strong>3 Circuits (L'Origine) :</strong> Représente le Corps, l'Esprit et l'Âme. Un chemin direct et réconfortant.</li><li><strong>5 Circuits (Le Guerrier) :</strong> Associé au changement et aux 5 éléments.</li><li><strong>7 Circuits (Le Classique Crétois) :</strong> Le plus ancien. Nous enseigne la patience : on croit arriver au centre, mais le chemin nous renvoie à la périphérie.</li><li><strong>9 Circuits (La Gestation) :</strong> Représente la fin d'un cycle (9 mois de grossesse).</li><li><strong>11 Circuits (La Maîtrise de Chartres) :</strong> La vibration la plus haute des cathédrales gothiques. Un pèlerinage complet qui aligne les chakras supérieurs.</li>", 
-        seo_h3_2: "Comment utiliser cet outil pour Méditer", 
-        seo_p_3: "Conçu pour calmer l'anxiété. Nous suggérons deux usages :", 
-        seo_list_3: "<li><strong>Respiration Synchronisée :</strong> Suivez l'orbe de lumière du regard. Inspirez vers l'intérieur, expirez vers l'extérieur.</li><li><strong>Parcours Visuel :</strong> Suivez le chemin lentement avec votre doigt ou curseur, conscient de chaque virage.</li>", 
-        footer_coffee: "Offrez-moi un café (PayPal)", link_legal: "Mentions Légales", link_priv: "Confidentialité", link_cook: "Cookies", link_cont: "Contact", js_pause: "⏸ Pause", js_continue: "▶ Continuer", js_reset: "↺ Réinitialiser", js_inhale: "Inspiration... Expiration...", js_follow: "Suivez la lumière avec votre respiration...", js_reached: "Vous êtes arrivé à votre Centre."
-    },
-    de: {
-        nav_hub: "HUB", nav_back: "BACK", title_app: "Der Innere Weg", btn_png: "💾 PNG Speichern", btn_jpg: "📸 JPG Speichern", btn_start: "🚶‍♂️ Pilgerreise Starten", status_initial: "Klicken zum Starten", group_design: "Rhythmus & Design", label_speed: "⏳ Geschwindigkeit", label_circuits: "🌀 Kreise", label_wall: "Wandstärke", group_atmos: "Atmosphäre", label_c_wall: "Wandfarbe", label_c_path: "Pfadfarbe", label_c_orb: "Lichtfarbe", 
-        seo_h2_1: "Labyrinth: Der Weg zum eigenen Zentrum", 
-        seo_p_1: "Oft verwechseln wir \"Labyrinth\" mit einem \"Irrgarten\" (Maze). Der Unterschied ist spirituell:", 
-        seo_list_1: "<li><strong>Ein Maze</strong> hat viele Sackgassen und dient der Verwirrung. Es ist ein Spiel des Egos.</li><li><strong>Ein heiliges Labyrinth</strong> (wie in Chartres) hat <strong>nur einen Weg</strong> (unikursal). Man kann sich nicht verirren. Es ist ein Werkzeug der Seele.</li>", 
-        seo_h3_1: "Die Heldenreise: Bedeutung der Kreise", 
-        seo_p_2: "In der heiligen Geometrie ist der Weg eine Karte der <strong>Seelenreise</strong>. Je nach Anzahl der Kreise ändert sich die Energie:", 
-        seo_list_2: "<li><strong>3 Kreise:</strong> Körper, Geist und Seele. Ein einfacher, trostvoller Weg.</li><li><strong>7 Kreise:</strong> Das klassische kretische Design. Lehrt Geduld: Kurz vor dem Ziel führt der Weg wieder ganz nach außen.</li><li><strong>11 Kreise:</strong> Das Design von Chartres. Die höchste Vibration. Eine vollständige Pilgerreise zur Ausrichtung der Chakren.</li>", 
-        seo_h3_2: "Meditation mit diesem Werkzeug", 
-        seo_p_3: "Zur Beruhigung und Zentrierung gedacht. Zwei Möglichkeiten:", 
-        seo_list_3: "<li><strong>Synchronisierte Atmung:</strong> Folgen Sie dem Licht. Einatmen beim Einbiegen, Ausatmen beim Ausbiegen.</li><li><strong>Visuelle Reise:</strong> Verfolgen Sie den Pfad langsam mit dem Finger oder Mauszeiger.</li>", 
-        footer_coffee: "Kaffee spendieren (PayPal)", link_legal: "Impressum", link_priv: "Datenschutz", link_cook: "Cookies", link_cont: "Kontakt", js_pause: "⏸ Pause", js_continue: "▶ Weiter", js_reset: "↺ Neustart", js_inhale: "Einatmen... Ausatmen...", js_follow: "Folgen Sie dem Licht mit Ihrem Atem...", js_reached: "Sie haben Ihr Zentrum erreicht."
-    },
-    pt: {
-        nav_hub: "HUB", nav_back: "BACK", title_app: "O Caminho Interior", btn_png: "💾 Salvar PNG", btn_jpg: "📸 Salvar JPG", btn_start: "🚶‍♂️ Iniciar Peregrinação", status_initial: "Clique para começar", group_design: "Ritmo & Design", label_speed: "⏳ Velocidade", label_circuits: "🌀 Circuitos", label_wall: "Espessura Muro", group_atmos: "Atmosfera", label_c_wall: "Cor Muros", label_c_path: "Cor Caminho", label_c_orb: "Cor Orbe", 
-        seo_h2_1: "Labirinto: O Caminho para o Centro de Si Mesmo", 
-        seo_p_1: "Muitas vezes confundimos \"Labirinto\" (Labyrinth) com \"Maze\". A diferença é espiritual:", 
-        seo_list_1: "<li><strong>Um Maze</strong> tem muitas opções e becos sem saída. É um jogo do ego.</li><li><strong>Um Labirinto Sagrado</strong> tem <strong>apenas um caminho</strong>. Não há decisões, apenas confiança. É uma ferramenta da alma.</li>", 
-        seo_h3_1: "O Significado dos Circuitos", 
-        seo_p_2: "Na Geometria Sagrada, o caminho é um mapa da <strong>Jornada da Alma</strong>:", 
-        seo_list_2: "<li><strong>3 Circuitos:</strong> Corpo, Mente e Espírito.</li><li><strong>7 Circuitos:</strong> O clássico design cretense. Ensina paciência.</li><li><strong>11 Circuitos:</strong> A maestria de Chartres. Alinha os chakras superiores.</li>", 
-        seo_h3_2: "Como Meditar", 
-        seo_p_3: "Sugerimos duas formas de uso:", 
-        seo_list_3: "<li><strong>Respiração Sincronizada:</strong> Siga a luz e respire no ritmo do movimento.</li><li><strong>Percurso Visual:</strong> Percorra o caminho lentamente com o dedo ou rato.</li>", 
-        footer_coffee: "Pague-me um café (PayPal)", link_legal: "Aviso Legal", link_priv: "Privacidade", link_cook: "Cookies", link_cont: "Contacto", js_pause: "⏸ Pausar", js_continue: "▶ Continuar", js_reset: "↺ Reiniciar", js_inhale: "Inalando... Exalando...", js_follow: "Siga a luz com a sua respiração...", js_reached: "Chegou ao seu Centro."
-    },
-    it: {
-        nav_hub: "HUB", nav_back: "BACK", title_app: "Il Cammino Interiore", btn_png: "💾 Salva PNG", btn_jpg: "📸 Salva JPG", btn_start: "🚶‍♂️ Inizia Pellegrinaggio", status_initial: "Clicca per iniziare", group_design: "Ritmo & Design", label_speed: "⏳ Velocità", label_circuits: "🌀 Circuiti", label_wall: "Spessore Muro", group_atmos: "Atmosfera", label_c_wall: "Colore Muri", label_c_path: "Colore Cammino", label_c_orb: "Colore Orbe", 
-        seo_h2_1: "Labirinto: Il Cammino verso il Centro di Sé", 
-        seo_p_1: "Spesso confondiamo \"Labirinto\" con \"Maze\". La differenza è spirituale:", 
-        seo_list_1: "<li><strong>Un Maze</strong> ha molte opzioni e vicoli ciechi. È un gioco dell'ego.</li><li><strong>Un Labirinto Sacro</strong> ha <strong>un solo cammino</strong>. Bisogna solo fidarsi del sentiero. È uno strumento dell'anima.</li>", 
-        seo_h3_1: "Significato dei Circuiti", 
-        seo_p_2: "Nella Geometria Sacra, il cammino è una mappa del <strong>Viaggio dell'Anima</strong>:", 
-        seo_list_2: "<li><strong>3 Circuiti:</strong> Corpo, Mente e Spirito.</li><li><strong>7 Circuiti:</strong> Design classico cretese. Insegna la pazienza.</li><li><strong>11 Circuitos:</strong> La maestria di Chartres. Allinea i chakra superiori.</li>", 
-        seo_h3_2: "Come Meditare", 
-        seo_p_3: "Suggeriamo due modi d'uso:", 
-        seo_list_3: "<li><strong>Respirazione Sincronizzata:</strong> Segui la luce e respira a ritmo.</li><li><strong>Percorso Visuale:</strong> Percorri il cammino lentamente con il dito o il mouse.</li>", 
-        footer_coffee: "Offrimi un caffè (PayPal)", link_legal: "Note Legali", link_priv: "Privacy", link_cook: "Cookies", link_cont: "Contatto", js_pause: "⏸ Pausa", js_continue: "▶ Continua", js_reset: "↺ Ricomincia", js_inhale: "Inspirando... Espirando...", js_follow: "Segui la luce con il tuo respiro...", js_reached: "Sei arrivato al tuo Centro."
-    },
-    nl: {
-        nav_hub: "HUB", nav_back: "BACK", title_app: "Het Innerlijke Pad", btn_png: "💾 PNG Opslaan", btn_jpg: "📸 JPG Opslaan", btn_start: "🚶‍♂️ Start Pelgrimstocht", status_initial: "Klik om te starten", group_design: "Ritme & Ontwerp", label_speed: "⏳ Snelheid", label_circuits: "🌀 Circuits", label_wall: "Muurdikte", group_atmos: "Atmosfeer", label_c_wall: "Kleur Muren", label_c_path: "Kleur Pad", label_c_orb: "Kleur Licht", 
-        seo_h2_1: "Labyrint: De weg naar je eigen centrum", 
-        seo_p_1: "We verwarren \"Labyrint\" vaak met een \"Doolhof\" (Maze). Het verschil is spiritueel:", 
-        seo_list_1: "<li><strong>Een Maze</strong> heeft doodlopende wegen en dient om je te verwarren.</li><li><strong>Een Heilig Labyrint</strong> heeft <strong>slechts één pad</strong>. Je kunt niet verdwalen. Het is een hulpmiddel voor de ziel.</li>", 
-        seo_h3_1: "Betekenis van de Circuits", 
-        seo_p_2: "In Heilige Geometrie is het pad een kaart van de <strong>Reis van de Ziel</strong>:", 
-        seo_list_2: "<li><strong>3 Circuits:</strong> Lichaam, Geest en Ziel.</li><li><strong>7 Circuits:</strong> Klassiek Kretenzisch ontwerp. Leert geduld.</li><li><strong>11 Circuits:</strong> Meesterschap van Chartres. Brengt de hogere chakra's in lijn.</li>", 
-        seo_h3_2: "Hoe te Mediteren", 
-        seo_p_3: "Twee manieren van gebruik:", 
-        seo_list_3: "<li><strong>Gesynchroniseerde Ademhaling:</strong> Volg het licht en adem in het ritme.</li><li><strong>Visuele Reis:</strong> Volg het pad langzaam met je vinger of muis.</li>", 
-        footer_coffee: "Trakteer me op koffie (PayPal)", link_legal: "Colofon", link_priv: "Privacy", link_cook: "Cookies", link_cont: "Contact", js_pause: "⏸ Pauze", js_continue: "▶ Verder", js_reset: "↺ Opnieuw starten", js_inhale: "Inademen... Uitademen...", js_follow: "Volg het licht met je ademhaling...", js_reached: "Je hebt je centrum bereikt."
-    },
-    ja: {
-        nav_hub: "ハブ", nav_back: "戻る", title_app: "内なる道", btn_png: "💾 PNGを保存", btn_jpg: "📸 JPGを保存", btn_start: "🚶‍♂️ 巡礼を開始", status_initial: "クリックして開始", group_design: "リズムとデザイン", label_speed: "⏳ 速度", label_circuits: "🌀 回路", label_wall: "壁の厚さ", group_atmos: "雰囲気", label_c_wall: "壁の色", label_c_path: "道の色", label_c_orb: "光の色", 
-        seo_h2_1: "迷宮：自分自身の中心への道", 
-        seo_p_1: "「迷宮（ラビリンス）」と「迷路（メイズ）」はよく混同されますが、精神的な違いがあります。", 
-        seo_list_1: "<li><strong>メイズ</strong>は行き止まりがあり、混乱させるように設計されています。エゴのゲームです。</li><li><strong>聖なるラビリンス</strong>は<strong>一本道</strong>です。迷うことはありません。魂の道具です。</li>", 
-        seo_h3_1: "回路の意味", 
-        seo_p_2: "神聖幾何学において、この道は<strong>魂の旅</strong>の地図です。", 
-        seo_list_2: "<li><strong>3回路：</strong>体、心、精神を表します。</li><li><strong>7回路：</strong>古典的なクレタ島式のデザイン。忍耐を教えます。</li><li><strong>11回路：</strong>シャルトル大聖堂のデザイン。最高の振動。</li>", 
-        seo_h3_2: "瞑想の方法", 
-        seo_p_3: "2つの方法を提案します：", 
-        seo_list_3: "<li><strong>呼吸の同期：</strong>光を追いながら、リズムに合わせて呼吸します。</li><li><strong>視覚的な旅：</strong>指やマウスでゆっくりと道をたどり、一歩一歩を意識します。</li>", 
-        footer_coffee: "コーヒーを奢る (PayPal)", link_legal: "法的通知", link_priv: "プライバシー", link_cook: "クッキー", link_cont: "お問い合わせ", js_pause: "⏸ 一時停止", js_continue: "▶ 続行", js_reset: "↺ 最初から", js_inhale: "吸って... 吐いて...", js_follow: "呼吸を光に合わせてください...", js_reached: "あなたの中心に到達しました。"
-    }
-};
-
-    function setLang(lang) {
-        localStorage.setItem('gl_lang', lang);
-        document.querySelectorAll('.lang-switch button').forEach(btn => {
-            btn.classList.toggle('active', btn.innerText.toLowerCase() === lang);
-        });
-        const tr = translations[lang] || translations['es'];
-        document.querySelectorAll('[data-i18n]').forEach(el => {
-            const key = el.getAttribute('data-i18n');
-            if (tr[key]) el.innerHTML = tr[key];
-        });
-        updateStatusText(tr);
-    }
-
-    function updateStatusText(tr) {
-        const btn = document.getElementById('btnToggleWalk');
-        const status = document.getElementById('statusText');
-        if (state.progress >= 1) { btn.innerText = tr.js_reset; status.innerText = tr.js_reached; }
-        else if (state.walking) { btn.innerText = tr.js_pause; status.innerText = tr.js_follow; }
-        else if (state.progress > 0) { btn.innerText = tr.js_continue; status.innerText = "Pausa"; }
-    }
-
-    const canvas = document.getElementById('labyrinthCanvas');
-    const ctx = canvas.getContext('2d');
-    const state = { circuits: 7, wallWidth: 4, speed: 3, walking: false, progress: 0, colorWalls: '#555555', colorPath: '#111111', colorOrb: '#d4af37', pathData: [] };
-    let centerX, centerY, maxRadius;
-
-    function init() { 
-        resize(); window.addEventListener('resize', resize); setupControls(); generatePathData(); animate(); 
-        setLang(localStorage.getItem('gl_lang') || 'es');
-    }
-
-    function resize() {
-        const parent = canvas.parentElement;
-        canvas.width = parent.clientWidth; canvas.height = parent.clientHeight;
-        centerX = canvas.width / 2; centerY = canvas.height / 2;
-        maxRadius = Math.min(centerX, centerY) * 0.9; generatePathData(); 
-    }
-
-    function generatePathData() {
-        state.pathData = []; const circuits = state.circuits; const laneWidth = maxRadius / (circuits + 1.5); 
-        let sequence = (circuits === 3) ? [1, 2, 3] : (circuits === 7) ? [3, 2, 1, 4, 7, 6, 5] : (circuits === 11) ? [5, 4, 3, 2, 1, 6, 11, 10, 9, 8, 7] : Array.from({length: circuits}, (_, i) => i + 1);
-        state.pathData.push({x: centerX, y: canvas.height});
-        const startRadius = sequence[0] * laneWidth;
-        for(let j=0; j<=30; j++) {
-            const t = j/30; const currentY = canvas.height - ((canvas.height - (centerY + startRadius)) * t);
-            state.pathData.push({x: centerX, y: currentY});
-        }
-        for (let i = 0; i < sequence.length; i++) {
-            const radius = sequence[i] * laneWidth; const isClockwise = (i % 2 !== 0); 
-            const startAngle = Math.PI / 2; const endAngle = Math.PI / 2 + (Math.PI * 2 * 0.96) * (isClockwise ? 1 : -1);
-            for (let s = 0; s <= 120; s++) {
-                const angle = startAngle + (endAngle - startAngle) * (s / 120);
-                state.pathData.push({ x: centerX + radius * Math.cos(angle), y: centerY + radius * Math.sin(angle) });
-            }
-        }
-        state.pathData.push({x: centerX, y: centerY + (sequence[sequence.length-1] * laneWidth)});
-        state.pathData.push({x: centerX, y: centerY});
-    }
-
-    function draw() {
-        ctx.clearRect(0,0, canvas.width, canvas.height);
-        const laneWidth = maxRadius / (state.circuits + 1.5);
-        ctx.strokeStyle = state.colorWalls; ctx.lineWidth = state.wallWidth; ctx.lineCap = 'butt'; 
-        const gapAngle = 0.15;
-        for (let i = 1; i <= state.circuits; i++) {
-            const r = i * laneWidth + (laneWidth/2);
-            ctx.beginPath(); ctx.arc(centerX, centerY, r, Math.PI/2 + gapAngle, Math.PI/2 + (Math.PI*2) - gapAngle); ctx.stroke();
-        }
-        if (state.pathData.length > 0) {
-            const idx = Math.min(Math.floor(state.progress * (state.pathData.length - 1)), state.pathData.length - 1);
-            const p = state.pathData[idx];
-            const glow = ctx.createRadialGradient(p.x, p.y, 1, p.x, p.y, laneWidth * 1.5);
-            glow.addColorStop(0, state.colorOrb); glow.addColorStop(1, 'rgba(0,0,0,0)');
-            ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(p.x, p.y, laneWidth * 1.2, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(p.x, p.y, laneWidth * 0.3, 0, Math.PI * 2); ctx.fill();
-        }
-    }
-
-    function animate() {
-        if (state.walking) {
-            state.progress += (state.speed * 0.0003);
-            if (state.progress >= 1) { 
-                state.progress = 1; state.walking = false; 
-                const tr = translations[localStorage.getItem('gl_lang') || 'es'];
-                document.getElementById('btnToggleWalk').innerText = tr.js_reset;
-                document.getElementById('statusText').innerText = tr.js_reached;
-            }
-        }
-        draw(); requestAnimationFrame(animate);
-    }
-
-    function setupControls() {
-        const btnWalk = document.getElementById('btnToggleWalk');
-        const status = document.getElementById('statusText');
-        btnWalk.onclick = () => {
-            const tr = translations[localStorage.getItem('gl_lang') || 'es'];
-            if (state.progress >= 1) { state.progress = 0; state.walking = true; btnWalk.innerText = tr.js_pause; status.innerText = tr.js_inhale; } 
-            else { 
-                state.walking = !state.walking; 
-                btnWalk.innerText = state.walking ? tr.js_pause : tr.js_continue; 
-                status.innerText = state.walking ? tr.js_follow : "Pausa";
+    <script>
+        const translations = {
+            es: {
+                nav_hub: "HUB", nav_back: "BACK", title_app: "El Camino Interior", btn_png: "💾 Guardar PNG", btn_jpg: "📸 Guardar JPG", btn_start: "🚶‍♂️ Iniciar Peregrinación", status_initial: "Haz clic para empezar", group_design: "Ritmo & Diseño", label_speed: "⏳ Velocidad", label_circuits: "🌀 Circuitos", label_wall: "Grosor Muro", group_atmos: "Atmósfera", label_c_wall: "Color Muros", label_c_path: "Color Camino", label_c_orb: "Color Orbe",
+                seo_h2_1: "Laberinto: El Camino hacia el Centro de Ti Mismo",
+                seo_p_1: "A menudo confundimos \"Laberinto\" (Labyrinth) con \"Laberinto de perdición\" (Maze). La diferencia es espiritual:",
+                seo_list_1: "<li><strong>Un Maze</strong> tiene muchas opciones, caminos sin salida y está diseñado para confundirte y que pierdas el rumbo. Es un juego del ego.</li><li><strong>Un Laberinto Sagrado</strong> (como el de Chartres) tiene <strong>un solo camino</strong> (unicursal). No hay decisiones que tomar, no puedes perderte. Solo tienes que confiar en el sendero. Es una herramienta del alma.</li>",
+                seo_h3_1: "El Viaje del Héroe: Significado de los Circuitos",
+                seo_p_2: "En la Geometría Sagrada, el camino del laberinto no es aleatorio; es un mapa del <strong>Viaje del Alma</strong>. Dependiendo del número de circuitos (vueltas) que elijas en el generador, la energía del recorrido cambia:",
+                seo_list_2: "<li><strong>3 Circuitos (El Origen):</strong> El diseño más simple y primordial. Representa las tres partes del ser (Cuerpo, Mente, Espíritu) o el ciclo del tiempo (Pasado, Presente, Futuro). Es un camino directo y reconfortante, ideal para principiantes o niños.</li><li><strong>5 Circuitos (El Guerrero):</strong> Asociado al cambio y la adaptación. Al tener cinco vueltas, se conecta con los 5 elementos y los 5 sentidos. Es un diseño de equilibrio, un paso intermedio entre lo físico y lo espiritual.</li><li><strong>7 Circuitos (El Clásico Cretense):</strong> El diseño más antiguo y famoso de la antigüedad. Aquí aprendemos una lección vital de paciencia.<br><em>La trampa del ego:</em> Entras y el camino te lleva casi inmediatamente cerca del centro (al anillo 3). Te da una \"falsa sensación\" de que ya has llegado a la meta. Pero justo entonces, el camino te expulsa hacia el anillo más exterior, lejos del objetivo. Nos enseña que, en la vida, el camino más corto no siempre es una línea recta.</li><li><strong>9 Circuitos (La Gestación):</strong> El número 9 representa la culminación de un ciclo (como los 9 meses de embarazo). Es un laberinto de transición, introspección profunda y preparación para un renacimiento espiritual.</li><li><strong>11 Circuitos (La Maestría de Chartres):</strong> El diseño definitivo de las catedrales góticas. La vibración más alta. <br><em>El Gran Viaje:</em> Ocurre lo mismo que en el de 7 circuitos pero a mayor escala. Entras y caminas recto por el pasillo hasta el anillo 5, rozando la divinidad, para luego ser enviado a la periferia a purgar el ego (\"Purgatorio\"). Es una peregrinación completa que alinea los chakras superiores antes de permitirte entrar finalmente en la Roseta central.</li>",
+                seo_h3_2: "Cómo usar esta herramienta para Meditar",
+                seo_p_3: "Hemos diseñado este espacio para calmar la ansiedad y centrar la mente. Te sugerimos dos formas de uso:",
+                seo_list_3: "<li><strong>Respiración Sincronizada (Modo Auto):</strong> Pulsa \"Iniciar Peregrinación\". Sigue la luz con tu mirada e inhala profundamente mientras la luz recorre un circuito hacia adentro, y exhala cuando cambie de rumbo hacia afuera. Ajusta la velocidad para que coincida con tu ritmo cardíaco.</li><li><strong>Recorrido Visual:</strong> Detén la animación. Usa tu dedo o puntero para recorrer el camino lentamente consciente de cada giro, sintiendo cómo te alejas y te acercas al centro, confiando en que el camino te lleva.</li>",
+                footer_coffee: "Invítame a un café (PayPal)", link_legal: "Aviso Legal", link_priv: "Privacidad", link_cook: "Cookies", link_cont: "Contacto", js_pause: "⏸ Pausar", js_continue: "▶ Continuar", js_reset: "↺ Reiniciar Camino", js_inhale: "Inhalando... Exhalando...", js_follow: "Sigue la luz con tu respiración...", js_reached: "Has llegado a tu Centro."
+            },
+            ca: {
+                nav_hub: "HUB", nav_back: "BACK", title_app: "El Camí Interior", btn_png: "💾 Guardar PNG", btn_jpg: "📸 Guardar JPG", btn_start: "🚶‍♂️ Iniciar Pelegrinació", status_initial: "Fes clic per començar", group_design: "Ritme i Disseny", label_speed: "⏳ Velocitat", label_circuits: "🌀 Circuits", label_wall: "Gruix de Mur", group_atmos: "Atmosfera", label_c_wall: "Color Murs", label_c_path: "Color Camí", label_c_orb: "Color Orbe",
+                seo_h2_1: "Laberint: El Camí cap al Centre de Tu Mateix",
+                seo_p_1: "Sovint confonem \"Laberint\" (Labyrinth) amb \"Laberint de perdició\" (Maze). La diferència és espiritual:",
+                seo_list_1: "<li><strong>Un Maze</strong> té moltes opcions, camins sense sortida i està dissenyat per confondre't i que perdis el rumb. És un joc de l'ego.</li><li><strong>Un Laberint Sagrat</strong> (com el de Chartres) té <strong>un sol camí</strong> (unicursal). No hi ha decisions a prendre, no pots perdre't. Només has de confiar en el sender. És una eina de l'ànima.</li>",
+                seo_h3_1: "El Viatge de l'Heroi: Significat dels Circuits",
+                seo_p_2: "En la Geometria Sagrada, el camí del laberint no és aleatori; és un mapa del <strong>Viatge de l'Ànima</strong>. Depenent del nombre de circuits (voltes) que triïs al generador, l'energia del recorregut canvia:",
+                seo_list_2: "<li><strong>3 Circuits (L'Origen):</strong> El disseny més simple i primordial. Representa les tres parts de l'ésser (Cos, Ment, Esperit) o el cicle del temps (Passat, Present, Futur). És un camí directe i reconfortant, ideal per a principiants o nens.</li><li><strong>5 Circuits (El Guerrer):</strong> Associat al canvi i l'adaptació. En tenir cinc voltes, es connecta amb els 5 elements i els 5 sentits. És un disseny d'equilibri, un pas intermedi entre el físic i l'espiritual.</li><li><strong>7 Circuits (El Clàssic Cretenc):</strong> El disseny més antic i famós de l'antiguitat. Aquí aprenem una lliçó vital de paciència.<br><em>La trampa de l'ego:</em> Entres i el camí et porta gairebé immediatament prop del centre (a l'anell 3). Et dona una \"falsa sensació\" d'haver arribat a la meta. Però just llavors, el camí t'expulsa cap a l'anell més exterior, lluny de l'objectiu. Ens ensenya que, a la vida, el camí més curt no sempre és una línia recta.</li><li><strong>9 Circuits (La Gestació):</strong> El número 9 representa la culminació d'un cicle (com els 9 mesos d'embaràs). És un laberint de transició, introspecció profunda i preparació per a un renaixement espiritual.</li><li><strong>11 Circuits (La Mestria de Chartres):</strong> El disseny definitiu de les catedrals gòtiques. La vibració més alta. <br><em>El Gran Viatge:</em> Passa el mateix que en el de 7 circuits però a major escala. Entres i camines recte pel passadís fins a l'anell 5, fregant la divinitat, per després ser enviat a la perifèria a purgar l'ego (\"Purgatori\"). És una pelegrinació completa que alinea els xacres superiors abans de permetre't entrar finalment a la Roseta central.</li>",
+                seo_h3_2: "Com usar aquesta eina per Meditar",
+                seo_p_3: "Hem dissenyat aquest espai per calmar l'ansietat i centrar la ment. Et suggerim dues formes d'ús:",
+                seo_list_3: "<li><strong>Respiració Sincronitzada (Mode Auto):</strong> Prem \"Iniciar Pelegrinació\". Segueix la llum amb la mirada i inspira profundament mentre la llum recorre un circuit cap endins, i exhala quan canviï de rumb cap enfora. Ajusta la velocitat perquè coincideixi amb el teu ritme cardíac.</li><li><strong>Recorregut Visual:</strong> Atura l'animació. Usa el dit o punter per recórrer el camí lentament conscient de cada gir, sentint com t'allunyes i t'apropes al centre, confiant que el camí et porta.</li>",
+                footer_coffee: "Convida'm a un cafè (PayPal)", link_legal: "Avís Legal", link_priv: "Privadesa", link_cook: "Cookies", link_cont: "Contacte", js_pause: "⏸ Pausar", js_continue: "▶ Continuar", js_reset: "↺ Reiniciar Camí", js_inhale: "Inhalant... Exhalant...", js_follow: "Segueix la llum amb la teva respiració...", js_reached: "Has arribat al teu Centre."
+            },
+            en: {
+                nav_hub: "HUB", nav_back: "BACK", title_app: "The Inner Path", btn_png: "💾 Save PNG", btn_jpg: "📸 Save JPG", btn_start: "🚶‍♂️ Start Pilgrimage", status_initial: "Click to start", group_design: "Rhythm & Design", label_speed: "⏳ Speed", label_circuits: "🌀 Circuits", label_wall: "Wall Width", group_atmos: "Atmosphere", label_c_wall: "Wall Color", label_c_path: "Path Color", label_c_orb: "Orb Color",
+                seo_h2_1: "Labyrinth: The Path to Your Inner Center",
+                seo_p_1: "We often confuse \"Labyrinth\" with \"Maze\". The difference is spiritual:",
+                seo_list_1: "<li><strong>A Maze</strong> has many options, dead ends, and is designed to confuse you. It is a game of the ego.</li><li><strong>A Sacred Labyrinth</strong> (like Chartres) has <strong>only one path</strong> (unicursal). There are no decisions to make; you cannot get lost. You just trust the path. It is a tool for the soul.</li>",
+                seo_h3_1: "The Hero's Journey: Meaning of the Circuits",
+                seo_p_2: "In Sacred Geometry, the labyrinth path is not random; it's a map of the <strong>Soul's Journey</strong>. Depending on the number of circuits you choose, the energy changes:",
+                seo_list_2: "<li><strong>3 Circuits (The Origin):</strong> The simplest and most primordial design. Represents the three parts of being (Body, Mind, Spirit) or the cycle of time (Past, Present, Future). A comforting path, ideal for beginners or children.</li><li><strong>5 Circuits (The Warrior):</strong> Associated with change and adaptation. Connected with the 5 elements and 5 senses. A balanced design, an intermediate step between the physical and spiritual.</li><li><strong>7 Circuits (The Classical Cretan):</strong> The oldest and most famous design of antiquity. Here we learn a vital lesson in patience.<br><em>Ego's trap:</em> You enter and the path leads you almost immediately close to the center (ring 3), giving you a \"false sense\" of having arrived. But then the path sends you to the outermost ring, far from the goal. It teaches us that the shortest path is not always a straight line.</li><li><strong>9 Circuits (Gestation):</strong> The number 9 represents the culmination of a cycle (like the 9 months of pregnancy). A labyrinth of transition, deep introspection, and preparation for spiritual rebirth.</li><li><strong>11 Circuits (Chartres Mastery):</strong> The definitive gothic cathedral design. The highest vibration. <br><em>The Great Journey:</em> You walk straight through the hall to ring 5, touching the divine, only to be sent to the periphery to purge the ego (\"Purgatory\"). A complete pilgrimage that aligns the upper chakras before finally allowing you to enter the central Rose.</li>",
+                seo_h3_2: "How to use this tool for Meditation",
+                seo_p_3: "Designed to calm anxiety and center the mind. We suggest two ways to use it:",
+                seo_list_3: "<li><strong>Synchronized Breathing (Auto Mode):</strong> Press \"Start Pilgrimage\". Follow the light with your eyes. Inhale deeply as the light moves inward, and exhale as it moves outward. Adjust the speed to match your heart rate.</li><li><strong>Visual Journey:</strong> Stop the animation. Use your finger or pointer to trace the path slowly, aware of each turn, feeling how you move away from and toward the center, trusting the path leads you home.</li>",
+                footer_coffee: "Buy me a coffee (PayPal)", link_legal: "Legal Notice", link_priv: "Privacy", link_cook: "Cookies", link_cont: "Contact", js_pause: "⏸ Pause", js_continue: "▶ Continue", js_reset: "↺ Restart Path", js_inhale: "Inhaling... Exhaling...", js_follow: "Follow the light with your breath...", js_reached: "You have reached your Center."
+            },
+            fr: {
+                nav_hub: "HUB", nav_back: "BACK", title_app: "Le Chemin Intérieur", btn_png: "💾 Sauvegarder PNG", btn_jpg: "📸 Sauvegarder JPG", btn_start: "🚶‍♂️ Initier le Pèlerinage", status_initial: "Cliquez pour commencer", group_design: "Rythme & Design", label_speed: "⏳ Vitesse", label_circuits: "🌀 Circuits", label_wall: "Épaisseur Mur", group_atmos: "Atmosphère", label_c_wall: "Couleur Murs", label_c_path: "Couleur Chemin", label_c_orb: "Couleur Orbe",
+                seo_h2_1: "Labyrinthe : Le Chemin vers le Centre de Soi",
+                seo_p_1: "On confond souvent \"Labyrinthe\" (Labyrinth) avec \"Dédale\" (Maze). La différence est spirituelle :",
+                seo_list_1: "<li><strong>Un Maze</strong> a de nombreuses options, des impasses et est conçu pour vous perdre. C'est un jeu de l'ego.</li><li><strong>Un Labyrinthe Sacré</strong> (comme celui de Chartres) a <strong>un seul chemin</strong> (unicursal). Il n'y a pas de décisions à prendre. Il faut juste faire confiance au sentier. C'est un outil de l'âme.</li>",
+                seo_h3_1: "Le Voyage du Héros : Signification des Circuits",
+                seo_p_2: "Dans la Géométrie Sacrée, le chemin n'est pas aléatoire ; c'est une carte du <strong>Voyage de l'Âme</strong>. Selon le nombre de circuits, l'énergie change :",
+                seo_list_2: "<li><strong>3 Circuits (L'Origine) :</strong> Le design le plus simple et primordial. Représente les trois parties de l'être (Corps, Esprit, Âme) ou le cycle du temps (Passé, Présent, Futur). Un chemin direct et réconfortant, idéal pour les débutants ou les enfants.</li><li><strong>5 Circuits (Le Guerrier) :</strong> Associé au changement et à l'adaptation. Connecté aux 5 éléments et aux 5 sens. Un design équilibré, étape intermédiaire entre le physique et le spirituel.</li><li><strong>7 Circuits (Le Classique Crétois) :</strong> Le plus ancien et célèbre de l'Antiquité. Nous enseigne une leçon vitale de patience.<br><em>Le piège de l'ego :</em> On entre et le chemin mène presque immédiatement près du centre (anneau 3), donnant une \"fausse impression\" d'être arrivé. Mais alors le chemin renvoie à l'anneau le plus extérieur. Cela nous apprend que le chemin le plus court n'est pas toujours une ligne droite.</li><li><strong>9 Circuits (La Gestation) :</strong> Le chiffre 9 représente la culmination d'un cycle (comme les 9 mois de grossesse). Un labyrinthe de transition, d'introspection profonde et de préparation à une renaissance spirituelle.</li><li><strong>11 Circuits (La Maîtrise de Chartres) :</strong> Le design définitif des cathédrales gothiques. La vibration la plus haute.<br><em>Le Grand Voyage :</em> On entre et marche droit jusqu'à l'anneau 5, frôlant le divin, pour être ensuite renvoyé à la périphérie purger l'ego (\"Purgatoire\"). Un pèlerinage complet qui aligne les chakras supérieurs avant d'accéder à la Rosace centrale.</li>",
+                seo_h3_2: "Comment utiliser cet outil pour Méditer",
+                seo_p_3: "Conçu pour calmer l'anxiété et centrer l'esprit. Nous suggérons deux usages :",
+                seo_list_3: "<li><strong>Respiration Synchronisée (Mode Auto) :</strong> Appuyez sur \"Initier le Pèlerinage\". Suivez l'orbe de lumière du regard. Inspirez profondément lorsque la lumière se déplace vers l'intérieur, et expirez lorsqu'elle repart vers l'extérieur. Ajustez la vitesse pour correspondre à votre rythme cardiaque.</li><li><strong>Parcours Visuel :</strong> Arrêtez l'animation. Suivez le chemin lentement avec votre doigt ou curseur, conscient de chaque virage, ressentant comment vous vous éloignez et vous rapprochez du centre, en faisant confiance au chemin.</li>",
+                footer_coffee: "Offrez-moi un café (PayPal)", link_legal: "Mentions Légales", link_priv: "Confidentialité", link_cook: "Cookies", link_cont: "Contact", js_pause: "⏸ Pause", js_continue: "▶ Continuer", js_reset: "↺ Réinitialiser", js_inhale: "Inspiration... Expiration...", js_follow: "Suivez la lumière avec votre respiration...", js_reached: "Vous êtes arrivé à votre Centre."
+            },
+            de: {
+                nav_hub: "HUB", nav_back: "BACK", title_app: "Der Innere Weg", btn_png: "💾 PNG Speichern", btn_jpg: "📸 JPG Speichern", btn_start: "🚶‍♂️ Pilgerreise Starten", status_initial: "Klicken zum Starten", group_design: "Rhythmus & Design", label_speed: "⏳ Geschwindigkeit", label_circuits: "🌀 Kreise", label_wall: "Wandstärke", group_atmos: "Atmosphäre", label_c_wall: "Wandfarbe", label_c_path: "Pfadfarbe", label_c_orb: "Lichtfarbe",
+                seo_h2_1: "Labyrinth: Der Weg zum eigenen Zentrum",
+                seo_p_1: "Oft verwechseln wir \"Labyrinth\" mit einem \"Irrgarten\" (Maze). Der Unterschied ist spirituell:",
+                seo_list_1: "<li><strong>Ein Maze</strong> hat viele Sackgassen und dient der Verwirrung. Es ist ein Spiel des Egos.</li><li><strong>Ein heiliges Labyrinth</strong> (wie in Chartres) hat <strong>nur einen Weg</strong> (unikursal). Man kann sich nicht verirren. Man muss dem Pfad nur vertrauen. Es ist ein Werkzeug der Seele.</li>",
+                seo_h3_1: "Die Heldenreise: Bedeutung der Kreise",
+                seo_p_2: "In der Heiligen Geometrie ist der Weg keine zufällige Linie; er ist eine Karte der <strong>Seelenreise</strong>. Je nach Anzahl der Kreise, die man im Generator wählt, ändert sich die Energie des Weges:",
+                seo_list_2: "<li><strong>3 Kreise (Der Ursprung):</strong> Das einfachste und ursprünglichste Design. Repräsentiert die drei Teile des Seins (Körper, Geist, Seele) oder den Kreislauf der Zeit (Vergangenheit, Gegenwart, Zukunft). Ein direkter und tröstlicher Weg, ideal für Anfänger oder Kinder.</li><li><strong>5 Kreise (Der Krieger):</strong> Mit dem Wandel und der Anpassung verbunden. Durch seine fünf Windungen verbindet er sich mit den 5 Elementen und den 5 Sinnen. Ein ausgewogenes Design, ein Zwischenschritt zwischen dem Körperlichen und dem Spirituellen.</li><li><strong>7 Kreise (Das klassische Kretische):</strong> Das älteste und bekannteste Design der Antike. Hier lernen wir eine wichtige Lektion in Geduld.<br><em>Die Falle des Egos:</em> Man betritt das Labyrinth und wird fast sofort nah ans Zentrum geführt (Ring 3) — ein \"falsches Gefühl\", das Ziel sei erreicht. Doch dann schickt der Weg einen in den äußersten Ring zurück. Er lehrt uns: Der kürzeste Weg ist nicht immer eine gerade Linie.</li><li><strong>9 Kreise (Die Schwangerschaft):</strong> Die Zahl 9 steht für die Vollendung eines Zyklus (wie die 9 Monate der Schwangerschaft). Ein Labyrinth des Übergangs, tiefer Introspektion und der Vorbereitung auf eine spirituelle Wiedergeburt.</li><li><strong>11 Kreise (Die Meisterschaft von Chartres):</strong> Das endgültige Design der gotischen Kathedralen. Die höchste Schwingung.<br><em>Die große Reise:</em> Man läuft geradeaus durch den Gang bis Ring 5, streift die Göttlichkeit, wird dann aber an die Peripherie geschickt, um das Ego zu reinigen (\"Fegefeuer\"). Eine vollständige Pilgerreise, die die oberen Chakren ausrichtet, bevor man schließlich in die zentrale Rosette eintreten darf.</li>",
+                seo_h3_2: "Wie man dieses Werkzeug zur Meditation nutzt",
+                seo_p_3: "Dieser Raum wurde gestaltet, um Ängste zu lindern und den Geist zu zentrieren. Wir empfehlen zwei Nutzungsformen:",
+                seo_list_3: "<li><strong>Synchronisierte Atmung (Auto-Modus):</strong> Drücken Sie \"Pilgerreise Starten\". Folgen Sie dem Licht mit den Augen. Atmen Sie tief ein, wenn sich das Licht nach innen bewegt, und aus, wenn es nach außen geht. Passen Sie die Geschwindigkeit Ihrem Herzrhythmus an.</li><li><strong>Visuelle Reise:</strong> Halten Sie die Animation an. Verfolgen Sie den Pfad langsam mit dem Finger oder Mauszeiger, nehmen Sie jeden Kurve bewusst wahr und spüren Sie, wie Sie sich vom Zentrum entfernen und wieder annähern — im Vertrauen, dass der Weg Sie führt.</li>",
+                footer_coffee: "Kaffee spendieren (PayPal)", link_legal: "Impressum", link_priv: "Datenschutz", link_cook: "Cookies", link_cont: "Kontakt", js_pause: "⏸ Pause", js_continue: "▶ Weiter", js_reset: "↺ Neustart", js_inhale: "Einatmen... Ausatmen...", js_follow: "Folgen Sie dem Licht mit Ihrem Atem...", js_reached: "Sie haben Ihr Zentrum erreicht."
+            },
+            pt: {
+                nav_hub: "HUB", nav_back: "BACK", title_app: "O Caminho Interior", btn_png: "💾 Salvar PNG", btn_jpg: "📸 Salvar JPG", btn_start: "🚶‍♂️ Iniciar Peregrinação", status_initial: "Clique para começar", group_design: "Ritmo & Design", label_speed: "⏳ Velocidade", label_circuits: "🌀 Circuitos", label_wall: "Espessura Muro", group_atmos: "Atmosfera", label_c_wall: "Cor Muros", label_c_path: "Cor Caminho", label_c_orb: "Cor Orbe",
+                seo_h2_1: "Labirinto: O Caminho para o Centro de Si Mesmo",
+                seo_p_1: "Muitas vezes confundimos \"Labirinto\" (Labyrinth) com \"Maze\". A diferença é espiritual:",
+                seo_list_1: "<li><strong>Um Maze</strong> tem muitas opções, becos sem saída e é concebido para confundir e desorientar. É um jogo do ego.</li><li><strong>Um Labirinto Sagrado</strong> (como o de Chartres) tem <strong>apenas um caminho</strong> (unicursal). Não há decisões a tomar, não é possível perder-se. Basta confiar no trilho. É uma ferramenta da alma.</li>",
+                seo_h3_1: "A Jornada do Herói: Significado dos Circuitos",
+                seo_p_2: "Na Geometria Sagrada, o caminho do labirinto não é aleatório; é um mapa da <strong>Jornada da Alma</strong>. Consoante o número de circuitos escolhido no gerador, a energia do percurso muda:",
+                seo_list_2: "<li><strong>3 Circuitos (A Origem):</strong> O design mais simples e primordial. Representa as três partes do ser (Corpo, Mente, Espírito) ou o ciclo do tempo (Passado, Presente, Futuro). Um caminho direto e reconfortante, ideal para principiantes ou crianças.</li><li><strong>5 Circuitos (O Guerreiro):</strong> Associado à mudança e à adaptação. Com cinco voltas, conecta-se com os 5 elementos e os 5 sentidos. É um design de equilíbrio, um passo intermédio entre o físico e o espiritual.</li><li><strong>7 Circuitos (O Clássico Cretense):</strong> O design mais antigo e famoso da Antiguidade. Aqui aprendemos uma lição vital de paciência.<br><em>A armadilha do ego:</em> Entra-se e o caminho conduz quase imediatamente perto do centro (anel 3), criando uma \"falsa sensação\" de ter chegado à meta. Mas então o caminho empurra para o anel mais exterior, longe do objetivo. Ensina-nos que o caminho mais curto nem sempre é uma linha reta.</li><li><strong>9 Circuitos (A Gestação):</strong> O número 9 representa a culminação de um ciclo (como os 9 meses de gravidez). É um labirinto de transição, introspecção profunda e preparação para um renascimento espiritual.</li><li><strong>11 Circuitos (A Mestria de Chartres):</strong> O design definitivo das catedrais góticas. A vibração mais elevada.<br><em>A Grande Jornada:</em> Entra-se e caminha-se em linha reta pelo corredor até ao anel 5, roçando a divindade, para depois ser enviado à periferia a purgar o ego (\"Purgatório\"). É uma peregrinação completa que alinha os chakras superiores antes de permitir entrar finalmente na Rosácea central.</li>",
+                seo_h3_2: "Como usar esta ferramenta para Meditar",
+                seo_p_3: "Concebemos este espaço para acalmar a ansiedade e centrar a mente. Sugerimos duas formas de uso:",
+                seo_list_3: "<li><strong>Respiração Sincronizada (Modo Auto):</strong> Prima \"Iniciar Peregrinação\". Siga a luz com o olhar e inspire profundamente enquanto a luz percorre um circuito para dentro, e expire quando mudar de sentido para fora. Ajuste a velocidade para coincidir com o seu ritmo cardíaco.</li><li><strong>Percurso Visual:</strong> Pare a animação. Use o dedo ou o ponteiro para percorrer o caminho lentamente, consciente de cada curva, sentindo como se afasta e se aproxima do centro, confiando que o caminho o conduz.</li>",
+                footer_coffee: "Pague-me um café (PayPal)", link_legal: "Aviso Legal", link_priv: "Privacidade", link_cook: "Cookies", link_cont: "Contacto", js_pause: "⏸ Pausar", js_continue: "▶ Continuar", js_reset: "↺ Reiniciar", js_inhale: "Inalando... Exalando...", js_follow: "Siga a luz com a sua respiração...", js_reached: "Chegou ao seu Centro."
+            },
+            it: {
+                nav_hub: "HUB", nav_back: "BACK", title_app: "Il Cammino Interiore", btn_png: "💾 Salva PNG", btn_jpg: "📸 Salva JPG", btn_start: "🚶‍♂️ Inizia Pellegrinaggio", status_initial: "Clicca per iniziare", group_design: "Ritmo & Design", label_speed: "⏳ Velocità", label_circuits: "🌀 Circuiti", label_wall: "Spessore Muro", group_atmos: "Atmosfera", label_c_wall: "Colore Muri", label_c_path: "Colore Cammino", label_c_orb: "Colore Orbe",
+                seo_h2_1: "Labirinto: Il Cammino verso il Centro di Sé",
+                seo_p_1: "Spesso confondiamo \"Labirinto\" con \"Maze\". La differenza è spirituale:",
+                seo_list_1: "<li><strong>Un Maze</strong> ha molte opzioni, vicoli ciechi ed è progettato per confonderci e farci perdere l'orientamento. È un gioco dell'ego.</li><li><strong>Un Labirinto Sacro</strong> (come quello di Chartres) ha <strong>un solo cammino</strong> (unicursale). Non ci sono decisioni da prendere, non ci si può perdere. Bisogna solo fidarsi del sentiero. È uno strumento dell'anima.</li>",
+                seo_h3_1: "Il Viaggio dell'Eroe: Significato dei Circuiti",
+                seo_p_2: "Nella Geometria Sacra, il cammino del labirinto non è casuale; è una mappa del <strong>Viaggio dell'Anima</strong>. A seconda del numero di circuiti scelti nel generatore, l'energia del percorso cambia:",
+                seo_list_2: "<li><strong>3 Circuiti (L'Origine):</strong> Il design più semplice e primordiale. Rappresenta le tre parti dell'essere (Corpo, Mente, Spirito) o il ciclo del tempo (Passato, Presente, Futuro). Un cammino diretto e confortante, ideale per principianti o bambini.</li><li><strong>5 Circuiti (Il Guerriero):</strong> Associato al cambiamento e all'adattamento. Con le sue cinque svolte, si connette con i 5 elementi e i 5 sensi. È un design di equilibrio, un passo intermedio tra il fisico e lo spirituale.</li><li><strong>7 Circuiti (Il Classico Cretese):</strong> Il design più antico e famoso dell'antichità. Qui impariamo una lezione vitale di pazienza.<br><em>La trappola dell'ego:</em> Si entra e il cammino conduce quasi subito vicino al centro (anello 3), dando una \"falsa sensazione\" di essere arrivati alla meta. Ma proprio allora, il percorso rimanda all'anello più esterno, lontano dall'obiettivo. Ci insegna che il cammino più breve non è sempre una linea retta.</li><li><strong>9 Circuiti (La Gestazione):</strong> Il numero 9 rappresenta la culminazione di un ciclo (come i 9 mesi di gravidanza). È un labirinto di transizione, introspezione profonda e preparazione a una rinascita spirituale.</li><li><strong>11 Circuiti (La Maestria di Chartres):</strong> Il design definitivo delle cattedrali gotiche. La vibrazione più alta.<br><em>Il Grande Viaggio:</em> Si entra e si cammina dritti lungo il corridoio fino all'anello 5, sfiorando il divino, per poi essere rimandati alla periferia a purificare l'ego (\"Purgatorio\"). È un pellegrinaggio completo che allinea i chakra superiori prima di permettere l'ingresso nella Rosetta centrale.</li>",
+                seo_h3_2: "Come usare questo strumento per Meditare",
+                seo_p_3: "Abbiamo progettato questo spazio per calmare l'ansia e centrare la mente. Suggeriamo due modalità d'uso:",
+                seo_list_3: "<li><strong>Respirazione Sincronizzata (Modalità Auto):</strong> Premi \"Inizia Pellegrinaggio\". Segui la luce con lo sguardo e inspira profondamente mentre la luce percorre un circuito verso l'interno, ed espira quando cambia direzione verso l'esterno. Regola la velocità in modo che corrisponda al tuo ritmo cardiaco.</li><li><strong>Percorso Visuale:</strong> Ferma l'animazione. Usa il dito o il puntatore per percorrere il cammino lentamente, consapevole di ogni curva, sentendo come ti allontani e ti avvicini al centro, fidandoti che il cammino ti guida.</li>",
+                footer_coffee: "Offrimi un caffè (PayPal)", link_legal: "Note Legali", link_priv: "Privacy", link_cook: "Cookies", link_cont: "Contatto", js_pause: "⏸ Pausa", js_continue: "▶ Continua", js_reset: "↺ Ricomincia", js_inhale: "Inspirando... Espirando...", js_follow: "Segui la luce con il tuo respiro...", js_reached: "Sei arrivato al tuo Centro."
+            },
+            nl: {
+                nav_hub: "HUB", nav_back: "BACK", title_app: "Het Innerlijke Pad", btn_png: "💾 PNG Opslaan", btn_jpg: "📸 JPG Opslaan", btn_start: "🚶‍♂️ Start Pelgrimstocht", status_initial: "Klik om te starten", group_design: "Ritme & Ontwerp", label_speed: "⏳ Snelheid", label_circuits: "🌀 Circuits", label_wall: "Muurdikte", group_atmos: "Atmosfeer", label_c_wall: "Kleur Muren", label_c_path: "Kleur Pad", label_c_orb: "Kleur Licht",
+                seo_h2_1: "Labyrint: De weg naar je eigen centrum",
+                seo_p_1: "We verwarren \"Labyrint\" vaak met een \"Doolhof\" (Maze). Het verschil is spiritueel:",
+                seo_list_1: "<li><strong>Een Maze</strong> heeft doodlopende wegen en is ontworpen om je te verwarren en de weg kwijt te raken. Het is een spel van het ego.</li><li><strong>Een Heilig Labyrint</strong> (zoals dat van Chartres) heeft <strong>slechts één pad</strong> (unicursaal). Er zijn geen beslissingen te nemen, je kunt niet verdwalen. Je moet alleen het pad vertrouwen. Het is een instrument van de ziel.</li>",
+                seo_h3_1: "De Heldenreis: Betekenis van de Circuits",
+                seo_p_2: "In Heilige Geometrie is het pad van het labyrint niet willekeurig; het is een kaart van de <strong>Reis van de Ziel</strong>. Afhankelijk van het aantal circuits dat je kiest in de generator, verandert de energie van het traject:",
+                seo_list_2: "<li><strong>3 Circuits (De Oorsprong):</strong> Het eenvoudigste en meest primordiale ontwerp. Vertegenwoordigt de drie delen van het zijn (Lichaam, Geest, Ziel) of de cyclus van de tijd (Verleden, Heden, Toekomst). Een direct en troostend pad, ideaal voor beginners of kinderen.</li><li><strong>5 Circuits (De Krijger):</strong> Verbonden met verandering en aanpassing. Met zijn vijf windingen verbindt het zich met de 5 elementen en de 5 zintuigen. Een uitgebalanceerd ontwerp, een tussenstap tussen het fysieke en het spirituele.</li><li><strong>7 Circuits (Het Klassieke Kretenzische):</strong> Het oudste en bekendste ontwerp uit de oudheid. Hier leren we een essentiële les in geduld.<br><em>De val van het ego:</em> Je stapt in en het pad leidt je bijna onmiddellijk naar het midden (ring 3), waardoor je een \"vals gevoel\" krijgt dat je al bent aangekomen. Maar dan stuurt het pad je naar de buitenste ring, ver van het doel. Het leert ons dat de kortste weg niet altijd een rechte lijn is.</li><li><strong>9 Circuits (De Zwangerschap):</strong> Het getal 9 staat voor de voltooiing van een cyclus (zoals de 9 maanden zwangerschap). Een labyrint van overgang, diepe introspectie en voorbereiding op een spirituele wedergeboorte.</li><li><strong>11 Circuits (De Meesterschap van Chartres):</strong> Het definitieve ontwerp van de gotische kathedralen. De hoogste trilling.<br><em>De Grote Reis:</em> Je loopt rechtdoor door de gang tot ring 5, de goddelijkheid rakend, om vervolgens naar de periferie te worden gestuurd om het ego te zuiveren (\"Vagevuur\"). Een volledige pelgrimstocht die de hogere chakra's uitlijnt voordat je eindelijk de centrale Rozet mag binnengaan.</li>",
+                seo_h3_2: "Hoe dit instrument voor Meditatie te gebruiken",
+                seo_p_3: "We hebben deze ruimte ontworpen om angst te kalmeren en de geest te centreren. We stellen twee gebruiksvormen voor:",
+                seo_list_3: "<li><strong>Gesynchroniseerde Ademhaling (Auto-modus):</strong> Druk op \"Start Pelgrimstocht\". Volg het licht met je ogen en adem diep in terwijl het licht een circuit naar binnen aflegt, en adem uit wanneer het van richting verandert naar buiten. Stel de snelheid in zodat deze overeenkomt met je hartritme.</li><li><strong>Visuele Reis:</strong> Stop de animatie. Gebruik je vinger of aanwijzer om het pad langzaam te volgen, je bewust van elke bocht, voelend hoe je je van het centrum verwijdert en er weer naartoe gaat, vertrouwend dat het pad je leidt.</li>",
+                footer_coffee: "Trakteer me op koffie (PayPal)", link_legal: "Colofon", link_priv: "Privacy", link_cook: "Cookies", link_cont: "Contact", js_pause: "⏸ Pauze", js_continue: "▶ Verder", js_reset: "↺ Opnieuw starten", js_inhale: "Inademen... Uitademen...", js_follow: "Volg het licht met je ademhaling...", js_reached: "Je hebt je centrum bereikt."
+            },
+            ja: {
+                nav_hub: "ハブ", nav_back: "戻る", title_app: "内なる道", btn_png: "💾 PNGを保存", btn_jpg: "📸 JPGを保存", btn_start: "🚶‍♂️ 巡礼を開始", status_initial: "クリックして開始", group_design: "リズムとデザイン", label_speed: "⏳ 速度", label_circuits: "🌀 回路", label_wall: "壁の厚さ", group_atmos: "雰囲気", label_c_wall: "壁の色", label_c_path: "道の色", label_c_orb: "光の色",
+                seo_h2_1: "迷宮：自分自身の中心への道",
+                seo_p_1: "「迷宮（ラビリンス）」と「迷路（メイズ）」はよく混同されますが、精神的な違いがあります：",
+                seo_list_1: "<li><strong>メイズ</strong>は多くの選択肢と行き止まりがあり、迷わせるように設計されています。エゴのゲームです。</li><li><strong>聖なるラビリンス</strong>（シャルトルのものなど）には<strong>一本道</strong>（一方通行）しかありません。決断する必要はなく、迷うこともありません。ただ道を信頼するだけでよいのです。魂のための道具です。</li>",
+                seo_h3_1: "英雄の旅：回路の意味",
+                seo_p_2: "神聖幾何学において、ラビリンスの道は偶然ではありません。それは<strong>魂の旅</strong>の地図です。ジェネレーターで選ぶ回路（周回）の数によって、旅の持つエネルギーが変わります：",
+                seo_list_2: "<li><strong>3回路（起源）：</strong>最もシンプルで原初的なデザイン。存在の三部（体・心・精神）または時間のサイクル（過去・現在・未来）を表します。初心者や子どもに最適な、直接的で安らぎのある道です。</li><li><strong>5回路（戦士）：</strong>変化と適応に関連しています。五つの周回を持つことで、5つの元素と5つの感覚と繋がります。肉体的なものと精神的なものの中間に位置する、バランスのとれたデザインです。</li><li><strong>7回路（古典的なクレタ島式）：</strong>古代で最も古く有名なデザイン。ここで私たちは忍耐という重要な教訓を学びます。<br><em>エゴの罠：</em>入ると道がすぐに中心近く（リング3）へと導きます。もう目標に到達したかのような「錯覚」を与えます。しかしその瞬間、道は最も外側のリングへと追いやります。人生において最短経路が常に直線とは限らないことを教えてくれます。</li><li><strong>9回路（懐胎）：</strong>9という数字はあるサイクルの完成を表します（妊娠の9ヶ月のように）。移行・深い内省・霊的な再生への準備のためのラビリンスです。</li><li><strong>11回路（シャルトルの熟達）：</strong>ゴシック大聖堂の究極のデザイン。最高の波動。<br><em>偉大な旅：</em>7回路と同様のことが、より大きなスケールで起こります。入って廊下をリング5まで真っすぐ歩き、神性に触れた後、エゴを浄化するために外縁部（「煉獄」）へと送られます。最終的に中央のロゼット（薔薇窓）へ入ることを許される前に、上位チャクラを整える完全な巡礼です。</li>",
+                seo_h3_2: "瞑想のためのこのツールの使い方",
+                seo_p_3: "このスペースは不安を和らげ、心を集中させるために設計されました。二つの使い方をご提案します：",
+                seo_list_3: "<li><strong>呼吸の同期（オートモード）：</strong>「巡礼を開始」を押してください。目で光を追いながら、光が内側へ向かう回路を進む間は深く吸い込み、外側へ向きを変えたときに吐き出してください。心拍数に合わせて速度を調整してください。</li><li><strong>視覚的な旅：</strong>アニメーションを停止してください。指やマウスポインターを使って、道をゆっくりとたどり、中心から遠ざかり近づく感覚を意識しながら、一つ一つの曲がり角に気づき、道が自分を導いてくれると信頼してください。</li>",
+                footer_coffee: "コーヒーを奢る (PayPal)", link_legal: "法的通知", link_priv: "プライバシー", link_cook: "クッキー", link_cont: "お問い合わせ", js_pause: "⏸ 一時停止", js_continue: "▶ 続行", js_reset: "↺ 最初から", js_inhale: "吸って... 吐いて...", js_follow: "呼吸を光に合わせてください...", js_reached: "あなたの中心に到達しました。"
             }
         };
-        document.getElementById('speed').oninput = (e) => { state.speed = parseFloat(e.target.value); document.getElementById('speedVal').innerText = state.speed; };
-        document.getElementById('circuits').oninput = (e) => { state.circuits = parseInt(e.target.value); document.getElementById('circuitVal').innerText = state.circuits; state.progress = 0; generatePathData(); };
-        document.getElementById('wallWidth').oninput = (e) => { state.wallWidth = parseInt(e.target.value); };
-        document.getElementById('colorWalls').oninput = (e) => { state.colorWalls = e.target.value; };
-        document.getElementById('colorOrb').oninput = (e) => { state.colorOrb = e.target.value; };
-        document.getElementById('btnPng').onclick = () => saveImage('png');
-        document.getElementById('btnJpg').onclick = () => saveImage('jpeg');
-    }
 
-    function saveImage(format) {
-        const link = document.createElement('a'); link.download = `laberinto.${format}`;
-        if(format === 'jpeg') {
-            const tC = document.createElement('canvas'); tC.width = canvas.width; tC.height = canvas.height;
-            const tX = tC.getContext('2d'); tX.fillStyle = '#050505'; tX.fillRect(0,0,tC.width,tC.height); tX.drawImage(canvas,0,0);
-            link.href = tC.toDataURL('image/jpeg', 0.9);
-        } else { link.href = canvas.toDataURL('image/png'); }
-        link.click();
-    }
-    init();
-</script>
+
+
+
+
+        function updateStatusText(tr) {
+            const btn = document.getElementById('btnToggleWalk');
+            const status = document.getElementById('statusText');
+            if (state.progress >= 1) { btn.innerText = tr.js_reset; status.innerText = tr.js_reached; }
+            else if (state.walking) { btn.innerText = tr.js_pause; status.innerText = tr.js_follow; }
+            else if (state.progress > 0) { btn.innerText = tr.js_continue; status.innerText = "Pausa"; }
+        }
+
+        const canvas = document.getElementById('labyrinthCanvas');
+        const ctx = canvas.getContext('2d');
+        const state = { circuits: 7, wallWidth: 4, speed: 3, walking: false, progress: 0, colorWalls: '#555555', colorPath: '#111111', colorOrb: '#d4af37', pathData: [] };
+        let centerX, centerY, maxRadius;
+
+        function init() {
+            resize(); window.addEventListener('resize', resize); setupControls(); generatePathData(); animate();
+            setLang(localStorage.getItem('gl_lang') || 'es');
+        }
+
+        function resize() {
+            const parent = canvas.parentElement;
+            canvas.width = parent.clientWidth; canvas.height = parent.clientHeight;
+            centerX = canvas.width / 2; centerY = canvas.height / 2;
+            maxRadius = Math.min(centerX, centerY) * 0.9; generatePathData();
+        }
+
+        function generatePathData() {
+            state.pathData = []; const circuits = state.circuits; const laneWidth = maxRadius / (circuits + 1.5);
+            let sequence = (circuits === 3) ? [1, 2, 3] : (circuits === 7) ? [3, 2, 1, 4, 7, 6, 5] : (circuits === 11) ? [5, 4, 3, 2, 1, 6, 11, 10, 9, 8, 7] : Array.from({ length: circuits }, (_, i) => i + 1);
+            state.pathData.push({ x: centerX, y: canvas.height });
+            const startRadius = sequence[0] * laneWidth;
+            for (let j = 0; j <= 30; j++) {
+                const t = j / 30; const currentY = canvas.height - ((canvas.height - (centerY + startRadius)) * t);
+                state.pathData.push({ x: centerX, y: currentY });
+            }
+            for (let i = 0; i < sequence.length; i++) {
+                const radius = sequence[i] * laneWidth; const isClockwise = (i % 2 !== 0);
+                const startAngle = Math.PI / 2; const endAngle = Math.PI / 2 + (Math.PI * 2 * 0.96) * (isClockwise ? 1 : -1);
+                for (let s = 0; s <= 120; s++) {
+                    const angle = startAngle + (endAngle - startAngle) * (s / 120);
+                    state.pathData.push({ x: centerX + radius * Math.cos(angle), y: centerY + radius * Math.sin(angle) });
+                }
+            }
+            state.pathData.push({ x: centerX, y: centerY + (sequence[sequence.length - 1] * laneWidth) });
+            state.pathData.push({ x: centerX, y: centerY });
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const laneWidth = maxRadius / (state.circuits + 1.5);
+            ctx.strokeStyle = state.colorWalls; ctx.lineWidth = state.wallWidth; ctx.lineCap = 'butt';
+            const gapAngle = 0.15;
+            for (let i = 1; i <= state.circuits; i++) {
+                const r = i * laneWidth + (laneWidth / 2);
+                ctx.beginPath(); ctx.arc(centerX, centerY, r, Math.PI / 2 + gapAngle, Math.PI / 2 + (Math.PI * 2) - gapAngle); ctx.stroke();
+            }
+            if (state.pathData.length > 0) {
+                const idx = Math.min(Math.floor(state.progress * (state.pathData.length - 1)), state.pathData.length - 1);
+                const p = state.pathData[idx];
+                const glow = ctx.createRadialGradient(p.x, p.y, 1, p.x, p.y, laneWidth * 1.5);
+                glow.addColorStop(0, state.colorOrb); glow.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(p.x, p.y, laneWidth * 1.2, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(p.x, p.y, laneWidth * 0.3, 0, Math.PI * 2); ctx.fill();
+            }
+        }
+
+        function animate() {
+            if (state.walking) {
+                state.progress += (state.speed * 0.0003);
+                if (state.progress >= 1) {
+                    state.progress = 1; state.walking = false;
+                    const tr = translations[localStorage.getItem('gl_lang') || 'es'];
+                    document.getElementById('btnToggleWalk').innerText = tr.js_reset;
+                    document.getElementById('statusText').innerText = tr.js_reached;
+                }
+            }
+            draw(); requestAnimationFrame(animate);
+        }
+
+        function setupControls() {
+            const btnWalk = document.getElementById('btnToggleWalk');
+            const status = document.getElementById('statusText');
+            btnWalk.onclick = () => {
+                const tr = translations[localStorage.getItem('gl_lang') || 'es'];
+                if (state.progress >= 1) { state.progress = 0; state.walking = true; btnWalk.innerText = tr.js_pause; status.innerText = tr.js_inhale; }
+                else {
+                    state.walking = !state.walking;
+                    btnWalk.innerText = state.walking ? tr.js_pause : tr.js_continue;
+                    status.innerText = state.walking ? tr.js_follow : "Pausa";
+                }
+            };
+            document.getElementById('speed').oninput = (e) => { state.speed = parseFloat(e.target.value); document.getElementById('speedVal').innerText = state.speed; };
+            document.getElementById('circuits').oninput = (e) => { state.circuits = parseInt(e.target.value); document.getElementById('circuitVal').innerText = state.circuits; state.progress = 0; generatePathData(); };
+            document.getElementById('wallWidth').oninput = (e) => { state.wallWidth = parseInt(e.target.value); };
+            document.getElementById('colorWalls').oninput = (e) => { state.colorWalls = e.target.value; };
+            document.getElementById('colorOrb').oninput = (e) => { state.colorOrb = e.target.value; };
+            document.getElementById('btnPng').onclick = () => saveImage('png');
+            document.getElementById('btnJpg').onclick = () => saveImage('jpeg');
+        }
+
+        function saveImage(format) {
+            const link = document.createElement('a'); link.download = `laberinto.${format}`;
+            if (format === 'jpeg') {
+                const tC = document.createElement('canvas'); tC.width = canvas.width; tC.height = canvas.height;
+                const tX = tC.getContext('2d'); tX.fillStyle = '#050505'; tX.fillRect(0, 0, tC.width, tC.height); tX.drawImage(canvas, 0, 0);
+                link.href = tC.toDataURL('image/jpeg', 0.9);
+            } else { link.href = canvas.toDataURL('image/png'); }
+            link.click();
+        }
+        let currentLang = 'ca';
+
+        function setLang(lang) {
+            const l = lang.toLowerCase();
+            localStorage.setItem('gl_lang', l);
+            const t = translations[l] || translations['es'];
+            currentLang = l;
+
+            if (!t) return;
+
+            // Traducción súper limpia usando tus etiquetas data-i18n
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) {
+                    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.placeholder = t[key];
+                    else el.innerHTML = t[key];
+                }
+            });
+
+            // Resaltado de botones
+            document.querySelectorAll('.lang-switch button, .lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.id === 'btn-' + l || btn.innerText.toLowerCase() === l);
+            });
+
+            // Actualizar textos dinámicos del estado de animación al instante
+            const btnWalk = document.getElementById('btnToggleWalk');
+            const status = document.getElementById('statusText');
+            if (state.progress >= 1) {
+                btnWalk.innerText = t.js_reset;
+                status.innerText = t.js_reached;
+            } else if (state.walking) {
+                btnWalk.innerText = t.js_pause;
+                status.innerText = t.js_follow;
+            } else if (state.progress > 0) {
+                btnWalk.innerText = t.js_continue;
+                status.innerText = "Pausa";
+            } else {
+                btnWalk.innerText = t.btn_start;
+                status.innerText = t.status_initial;
+            }
+        }
+
+        function init() {
+            resize();
+            window.addEventListener('resize', resize);
+            setupControls();
+            generatePathData();
+            animate();
+        }
+
+        // Arrancar el sistema
+        init();
+
+        /* --- INICIALIZACIÓN SÍNCRONA DE IDIOMAS --- */
+        const pathParts = window.location.pathname.split('/');
+        const urlLang = pathParts.find(p => window.__GL_LANGS && window.__GL_LANGS.includes(p));
+        const finalLang = urlLang || localStorage.getItem('gl_lang') || 'ca';
+        setLang(finalLang);
+
+    </script>
 </body>
+
 </html>

@@ -1,48 +1,41 @@
 <!DOCTYPE html>
 <html lang="ca">
+
 <head>
     <meta charset="UTF-8">
     <script>
-    // --- i18n URL Router ---
-    (function() {
-        window.__GL_LANG = 'ca';
-        window.__GL_LANG_UPPER = 'CA';
-        window.__GL_LANGS = ['es', 'ca', 'en', 'fr', 'de', 'pt', 'it', 'nl', 'ja'];
-        
-        // Override localStorage to always use URL-based language
-        localStorage.setItem('gl_lang', 'ca');
-        
-        // Language switcher: navigate to the equivalent page in the target language folder
-        window.switchLangUrl = function(targetLang) {
-            var path = window.location.pathname;
-            // Replace current lang segment with target lang
-            var newPath = path.replace(/^\/(es|ca|en|fr|de|pt|it|nl|ja)\//, '/' + targetLang.toLowerCase() + '/');
-            if (newPath === path) {
-                // Fallback: prepend lang
-                newPath = '/' + targetLang.toLowerCase() + '/';
-            }
-            window.location.href = newPath + window.location.hash;
-        };
-        
-        // Auto-call setLang on DOMContentLoaded to apply translations
-        // Some labs use uppercase keys (ES/EN), others lowercase (es/en)
-        document.addEventListener('DOMContentLoaded', function() {
-            if (typeof setLang === 'function') {
-                // Try uppercase first (used by most lab pages with inline translations)
-                try { setLang('CA'); } catch(e) {}
-                // Also try lowercase (used by magic-square style pages)
-                try { setLang('ca'); } catch(e) {}
-            }
-        });
-    })();
+        // --- i18n URL Router ---
+        (function () {
+            var _p = window.location.pathname.match(/\/(es|ca|en|fr|de|pt|it|nl|ja)\//i);
+            window.__GL_LANG = _p ? _p[1].toLowerCase() : 'ca';
+            window.__GL_LANG_UPPER = window.__GL_LANG.toUpperCase();
+            window.__GL_LANGS = ['es', 'ca', 'en', 'fr', 'de', 'pt', 'it', 'nl', 'ja'];
+
+            window.switchLangUrl = function (targetLang) {
+                var path = window.location.pathname;
+                var langPattern = /\/(es|ca|en|fr|de|pt|it|nl|ja)\//i;
+
+                // Si ya estamos en el idioma seleccionado, cancelamos la redirección
+                var match = path.match(langPattern);
+                if (match && match[1].toLowerCase() === targetLang.toLowerCase()) {
+                    return;
+                }
+
+                var newPath = path.replace(langPattern, '/' + targetLang.toLowerCase() + '/');
+                if (newPath === path) {
+                    newPath = '/' + targetLang.toLowerCase() + '/';
+                }
+                window.location.href = newPath + window.location.hash;
+            };
+        })();
     </script>
     <title>Harmonograph Lab | Graphics Labs</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="description" content="Laboratori interactiu de Harmonograph Lab. Experimenta amb art generatiu i matemàtiques visuals a Graphics Labs.">
     
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3150277567590534"
-     crossorigin="anonymous"></script>
-    
+
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3150277567590534"
+        crossorigin="anonymous"></script>
+
     <style>
         :root {
             --primary: #00ff41;
@@ -50,119 +43,532 @@
             --nav-bg: rgba(0, 0, 0, 0.85);
         }
 
-        html, body { 
-            margin: 0; padding: 0; background-color: #000; font-family: 'Segoe UI', Roboto, sans-serif; color: #ddd; 
-            overflow-x: hidden; overscroll-behavior: none;
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            color: #ddd;
+            overflow-x: hidden;
+            overscroll-behavior: none;
         }
 
         /* --- SISTEMA DE NAVEGACIÓN SUPERIOR --- */
         .top-nav {
-            position: fixed; top: 0; left: 0; width: 100%; height: 65px;
-            background: var(--nav-bg); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 0 20px; box-sizing: border-box; z-index: 1000;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 65px;
+            background: var(--nav-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            box-sizing: border-box;
+            z-index: 1000;
             border-bottom: 1px solid var(--glass);
         }
-        .nav-left { display: flex; align-items: center; gap: 15px; }
-        .nav-brand { color: var(--primary); font-weight: 900; letter-spacing: 2px; font-size: 1.2em; text-decoration: none; }
-        .nav-btn { 
-            background: var(--glass); border: 1px solid #333; color: #fff; padding: 6px 12px; 
-            border-radius: 4px; text-decoration: none; font-size: 0.8em; font-weight: bold; transition: 0.3s;
-        }
-        .nav-btn:hover { background: var(--primary); color: #000; border-color: var(--primary); }
 
-        .lang-selector { display: flex; gap: 5px; }
-        .lang-btn { 
-            background: transparent; border: 1px solid #444; color: #888; padding: 4px 8px; 
-            border-radius: 3px; cursor: pointer; font-size: 0.7em; transition: 0.3s;
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
-        .lang-btn.active { border-color: var(--primary); color: var(--primary); background: rgba(0, 255, 65, 0.1); }
-        .lang-btn:hover { color: #fff; border-color: #666; }
+
+        .nav-brand {
+            color: var(--primary);
+            font-weight: 900;
+            letter-spacing: 2px;
+            font-size: 1.2em;
+            text-decoration: none;
+        }
+
+        .nav-btn {
+            background: var(--glass);
+            border: 1px solid #333;
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 0.8em;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .nav-btn:hover {
+            background: var(--primary);
+            color: #000;
+            border-color: var(--primary);
+        }
+
+        .lang-selector {
+            display: flex;
+            gap: 5px;
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 1px solid #444;
+            color: #888;
+            padding: 4px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.7em;
+            transition: 0.3s;
+        }
+
+        .lang-btn.active {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(0, 255, 65, 0.1);
+        }
+
+        .lang-btn:hover {
+            color: #fff;
+            border-color: #666;
+        }
 
         /* --- LAYOUT DEL SIMULADOR --- */
-        #app-wrapper { 
-            display: flex; width: 100%; height: 100vh; overflow: hidden; position: relative; padding-top: 65px; box-sizing: border-box;
+        #app-wrapper {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+            padding-top: 65px;
+            box-sizing: border-box;
         }
-        
+
         #canvas-container {
-            flex: 3; position: relative; background: radial-gradient(circle at center, #111 0%, #000 100%);
-            cursor: default; overflow: hidden; touch-action: none;
+            flex: 3;
+            position: relative;
+            background: radial-gradient(circle at center, #111 0%, #000 100%);
+            cursor: default;
+            overflow: hidden;
+            touch-action: none;
         }
-        canvas { display: block; width: 100%; height: 100%; }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
 
         #controls-container {
-            flex: 1.2; min-width: 340px; background-color: #080808; padding: 25px;
-            overflow-y: auto; box-shadow: -5px 0 30px rgba(0,0,0,0.8); border-left: 1px solid #222; z-index: 10;
+            flex: 1.2;
+            min-width: 340px;
+            background-color: #080808;
+            padding: 25px;
+            overflow-y: auto;
+            box-shadow: -5px 0 30px rgba(0, 0, 0, 0.8);
+            border-left: 1px solid #222;
+            z-index: 10;
         }
 
-        h2 { color: var(--primary); margin: 0 0 15px 0; text-align: center; letter-spacing: 2px; text-transform: uppercase; text-shadow: 0 0 15px rgba(0, 255, 65, 0.3); }
-        
-        .btn-group { display: flex; gap: 10px; margin-bottom: 25px; }
+        h2 {
+            color: var(--primary);
+            margin: 0 0 15px 0;
+            text-align: center;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
         .export-btn {
-            flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;
-            transition: all 0.2s; font-size: 0.9em;
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9em;
         }
-        .export-btn:hover { filter: brightness(1.2); transform: translateY(-2px); }
-        #btnPng { background-color: var(--primary); color: #000; } 
-        #btnJpg { background-color: #fff; color: #000; } 
 
-        .control-group { background: var(--glass); border: 1px solid #333; border-radius: 8px; padding: 15px; margin-bottom: 20px; }
-        .control-row { display: flex; align-items: center; margin-bottom: 12px; font-size: 0.9em; justify-content: space-between; }
-        .control-label { color: #ccc; font-weight: 500; flex: 1; }
-        
-        input[type=range] { flex: 2; cursor: pointer; accent-color: var(--primary); }
-        input[type=color] { border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; padding: 0; overflow: hidden; }
-        .value-display { flex: 0.5; text-align: right; font-family: monospace; color: var(--primary); font-size: 0.9em; }
+        .export-btn:hover {
+            filter: brightness(1.2);
+            transform: translateY(-2px);
+        }
+
+        #btnPng {
+            background-color: var(--primary);
+            color: #000;
+        }
+
+        #btnJpg {
+            background-color: #fff;
+            color: #000;
+        }
+
+        .control-group {
+            background: var(--glass);
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .control-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 0.9em;
+            justify-content: space-between;
+        }
+
+        .control-label {
+            color: #ccc;
+            font-weight: 500;
+            flex: 1;
+        }
+
+        input[type=range] {
+            flex: 2;
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
+
+        input[type=color] {
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .value-display {
+            flex: 0.5;
+            text-align: right;
+            font-family: monospace;
+            color: var(--primary);
+            font-size: 0.9em;
+        }
 
         .btn-main {
-            width: 100%; padding: 14px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-bottom: 10px;
-            background: linear-gradient(45deg, #00bc30, var(--primary)); color: #000; font-size: 1em;
-            transition: all 0.3s; box-shadow: 0 0 15px rgba(0, 255, 65, 0.2);
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #00bc30, var(--primary));
+            color: #000;
+            font-size: 1em;
+            transition: all 0.3s;
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.2);
         }
-        .btn-main:hover { filter: brightness(1.2); letter-spacing: 1px; }
 
-        .preset-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
-        .btn-preset { background: #1a1a1a; color: #aaa; border: 1px solid #333; padding: 8px; border-radius: 4px; cursor: pointer; font-size: 0.8em; transition: 0.2s;}
-        .btn-preset:hover { background: #252525; color: #fff; border-color: var(--primary); }
-        .btn-preset.active { background: rgba(0, 255, 65, 0.2); color: #fff; border-color: var(--primary); }
+        .btn-main:hover {
+            filter: brightness(1.2);
+            letter-spacing: 1px;
+        }
+
+        .preset-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .btn-preset {
+            background: #1a1a1a;
+            color: #aaa;
+            border: 1px solid #333;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: 0.2s;
+        }
+
+        .btn-preset:hover {
+            background: #252525;
+            color: #fff;
+            border-color: var(--primary);
+        }
+
+        .btn-preset.active {
+            background: rgba(0, 255, 65, 0.2);
+            color: #fff;
+            border-color: var(--primary);
+        }
 
         /* --- ADS & CONTENT --- */
         .ad-container {
-            border: 1px dashed #444; background: #0a0a0a; color: #555;
-            padding: 20px; margin: 40px auto; max-width: 900px; text-align: center;
-            font-family: 'Courier New', monospace; font-size: 0.8em; letter-spacing: 2px;
+            border: 1px dashed #444;
+            background: #0a0a0a;
+            color: #555;
+            padding: 20px;
+            margin: 40px auto;
+            max-width: 900px;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8em;
+            letter-spacing: 2px;
         }
 
-        .content-section { max-width: 900px; margin: 0 auto; padding: 20px; background-color: #000; position: relative; z-index: 20; }
-        article h2 { color: var(--primary); border-left: 4px solid var(--primary); padding-left: 15px; margin-top: 60px; font-size: 1.8em; }
-        article h3 { color: #fff; margin-top: 40px; font-size: 1.4em; border-bottom: 1px solid #222; padding-bottom: 10px; }
-        article p { margin-bottom: 20px; font-size: 1.05em; color: #bbb; line-height: 1.8; text-align: justify; }
-        article ul { list-style: none; padding: 0; }
-        article li { margin-bottom: 15px; padding-left: 20px; border-left: 2px solid var(--primary); color: #aaa; }
-        article strong { color: var(--primary); }
+        .content-section {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #000;
+            position: relative;
+            z-index: 20;
+        }
+
+        article h2 {
+            color: var(--primary);
+            border-left: 4px solid var(--primary);
+            padding-left: 15px;
+            margin-top: 60px;
+            font-size: 1.8em;
+        }
+
+        article h3 {
+            color: #fff;
+            margin-top: 40px;
+            font-size: 1.4em;
+            border-bottom: 1px solid #222;
+            padding-bottom: 10px;
+        }
+
+        article p {
+            margin-bottom: 20px;
+            font-size: 1.05em;
+            color: #bbb;
+            line-height: 1.8;
+            text-align: justify;
+        }
+
+        article ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        article li {
+            margin-bottom: 15px;
+            padding-left: 20px;
+            border-left: 2px solid var(--primary);
+            color: #aaa;
+        }
+
+        article strong {
+            color: var(--primary);
+        }
 
         /* --- FOOTER --- */
-        footer { background-color: #050505; padding: 60px 20px; text-align: center; border-top: 1px solid #222; font-size: 0.9em; color: #666; }
-        .paypal-btn {
-            display: inline-block; background: #0070ba; color: #fff; padding: 12px 25px; 
-            border-radius: 50px; text-decoration: none; font-weight: bold; margin-bottom: 30px;
-            transition: 0.3s; box-shadow: 0 4px 15px rgba(0, 112, 186, 0.3);
+        footer {
+            background-color: #050505;
+            padding: 60px 20px;
+            text-align: center;
+            border-top: 1px solid #222;
+            font-size: 0.9em;
+            color: #666;
         }
-        .paypal-btn:hover { transform: scale(1.05); background: #0080d6; }
-        .footer-links { margin: 20px 0; }
-        .footer-links a { color: #888; text-decoration: none; margin: 0 10px; }
-        .footer-links a:hover { color: var(--primary); }
+
+        .paypal-btn {
+            display: inline-block;
+            background: #0070ba;
+            color: #fff;
+            padding: 12px 25px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-bottom: 30px;
+            transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 112, 186, 0.3);
+        }
+
+        .paypal-btn:hover {
+            transform: scale(1.05);
+            background: #0080d6;
+        }
+
+        .footer-links {
+            margin: 20px 0;
+        }
+
+        .footer-links a {
+            color: #888;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary);
+        }
 
         @media (max-width: 900px) {
-            #app-wrapper { display: block; height: auto; }
-            #canvas-container { height: 60vh; border-bottom: 2px solid var(--primary); }
-            #controls-container { min-width: 100%; box-sizing: border-box; }
-            .top-nav { padding: 0 10px; }
-            .nav-brand { font-size: 0.9em; }
-            .lang-selector { display: none; } /* Ocultar en móvil para dar espacio */
+            #app-wrapper {
+                display: block;
+                height: auto;
+            }
+
+            #canvas-container {
+                height: 60vh;
+                border-bottom: 2px solid var(--primary);
+            }
+
+            #controls-container {
+                min-width: 100%;
+                box-sizing: border-box;
+            }
+
+            .top-nav {
+                padding: 0 10px;
+            }
+
+            .nav-brand {
+                font-size: 0.9em;
+            }
+
+            .lang-selector {
+                display: none;
+            }
+
+            /* Ocultar en móvil para dar espacio */
         }
-    </style>
-    <link rel="canonical" href="https://graphics-labs.org/ca/labs/harmonograph-lab/" />
+
+        /* ==GL-NAV== */
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 20px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            flex-wrap: wrap;
+            gap: 10px;
+            box-sizing: border-box;
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-bc {
+            font-size: .8rem;
+            font-weight: 900;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+        }
+
+        .nav-bc .gl-hub {
+            color: rgba(255, 255, 255, .45);
+            text-decoration: none;
+            transition: color .2s;
+        }
+
+        .nav-bc .gl-hub:hover {
+            color: rgba(255, 255, 255, .85);
+        }
+
+        .nav-bc .gl-sep {
+            color: rgba(255, 255, 255, .2);
+            margin: 0 7px;
+            font-weight: 400;
+        }
+
+        .nav-bc .gl-sec {
+            color: var(--primary);
+            text-decoration: none;
+            transition: opacity .2s;
+        }
+
+        .nav-bc .gl-sec:hover {
+            opacity: .75;
+        }
+
+        .lang-switch {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .lang-switch button,
+        .lang-selector button,
+        .lang-btn {
+            background: rgba(0, 0, 0, .4);
+            border: 1px solid rgba(255, 255, 255, .1);
+            color: #999;
+            width: 38px;
+            height: 28px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: .7rem;
+            font-weight: 700;
+            transition: .2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lang-switch button:hover,
+        .lang-selector button:hover,
+        .lang-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .lang-switch button.active,
+        .lang-selector button.active,
+        .lang-btn.active {
+            background: var(--primary);
+            color: #000;
+            border-color: var(--primary);
+        }
+
+        @media(max-width:620px) {
+            .top-nav {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 12px 15px;
+            }
+
+            .lang-switch,
+            .lang-selector {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* ==/GL-NAV== */
+    
+        /* Fix SEO H1 Automático */
+        h1[id*="title"], h1[data-i18n*="title"], h1[data-i18n*="app"], h1[data-i18n*="lab"] {
+            font-size: 1.5rem;
+            color: var(--primary, #00ff41);
+            margin-bottom: 20px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+</style>
+    
 
     <link rel="alternate" hreflang="es" href="https://graphics-labs.org/es/labs/harmonograph-lab/" />
     <link rel="alternate" hreflang="ca" href="https://graphics-labs.org/ca/labs/harmonograph-lab/" />
@@ -174,510 +580,653 @@
     <link rel="alternate" hreflang="nl" href="https://graphics-labs.org/nl/labs/harmonograph-lab/" />
     <link rel="alternate" hreflang="ja" href="https://graphics-labs.org/ja/labs/harmonograph-lab/" />
     <link rel="alternate" hreflang="x-default" href="https://graphics-labs.org/es/labs/harmonograph-lab/" />
+    <meta name="description"
+        content="Laboratori interactiu de Harmonograph Lab. Experimenta amb art generatiu i matemàtiques visuals a Graphics Labs.">
+    <link rel="canonical" href="https://graphics-labs.org/ca/labs/harmonograph-lab/" />
 </head>
+
 <body>
 
-<nav class="top-nav">
-    <div class="nav-left">
-        <a href="../../index.html" class="nav-btn" data-i18n="nav_hub">HUB</a>
-        <a href="javascript:history.back()" class="nav-btn" data-i18n="nav_back">BACK</a>
-        <span class="nav-brand">GRAPHICS LABS</span>
-    </div>
-    <div class="lang-selector">
-        <button class="lang-btn active" onclick="changeLanguage('es')">ES</button>
-        <button class="lang-btn" onclick="changeLanguage('ca')">CA</button>
-        <button class="lang-btn" onclick="changeLanguage('en')">EN</button>
-        <button class="lang-btn" onclick="changeLanguage('fr')">FR</button>
-        <button class="lang-btn" onclick="changeLanguage('de')">DE</button>
-        <button class="lang-btn" onclick="changeLanguage('pt')">PT</button>
-        <button class="lang-btn" onclick="changeLanguage('it')">IT</button>
-        <button class="lang-btn" onclick="changeLanguage('nl')">NL</button>
-        <button class="lang-btn" onclick="changeLanguage('ja')">JA</button>
-    </div>
-</nav>
 
-<div id="app-wrapper">
-    <div id="canvas-container">
-        <canvas id="harmonographCanvas"></canvas>
-    </div>
-
-    <div id="controls-container">
-        <h2 data-i18n="sim_title">Harmonógrafo</h2>
-        
-        <div class="btn-group">
-            <button id="btnPng" class="export-btn" data-i18n="btn_png">💾 Guardar PNG</button>
-            <button id="btnJpg" class="export-btn" data-i18n="btn_jpg">📸 Guardar JPG</button>
-        </div>
-
-        <button id="btnDraw" class="btn-main" data-i18n="btn_draw">🖋️ Soltar Péndulos (Dibujar)</button>
-
-        <div class="control-group">
-            <h3 style="margin:0 0 10px 0; color:#fff; font-size:0.9em; border-bottom:1px solid #444; padding-bottom:5px;" data-i18n="group_presets">Acordes Visuales (Presets)</h3>
-            <div class="preset-grid">
-                <button class="btn-preset active" onclick="setPreset('unison')" data-i18n="p_unison">Unísono (1:1)</button>
-                <button class="btn-preset" onclick="setPreset('octave')" data-i18n="p_octave">Octava (2:1)</button>
-                <button class="btn-preset" onclick="setPreset('fifth')" data-i18n="p_fifth">Quinta (3:2)</button>
-                <button class="btn-preset" onclick="setPreset('fourth')" data-i18n="p_fourth">Cuarta (4:3)</button>
-                <button class="btn-preset" onclick="setPreset('complex')" data-i18n="p_complex">Complejo</button>
-                <button class="btn-preset" onclick="setPreset('chaos')" data-i18n="p_chaos">Disonancia</button>
+    <nav class="top-nav">
+        <div class="nav-left">
+            <div class="nav-bc">
+                <a href="../../index.html" class="gl-hub">GRAPHICS LABS</a>
+                <span class="gl-sep">&gt;</span>
+                <a href="../geometria-sagrada-index.html" class="gl-sec">GEO-S</a>
             </div>
         </div>
+        <div class="lang-switch">
+            <button onclick="switchLangUrl('es')" id="btn-es" class="lang-btn">ES</button>
+            <button onclick="switchLangUrl('ca')" id="btn-ca" class="lang-btn">CA</button>
+            <button onclick="switchLangUrl('en')" id="btn-en" class="lang-btn">EN</button>
+            <button onclick="switchLangUrl('fr')" id="btn-fr" class="lang-btn">FR</button>
+            <button onclick="switchLangUrl('de')" id="btn-de" class="lang-btn">DE</button>
+            <button onclick="switchLangUrl('pt')" id="btn-pt" class="lang-btn">PT</button>
+            <button onclick="switchLangUrl('it')" id="btn-it" class="lang-btn">IT</button>
+            <button onclick="switchLangUrl('nl')" id="btn-nl" class="lang-btn">NL</button>
+            <button onclick="switchLangUrl('ja')" id="btn-ja" class="lang-btn">JA</button>
+        </div>
+    </nav>
 
-        <div class="control-group">
-            <h3 style="margin:0 0 10px 0; color:#fff; font-size:0.9em; border-bottom:1px solid #444; padding-bottom:5px;" data-i18n="group_pendulums">Péndulos (Frecuencias)</h3>
-            
-            <div class="control-row">
-                <span class="control-label" data-i18n="label_freqA">Péndulo A (Eje X)</span>
-                <input type="range" id="freqA" min="1" max="10" step="0.01" value="2.0">
-                <span id="valA" class="value-display">2.00</span>
-            </div>
-            <div class="control-row">
-                <span class="control-label" data-i18n="label_freqB">Péndulo B (Eje Y)</span>
-                <input type="range" id="freqB" min="1" max="10" step="0.01" value="3.0">
-                <span id="valB" class="value-display">3.00</span>
-            </div>
-            <div class="control-row">
-                <span class="control-label" data-i18n="label_damping">Fricción (Duración)</span>
-                <input type="range" id="damping" min="0.0001" max="0.002" step="0.0001" value="0.0005">
-            </div>
-            <div class="control-row">
-                <span class="control-label" data-i18n="label_phase">Desfase (Giro)</span>
-                <input type="range" id="phase" min="0" max="360" step="1" value="90">
-                <span id="valPhase" class="value-display">90°</span>
-            </div>
+    <div id="app-wrapper">
+        <div id="canvas-container">
+            <canvas id="harmonographCanvas"></canvas>
         </div>
 
-        <div class="control-group">
-            <h3 style="margin:0 0 10px 0; color:#fff; font-size:0.9em; border-bottom:1px solid #444; padding-bottom:5px;" data-i18n="group_style">Estilo Pluma</h3>
-            <div class="control-row">
-                <span class="control-label" data-i18n="label_color">Color Luz</span>
-                <input type="color" id="penColor" value="#00ff41">
+        <div id="controls-container">
+            <h1 data-i18n="sim_title">Harmonógrafo</h1>
+
+            <div class="btn-group">
+                <button id="btnPng" class="export-btn" data-i18n="btn_png">💾 Guardar PNG</button>
+                <button id="btnJpg" class="export-btn" data-i18n="btn_jpg">📸 Guardar JPG</button>
             </div>
-            <div class="control-row">
-                <span class="control-label" data-i18n="label_width">Grosor</span>
-                <input type="range" id="penWidth" min="0.1" max="2" step="0.1" value="0.5">
+
+            <button id="btnDraw" class="btn-main" data-i18n="btn_draw">🖋️ Soltar Péndulos (Dibujar)</button>
+
+            <div class="control-group">
+                <h3 style="margin:0 0 10px 0; color:#fff; font-size:0.9em; border-bottom:1px solid #444; padding-bottom:5px;"
+                    data-i18n="group_presets">Acordes Visuales (Presets)</h3>
+                <div class="preset-grid">
+                    <button class="btn-preset active" onclick="setPreset('unison')" data-i18n="p_unison">Unísono
+                        (1:1)</button>
+                    <button class="btn-preset" onclick="setPreset('octave')" data-i18n="p_octave">Octava (2:1)</button>
+                    <button class="btn-preset" onclick="setPreset('fifth')" data-i18n="p_fifth">Quinta (3:2)</button>
+                    <button class="btn-preset" onclick="setPreset('fourth')" data-i18n="p_fourth">Cuarta (4:3)</button>
+                    <button class="btn-preset" onclick="setPreset('complex')" data-i18n="p_complex">Complejo</button>
+                    <button class="btn-preset" onclick="setPreset('chaos')" data-i18n="p_chaos">Disonancia</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3 style="margin:0 0 10px 0; color:#fff; font-size:0.9em; border-bottom:1px solid #444; padding-bottom:5px;"
+                    data-i18n="group_pendulums">Péndulos (Frecuencias)</h3>
+
+                <div class="control-row">
+                    <span class="control-label" data-i18n="label_freqA">Péndulo A (Eje X)</span>
+                    <input type="range" id="freqA" min="1" max="10" step="0.01" value="2.0">
+                    <span id="valA" class="value-display">2.00</span>
+                </div>
+                <div class="control-row">
+                    <span class="control-label" data-i18n="label_freqB">Péndulo B (Eje Y)</span>
+                    <input type="range" id="freqB" min="1" max="10" step="0.01" value="3.0">
+                    <span id="valB" class="value-display">3.00</span>
+                </div>
+                <div class="control-row">
+                    <span class="control-label" data-i18n="label_damping">Fricción (Duración)</span>
+                    <input type="range" id="damping" min="0.0001" max="0.002" step="0.0001" value="0.0005">
+                </div>
+                <div class="control-row">
+                    <span class="control-label" data-i18n="label_phase">Desfase (Giro)</span>
+                    <input type="range" id="phase" min="0" max="360" step="1" value="90">
+                    <span id="valPhase" class="value-display">90°</span>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3 style="margin:0 0 10px 0; color:#fff; font-size:0.9em; border-bottom:1px solid #444; padding-bottom:5px;"
+                    data-i18n="group_style">Estilo Pluma</h3>
+                <div class="control-row">
+                    <span class="control-label" data-i18n="label_color">Color Luz</span>
+                    <input type="color" id="penColor" value="#00ff41">
+                </div>
+                <div class="control-row">
+                    <span class="control-label" data-i18n="label_width">Grosor</span>
+                    <input type="range" id="penWidth" min="0.1" max="2" step="0.1" value="0.5">
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<div class="ad-container">
-        <ins class="adsbygoogle"
-             style="display:block"
-             data-ad-client="ca-pub-3150277567590534"
-             data-ad-format="auto"
-             data-full-width-responsive="true"></ins>
+    <div class="ad-container">
+        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3150277567590534" data-ad-format="auto"
+            data-full-width-responsive="true"></ins>
         <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-        </div>
-
-<section class="content-section">
-    <article>
-        <h2 data-i18n="art_title">La Danza de los Péndulos: Geometría Musical</h2>
-        <p data-i18n="art_p1">Has llegado a la última herramienta de la colección: el <strong>Harmonógrafo</strong>. Este dispositivo fue muy popular en el siglo XIX para visualizar la armonía musical.</p>
-        <p data-i18n="art_p2">Imagina dos o tres péndulos oscilando. Uno mueve un papel y el otro mueve un bolígrafo. El dibujo resultante es el registro del movimiento combinado de ambos. En física, estas curvas se conocen como <strong>Figuras de Lissajous</strong>.</p>
-
-        <h3 data-i18n="art_sub1">Cómo leer los dibujos</h3>
-        <p data-i18n="art_p3">Lo que ves en la pantalla es literalmente un acorde musical dibujado:</p>
-        <ul>
-            <li data-i18n="art_li1"><strong>Consonancia (Belleza):</strong> Cuando las frecuencias de los péndulos están en una proporción numérica simple (ej: 2:1, 3:2, 4:3), el dibujo es cerrado, simétrico y estable. Esto equivale a un sonido agradable al oído.</li>
-            <li data-i18n="art_li2"><strong>Disonancia (Caos):</strong> Cuando las proporciones son complejas (ej: 2.14 : 3.89), el dibujo nunca se cierra sobre sí mismo, creando una malla densa y desordenada.</li>
-        </ul>
-
-        <h3 data-i18n="art_sub2">Los Presets Sagrados</h3>
-        <p data-i18n="art_p4">Utiliza los botones de arriba para ver las relaciones clásicas:</p>
-        <ul>
-            <li data-i18n="art_li3"><strong>Unísono (1:1):</strong> Dos notas iguales. Crea un círculo o una línea (el origen).</li>
-            <li data-i18n="art_li4"><strong>Octava (2:1):</strong> La misma nota pero más aguda. Crea una forma de "8" o parábola.</li>
-            <li data-i18n="art_li5"><strong>Quinta Perfecta (3:2):</strong> El intervalo más sagrado después de la octava. Crea nudos complejos y hermosos.</li>
-        </ul>
-        <p data-i18n="art_p5">Observa cómo el dibujo empieza siendo grande y se va haciendo pequeño hacia el centro. Esto se debe a la <strong>fricción</strong> (damping). Todo movimiento en el universo físico pierde energía con el tiempo, y esta espiral hacia la quietud es lo que le da la belleza orgánica al trazo.</p>
-    </article>
-</section>
-
-<div class="ad-container">
-        <ins class="adsbygoogle"
-             style="display:block"
-             data-ad-client="ca-pub-3150277567590534"
-             data-ad-format="auto"
-             data-full-width-responsive="true"></ins>
-        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-        </div>
-
-<footer>
-    <a href="https://www.paypal.com/paypalme/pbazan" target="_blank" class="paypal-btn" data-i18n="footer_coffee">☕ Invítame a un café</a>
-    
-    <div class="footer-links">
-        <a href="../../legal.html#aviso" data-i18n="footer_legal">Aviso Legal</a>
-        <a href="../../legal.html#privacidad" data-i18n="footer_privacy">Privacidad</a>
-        <a href="../../legal.html#cookies" data-i18n="footer_cookies">Cookies</a>
-        <a href="mailto:geometriasagradatop@gmail.com" data-i18n="footer_contact">Contacto</a>
     </div>
 
-    <p>Copyright © 2026 Graphics Labs. <span data-i18n="footer_rights">Todos los derechos reservados.</span></p>
-</footer>
+    <section class="content-section">
+        <article>
+            <h2 data-i18n="art_title">La Danza de los Péndulos: Geometría Musical</h2>
+            <p data-i18n="art_p1">Has llegado a la última herramienta de la colección: el <strong>Harmonógrafo</strong>.
+                Este dispositivo fue muy popular en el siglo XIX para visualizar la armonía musical.</p>
+            <p data-i18n="art_p2">Imagina dos o tres péndulos oscilando. Uno mueve un papel y el otro mueve un
+                bolígrafo. El dibujo resultante es el registro del movimiento combinado de ambos. En física, estas
+                curvas se conocen como <strong>Figuras de Lissajous</strong>.</p>
 
-<script>
-    // --- SISTEMA TRADUCCIÓN (I18N) ---
-const translations = {
-        es: {
-            nav_hub: "HUB", nav_back: "VOLVER", sim_title: "Harmonógrafo",
-            btn_png: "💾 Guardar PNG", btn_jpg: "📸 Guardar JPG", btn_draw: "🖋️ Soltar Péndulos (Dibujar)",
-            group_presets: "Acordes Visuales (Presets)", group_pendulums: "Péndulos (Frecuencias)",
-            group_style: "Estilo Pluma", p_unison: "Unísono (1:1)", p_octave: "Octava (2:1)",
-            p_fifth: "Quinta (3:2)", p_fourth: "Cuarta (4:3)", p_complex: "Complejo", p_chaos: "Disonancia",
-            label_freqA: "Péndulo A (Eje X)", label_freqB: "Péndulo B (Eje Y)", label_damping: "Fricción",
-            label_phase: "Desfase", label_color: "Color Luz", label_width: "Grosor",
-            art_title: "La Danza de los Péndulos: Geometría Musical",
-            art_p1: "Has llegado a la última herramienta de la colección: el Harmonógrafo. Este dispositivo fue muy popular en el siglo XIX para visualizar la armonía musical.",
-            art_p2: "Imagina dos o tres péndulos oscilando. Uno mueve un papel y el otro mueve un bolígrafo. El dibujo resultante es el registro del movimiento combinado de ambos. En física, estas curvas se conocen como Figuras de Lissajous.",
-            art_sub1: "Cómo leer los dibujos",
-            art_p3: "Lo que ves en la pantalla es literalmente un acorde musical dibujado:",
-            art_li1: "Consonancia (Belleza): Cuando las proporciones son simples (2:1, 3:2), el dibujo es simétrico.",
-            art_li2: "Disonancia (Caos): Cuando las proporciones son complejas, crea una malla densa.",
-            art_sub2: "Los Presets Sagrados",
-            art_p4: "Utiliza los botones de arriba para ver las relaciones clásicas:",
-            art_li3: "Unísono (1:1): Dos notas iguales.",
-            art_li4: "Octava (2:1): La misma nota pero más aguda.",
-            art_li5: "Quinta Perfecta (3:2): El intervalo más sagrado.",
-            art_p5: "La espiral hacia el centro se debe a la fricción orgánica del trazo.",
-            footer_coffee: "☕ Invítame a un café", footer_legal: "Aviso Legal", footer_privacy: "Privacidad",
-            footer_cookies: "Cookies", footer_contact: "Contacto", footer_rights: "Todos los derechos reservados."
-        },
-        ca: {
-            nav_hub: "HUB", nav_back: "TORNAR", sim_title: "Harmonògraf",
-            btn_png: "💾 Guardar PNG", btn_jpg: "📸 Guardar JPG", btn_draw: "🖋️ Deixar anar els Pèndols (Dibuixar)",
-            group_presets: "Acords Visuals (Presets)", group_pendulums: "Pèndols (Freqüències)",
-            group_style: "Estil de Ploma", p_unison: "Uníson (1:1)", p_octave: "Octava (2:1)",
-            p_fifth: "Quinta (3:2)", p_fourth: "Quarta (4:3)", p_complex: "Complex", p_chaos: "Dissonància",
-            label_freqA: "Pèndol A (Eix X)", label_freqB: "Pèndol B (Eix Y)", label_damping: "Fricció",
-            label_phase: "Desfasament", label_color: "Color Llum", label_width: "Gruix",
-            art_title: "La Dansa dels Pèndols: Geometria Musical",
-            art_p1: "Has arribat a l'última eina de la col·lecció: l'Harmonògraf. Aquest dispositiu va ser molt popular al segle XIX per visualitzar l'harmonia musical.",
-            art_p2: "Imagina dos o tres pèndols oscil·lant. Un mou un paper i l'altre mou un bolígraf. El dibuix resultant és el registre del moviment combinat de tots dos. En física, aquestes corbes es coneixen com a Figures de Lissajous.",
-            art_sub1: "Com llegir els dibuixos",
-            art_p3: "El que veus a la pantalla és literalment un acord musical dibuixat:",
-            art_li1: "Consonància (Bellesa): Quan les proporcions són simples (2:1, 3:2), el dibuix és simètric.",
-            art_li2: "Dissonància (Caos): Quan les proporcions són complexes, crea una malla densa.",
-            art_sub2: "Els Presets Sagrats",
-            art_p4: "Utilitza els botons de dalt per veure les relacions clàssiques:",
-            art_li3: "Uníson (1:1): Dues notes iguals.",
-            art_li4: "Octava (2:1): La mateixa nota però més aguda.",
-            art_li5: "Quinta Perfecta (3:2): L'interval més sagrat.",
-            art_p5: "L'espiral cap al centre es deu a la fricció orgànica del traç.",
-            footer_coffee: "☕ Convida'm a un cafè", footer_legal: "Avís Legal", footer_privacy: "Privadesa",
-            footer_cookies: "Cookies", footer_contact: "Contacte", footer_rights: "Tots els drets reservats."
-        },
-        en: {
-            nav_hub: "HUB", nav_back: "BACK", sim_title: "Harmonograph",
-            btn_png: "💾 Save PNG", btn_jpg: "📸 Save JPG", btn_draw: "🖋️ Release Pendulums (Draw)",
-            group_presets: "Visual Chords (Presets)", group_pendulums: "Pendulums (Frequencies)",
-            group_style: "Pen Style", p_unison: "Unison (1:1)", p_octave: "Octave (2:1)",
-            p_fifth: "Perfect Fifth (3:2)", p_fourth: "Fourth (4:3)", p_complex: "Complex", p_chaos: "Dissonance",
-            label_freqA: "Pendulum A (X Axis)", label_freqB: "Pendulum B (Y Axis)", label_damping: "Damping",
-            label_phase: "Phase", label_color: "Light Color", label_width: "Thickness",
-            art_title: "The Dance of Pendulums: Musical Geometry",
-            art_p1: "You have reached the final tool: the Harmonograph. This device was very popular in the 19th century to visualize musical harmony.",
-            art_p2: "Imagine pendulums oscillating together. The resulting drawing is the record of their combined motion, known as Lissajous Figures.",
-            art_sub1: "How to read the drawings",
-            art_p3: "What you see on the screen is literally a musical chord drawn:",
-            art_li1: "Consonance (Beauty): Simple proportions create symmetry and stability.",
-            art_li2: "Dissonance (Chaos): Complex proportions create a dense, messy grid.",
-            art_sub2: "Sacred Presets",
-            art_p4: "Use the buttons above to explore classic relationships:",
-            art_li3: "Unison (1:1): Two equal notes.",
-            art_li4: "Octave (2:1): The same note but higher pitched.",
-            art_li5: "Perfect Fifth (3:2): The most sacred interval.",
-            art_p5: "The spiral towards the center is due to friction (damping), giving the stroke organic beauty.",
-            footer_coffee: "☕ Buy me a coffee", footer_legal: "Legal Notice", footer_privacy: "Privacy",
-            footer_cookies: "Cookies", footer_contact: "Contact", footer_rights: "All rights reserved."
-        },
-        fr: {
-            nav_hub: "HUB", nav_back: "RETOUR", sim_title: "Harmonographe",
-            btn_png: "💾 Sauvegarder PNG", btn_jpg: "📸 Sauvegarder JPG", btn_draw: "🖋️ Lâcher les Pendules (Dessiner)",
-            group_presets: "Accords Visuels (Presets)", group_pendulums: "Pendules (Fréquences)",
-            group_style: "Style de Plume", p_unison: "Unisson (1:1)", p_octave: "Octave (2:1)",
-            p_fifth: "Quinte (3:2)", p_fourth: "Quarte (4:3)", p_complex: "Complexe", p_chaos: "Dissonance",
-            label_freqA: "Pendule A (Axe X)", label_freqB: "Pendule B (Axe Y)", label_damping: "Friction",
-            label_phase: "Déphasage", label_color: "Couleur Lumière", label_width: "Épaisseur",
-            art_title: "La Danse des Pendules : Géométrie Musicale",
-            art_p1: "Vous êtes arrivé au dernier outil de la collection : l'Harmonographe. Cet appareil était très populaire au XIXe siècle pour visualiser l'harmonie musicale.",
-            art_p2: "Imaginez deux ou trois pendules oscillant. L'un déplace un papier et l'autre un stylo. Le dessin résultant est l'enregistrement du mouvement combiné des deux. En physique, ces courbes sont appelées Figures de Lissajous.",
-            art_sub1: "Comment lire les dessins",
-            art_p3: "Ce que vous voyez à l'écran est littéralement un accord musical dessiné :",
-            art_li1: "Consonance (Beauté) : Lorsque les proportions sont simples (2:1, 3:2), le dessin est symétrique.",
-            art_li2: "Dissonance (Chaos) : Lorsque les proportions sont complexes, cela crée un maillage dense.",
-            art_sub2: "Les Presets Sacrés",
-            art_p4: "Utilisez les boutons ci-dessus pour voir les relations classiques :",
-            art_li3: "Unisson (1:1) : Deux notes identiques.",
-            art_li4: "Octave (2:1) : La même note mais plus aiguë.",
-            art_li5: "Quinte Parfaite (3:2) : L'intervalle le plus sacré.",
-            art_p5: "La spirale vers le centre est due à la friction organique du trait.",
-            footer_coffee: "☕ Offrez-moi un café", footer_legal: "Mentions Légales", footer_privacy: "Confidentialité",
-            footer_cookies: "Cookies", footer_contact: "Contact", footer_rights: "Tous droits réservés."
-        },
-        de: {
-            nav_hub: "HUB", nav_back: "ZURÜCK", sim_title: "Harmonograph",
-            btn_png: "💾 PNG Speichern", btn_jpg: "📸 JPG Speichern", btn_draw: "🖋️ Pendel loslassen (Zeichnen)",
-            group_presets: "Visuelle Akkorde (Presets)", group_pendulums: "Pendel (Frequenzen)",
-            group_style: "Stiftstil", p_unison: "Unisono (1:1)", p_octave: "Oktave (2:1)",
-            p_fifth: "Quinte (3:2)", p_fourth: "Quarte (4:3)", p_complex: "Komplex", p_chaos: "Dissonanz",
-            label_freqA: "Pendel A (X-Achse)", label_freqB: "Pendel B (Y-Achse)", label_damping: "Reibung",
-            label_phase: "Phasenverschiebung", label_color: "Lichtfarbe", label_width: "Dicke",
-            art_title: "Der Tanz der Pendel: Musikalische Geometrie",
-            art_p1: "Sie haben das letzte Werkzeug der Sammlung erreicht: den Harmonographen. Dieses Gerät war im 19. Jahrhundert sehr beliebt, um musikalische Harmonie zu visualisieren.",
-            art_p2: "Stellen Sie sich zwei oder drei schwingende Pendel vor. Eines bewegt ein Papier und das andere einen Stift. Die resultierende Zeichnung ist die Aufzeichnung der kombinierten Bewegung beider. In der Physik sind diese Kurven als Lissajous-Figuren bekannt.",
-            art_sub1: "Wie man die Zeichnungen liest",
-            art_p3: "Was Sie auf dem Bildschirm sehen, ist buchstäblich ein gezeichneter musikalischer Akkord:",
-            art_li1: "Konsonanz (Schönheit): Wenn die Proportionen einfach sind (2:1, 3:2), ist die Zeichnung symmetrisch.",
-            art_li2: "Dissonanz (Chaos): Wenn die Proportionen komplex sind, entsteht ein dichtes Gitter.",
-            art_sub2: "Die Heiligen Presets",
-            art_p4: "Verwenden Sie die Schaltflächen oben, um die klassischen Beziehungen zu sehen:",
-            art_li3: "Unisono (1:1): Zwei gleiche Töne.",
-            art_li4: "Oktave (2:1): Der gleiche Ton, aber höher.",
-            art_li5: "Reine Quinte (3:2): Das heiligste Intervall.",
-            art_p5: "Die Spirale zur Mitte hin ist auf die organische Reibung des Strichs zurückzuführen.",
-            footer_coffee: "☕ Spendier mir einen Kaffee", footer_legal: "Impressum", footer_privacy: "Datenschutz",
-            footer_cookies: "Cookies", footer_contact: "Kontakt", footer_rights: "Alle Rechte vorbehalten."
-        },
-        pt: {
-            nav_hub: "HUB", nav_back: "VOLTAR", sim_title: "Harmonógrafo",
-            btn_png: "💾 Salvar PNG", btn_jpg: "📸 Salvar JPG", btn_draw: "🖋️ Soltar Pêndulos (Desenhar)",
-            group_presets: "Acordes Visuais (Presets)", group_pendulums: "Pêndulos (Frequências)",
-            group_style: "Estilo da Pena", p_unison: "Uníssono (1:1)", p_octave: "Oitava (2:1)",
-            p_fifth: "Quinta (3:2)", p_fourth: "Quarta (4:3)", p_complex: "Complexo", p_chaos: "Dissonância",
-            label_freqA: "Pêndulo A (Eixo X)", label_freqB: "Pêndulo B (Eixo Y)", label_damping: "Fricção",
-            label_phase: "Desfasagem", label_color: "Cor da Luz", label_width: "Espessura",
-            art_title: "A Dança dos Pêndulos: Geometria Musical",
-            art_p1: "Chegou à última ferramenta da coleção: o Harmonógrafo. Este dispositivo foi muito popular no século XIX para visualizar a harmonia musical.",
-            art_p2: "Imagine dois ou três pêndulos oscilando. Um move um papel e o outro move uma caneta. O desenho resultante é o registo do movimento combinado de ambos. Na física, estas curvas são conhecidas como Figuras de Lissajous.",
-            art_sub1: "Como ler os desenhos",
-            art_p3: "O que vê no ecrã é literalmente um acorde musical desenhado:",
-            art_li1: "Consonância (Beleza): Quando as proporções são simples (2:1, 3:2), o desenho é simétrico.",
-            art_li2: "Dissonância (Caos): Quando as proporções são complexas, cria uma malha densa.",
-            art_sub2: "Os Presets Sagrados",
-            art_p4: "Utilize os botões acima para ver as relações clássicas:",
-            art_li3: "Uníssono (1:1): Duas notas iguais.",
-            art_li4: "Oitava (2:1): A mesma nota, mas mais aguda.",
-            art_li5: "Quinta Perfeita (3:2): O intervalo mais sagrado.",
-            art_p5: "A espiral em direção ao centro deve-se à fricção orgânica do traço.",
-            footer_coffee: "☕ Pague-me um café", footer_legal: "Aviso Legal", footer_privacy: "Privacidade",
-            footer_cookies: "Cookies", footer_contact: "Contacto", footer_rights: "Todos os direitos reservados."
-        },
-        it: {
-            nav_hub: "HUB", nav_back: "INDIETRO", sim_title: "Armonografo",
-            btn_png: "💾 Salva PNG", btn_jpg: "📸 Salva JPG", btn_draw: "🖋️ Rilascia Pendoli (Disegna)",
-            group_presets: "Accordi Visuali (Presets)", group_pendulums: "Pendoli (Frequenze)",
-            group_style: "Stile Penna", p_unison: "Unisono (1:1)", p_octave: "Ottava (2:1)",
-            p_fifth: "Quinta (3:2)", p_fourth: "Quarta (4:3)", p_complex: "Complesso", p_chaos: "Dissonanza",
-            label_freqA: "Pendolo A (Asse X)", label_freqB: "Pendolo B (Asse Y)", label_damping: "Attrito",
-            label_phase: "Sfasamento", label_color: "Colore Luce", label_width: "Spessore",
-            art_title: "La Danza dei Pendoli: Geometria Musicale",
-            art_p1: "Sei arrivato all'ultimo strumento della collezione: l'Armonografo. Questo dispositivo era molto popolare nel XIX secolo per visualizzare l'armonia musicale.",
-            art_p2: "Immagina due o tre pendoli oscillanti. Uno muove una carta e l'altro una penna. Il disegno risultante è la registrazione del movimento combinato di entrambi. In fisica, queste curve sono note come Figure di Lissajous.",
-            art_sub1: "Come leggere i disegni",
-            art_p3: "Quello che vedi sullo schermo è letteralmente un accordo musicale disegnato:",
-            art_li1: "Consonanza (Bellezza): Quando le proporzioni sono semplici (2:1, 3:2), il disegno è simmetrico.",
-            art_li2: "Dissonanza (Caos): Quando le proporzioni sono complesse, si crea una maglia densa.",
-            art_sub2: "I Preset Sacri",
-            art_p4: "Usa i pulsanti in alto per vedere le relazioni classiche:",
-            art_li3: "Unisono (1:1): Due note uguali.",
-            art_li4: "Ottava (2:1): La stessa nota ma più acuta.",
-            art_li5: "Quinta Perfetta (3:2): L'intervallo più sacro.",
-            art_p5: "La spirale verso il centro è dovuta all'attrito organico del tratto.",
-            footer_coffee: "☕ Offrimi un caffè", footer_legal: "Avviso Legale", footer_privacy: "Privacy",
-            footer_cookies: "Cookies", footer_contact: "Contatto", footer_rights: "Tutti i diritti riservati."
-        },
-        nl: {
-            nav_hub: "HUB", nav_back: "TERUG", sim_title: "Harmonograaf",
-            btn_png: "💾 PNG Opslaan", btn_jpg: "📸 JPG Opslaan", btn_draw: "🖋️ Pendels Loslaten (Tekenen)",
-            group_presets: "Visuele Akkoorden (Presets)", group_pendulums: "Pendels (Frequenties)",
-            group_style: "Penstijl", p_unison: "Unisono (1:1)", p_octave: "Octaaf (2:1)",
-            p_fifth: "Kwint (3:2)", p_fourth: "Kwart (4:3)", p_complex: "Complex", p_chaos: "Dissonantie",
-            label_freqA: "Pendel A (X-as)", label_freqB: "Pendel B (Y-as)", label_damping: "Wrijving",
-            label_phase: "Faseverschuiving", label_color: "Lichtkleur", label_width: "Dikte",
-            art_title: "De Dans van de Pendels: Muzikale Geometrie",
-            art_p1: "Je bent bij het laatste instrument van de collectie aangekomen: de Harmonograaf. Dit apparaat was erg populair in de 19e eeuw om muzikale harmonie te visualiseren.",
-            art_p2: "Stel je twee of drie oscillerende pendels voor. De ene beweegt een papier en de andere een pen. De resulterende tekening is de registratie van de gecombineerde beweging van beide. In de natuurkunde staan deze curven bekend als Lissajous-figuren.",
-            art_sub1: "Hoe de tekeningen te lezen",
-            art_p3: "Wat je op het scherm ziet, is letterlijk een getekend muzikaal akkoord:",
-            art_li1: "Consonantie (Schoonheid): Wanneer de verhoudingen eenvoudig zijn (2:1, 3:2), is de tekening symmetrisch.",
-            art_li2: "Dissonantie (Chaos): Wanneer de verhoudingen complex zijn, ontstaat er een dicht raster.",
-            art_sub2: "De Heilige Presets",
-            art_p4: "Gebruik de knoppen hierboven om de klassieke relaties te zien:",
-            art_li3: "Unisono (1:1): Twee gelijke noten.",
-            art_li4: "Octaaf (2:1): Dezelfde noot maar hoger.",
-            art_li5: "Reine Kwint (3:2): Het meest heilige interval.",
-            art_p5: "De spiraal naar het midden is te danken aan de organische wrijving van de lijn.",
-            footer_coffee: "☕ Koop een kop koffie", footer_legal: "Juridische Kennisgeving", footer_privacy: "Privacy",
-            footer_cookies: "Cookies", footer_contact: "Contact", footer_rights: "Alle rechten voorbehouden."
-        },
-        ja: {
-            nav_hub: "ハブ", nav_back: "戻る", sim_title: "ハーモノグラフ",
-            btn_png: "💾 PNGを保存", btn_jpg: "📸 JPGを保存", btn_draw: "🖋️ 振り子を放す（描画）",
-            group_presets: "視覚的コード（プリセット）", group_pendulums: "振り子（周波数）",
-            group_style: "ペンのスタイル", p_unison: "ユニゾン (1:1)", p_octave: "オクターブ (2:1)",
-            p_fifth: "完全五度 (3:2)", p_fourth: "完全四度 (4:3)", p_complex: "複雑", p_chaos: "不協和音",
-            label_freqA: "振り子 A (X軸)", label_freqB: "振り子 B (Y軸)", label_damping: "摩擦",
-            label_phase: "位相差", label_color: "光の色", label_width: "太さ",
-            art_title: "振り子のダンス：音楽的幾何学",
-            art_p1: "コレクションの最後のツール、ハーモノグラフに到達しました。この装置は、19世紀に音楽の調和を視覚化するために非常に人気がありました。",
-            art_p2: "2つまたは3つの振り子が振動しているのを想像してください。一方が紙を動かし、もう一方がペンを動かします。結果として得られる図形は、両方の複合運動の記録です。物理学では、これらの曲線はリサジュー図形として知られています。",
-            art_sub1: "図形の読み方",
-            art_p3: "画面に見えるものは、文字通り描かれた音楽のコード（和音）です：",
-            art_li1: "協和（美）：比率が単純な場合（2:1、3:2など）、図形は対称的で安定します。",
-            art_li2: "不協和（カオス）：比率が複雑な場合、密集した乱雑な網目が生じます。",
-            art_sub2: "神聖なプリセット",
-            art_p4: "上のボタンを使用して、古典的な関係を確認してください：",
-            art_li3: "ユニゾン (1:1)：2つの同じ音。",
-            art_li4: "オクターブ (2:1)：同じ音ですが、より高い音。",
-            art_li5: "完全五度 (3:2)：オクターブに次いで最も神聖な音程。",
-            art_p5: "中心に向かう螺旋は、線の有機的な摩擦（減衰）によるものです。",
-            footer_coffee: "☕ コーヒーを一杯おごる", footer_legal: "法的通知", footer_privacy: "プライバシー",
-            footer_cookies: "クッキー", footer_contact: "お問い合わせ", footer_rights: "無断複写・転載を禁じます。"
+            <h3 data-i18n="art_sub1">Cómo leer los dibujos</h3>
+            <p data-i18n="art_p3">Lo que ves en la pantalla es literalmente un acorde musical dibujado:</p>
+            <ul>
+                <li data-i18n="art_li1"><strong>Consonancia (Belleza):</strong> Cuando las frecuencias de los péndulos
+                    están en una proporción numérica simple (ej: 2:1, 3:2, 4:3), el dibujo es cerrado, simétrico y
+                    estable. Esto equivale a un sonido agradable al oído.</li>
+                <li data-i18n="art_li2"><strong>Disonancia (Caos):</strong> Cuando las proporciones son complejas (ej:
+                    2.14 : 3.89), el dibujo nunca se cierra sobre sí mismo, creando una malla densa y desordenada.</li>
+            </ul>
+
+            <h3 data-i18n="art_sub2">Los Presets Sagrados</h3>
+            <p data-i18n="art_p4">Utiliza los botones de arriba para ver las relaciones clásicas:</p>
+            <ul>
+                <li data-i18n="art_li3"><strong>Unísono (1:1):</strong> Dos notas iguales. Crea un círculo o una línea
+                    (el origen).</li>
+                <li data-i18n="art_li4"><strong>Octava (2:1):</strong> La misma nota pero más aguda. Crea una forma de
+                    "8" o parábola.</li>
+                <li data-i18n="art_li5"><strong>Quinta Perfecta (3:2):</strong> El intervalo más sagrado después de la
+                    octava. Crea nudos complejos y hermosos.</li>
+            </ul>
+            <p data-i18n="art_p5">Observa cómo el dibujo empieza siendo grande y se va haciendo pequeño hacia el centro.
+                Esto se debe a la <strong>fricción</strong> (damping). Todo movimiento en el universo físico pierde
+                energía con el tiempo, y esta espiral hacia la quietud es lo que le da la belleza orgánica al trazo.</p>
+        </article>
+
+        <h2 data-i18n="seo_h2_1"></h2>
+        <p data-i18n="seo_p_1"></p>
+
+        <h3 data-i18n="seo_h3_1"></h3>
+        <p data-i18n="seo_p_2"></p>
+        <ul data-i18n-html="seo_list_1"></ul>
+
+        <h3 data-i18n="seo_h3_2"></h3>
+        <p data-i18n="seo_p_3"></p>
+
+        <h3 data-i18n="seo_h3_3"></h3>
+        <ul data-i18n-html="seo_list_2"></ul>
+
+        <p data-i18n="seo_p_4"></p>
+    </section>
+
+    <div class="ad-container">
+        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3150277567590534" data-ad-format="auto"
+            data-full-width-responsive="true"></ins>
+        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+
+    <footer>
+        <a href="https://www.paypal.com/paypalme/pbazan" target="_blank" class="paypal-btn" data-i18n="footer_coffee">☕
+            Invítame a un café</a>
+
+        <div class="footer-links">
+            <a href="../../legal.html#aviso" data-i18n="footer_legal">Aviso Legal</a>
+            <a href="../../legal.html#privacidad" data-i18n="footer_privacy">Privacidad</a>
+            <a href="../../legal.html#cookies" data-i18n="footer_cookies">Cookies</a>
+            <a href="mailto:geometriasagradatop@gmail.com" data-i18n="footer_contact">Contacto</a>
+        </div>
+
+        <p>Copyright © 2026 Graphics Labs. <span data-i18n="footer_rights">Todos los derechos reservados.</span></p>
+    </footer>
+
+    <script>
+        // --- SISTEMA TRADUCCIÓN (I18N) ---
+        const translations = {
+            es: {
+                nav_hub: "HUB", nav_back: "VOLVER", sim_title: "Harmonógrafo",
+                btn_png: "💾 Guardar PNG", btn_jpg: "📸 Guardar JPG", btn_draw: "🖋️ Soltar Péndulos (Dibujar)",
+                group_presets: "Acordes Visuales (Presets)", group_pendulums: "Péndulos (Frecuencias)",
+                group_style: "Estilo Pluma", p_unison: "Unísono (1:1)", p_octave: "Octava (2:1)",
+                p_fifth: "Quinta (3:2)", p_fourth: "Cuarta (4:3)", p_complex: "Complejo", p_chaos: "Disonancia",
+                label_freqA: "Péndulo A (Eje X)", label_freqB: "Péndulo B (Eje Y)", label_damping: "Fricción",
+                label_phase: "Desfase", label_color: "Color Luz", label_width: "Grosor",
+                art_title: "La Danza de los Péndulos: Geometría Musical",
+                art_p1: "Has llegado a la última herramienta de la colección: el Harmonógrafo. Este dispositivo fue muy popular en el siglo XIX para visualizar la armonía musical.",
+                art_p2: "Imagina dos o tres péndulos oscilando. Uno mueve un papel y el otro mueve un bolígrafo. El dibujo resultante es el registro del movimiento combinado de ambos. En física, estas curvas se conocen como Figuras de Lissajous.",
+                art_sub1: "Cómo leer los dibujos",
+                art_p3: "Lo que ves en la pantalla es literalmente un acorde musical dibujado:",
+                art_li1: "Consonancia (Belleza): Cuando las proporciones son simples (2:1, 3:2), el dibujo es simétrico.",
+                art_li2: "Disonancia (Caos): Cuando las proporciones son complejas, crea una malla densa.",
+                art_sub2: "Los Presets Sagrados",
+                art_p4: "Utiliza los botones de arriba para ver las relaciones clásicas:",
+                art_li3: "Unísono (1:1): Dos notas iguales.",
+                art_li4: "Octava (2:1): La misma nota pero más aguda.",
+                art_li5: "Quinta Perfecta (3:2): El intervalo más sagrado.",
+                art_p5: "La espiral hacia el centro se debe a la fricción orgánica del trazo.",
+                seo_h2_1: "El Harmonógrafo: Cuando la Física Dibuja Música",
+                seo_p_1: "En la Inglaterra victoriana de la década de 1840, los salones de las clases cultas escondían un objeto fascinante: el harmonógrafo. No era un instrumento musical, sino una máquina de dibujar movida por péndulos. Los invitados quedaban hipnotizados al ver cómo dos oscilaciones simples —dos péndulos— producían figuras de una complejidad y belleza inesperadas. Lo que ignoraban es que estaban viendo la música. No metafóricamente: de forma literal y matemática, el sonido que produce un acorde y el dibujo que traza un harmonógrafo son la misma cosa expresada en medios distintos.",
+                seo_h3_1: "La Física Detrás de la Belleza: Qué son las Figuras de Lissajous",
+                seo_p_2: "Cuando dos péndulos oscilan simultáneamente, cada uno controla un eje de movimiento: el péndulo A mueve la pluma de izquierda a derecha (eje X) y el péndulo B la mueve de arriba a abajo (eje Y). La curva resultante no es aleatoria: es la suma vectorial de dos movimientos armónicos simples. El matemático Jules Antoine Lissajous estudió estas figuras en 1857 usando diapasones y espejos con luz reflejada. Hoy llevan su nombre. La clave de todo está en la <strong>proporción entre las frecuencias</strong> de ambos péndulos:",
+                seo_list_1: "<li><strong>Unísono (1:1) — El Círculo o la Elipse:</strong> Ambos péndulos oscilan a la misma velocidad. Si están en fase, el resultado es una línea diagonal. Si están desfasados 90°, obtienes un círculo perfecto. Es el acorde más estable: dos voces cantando exactamente lo mismo.</li><li><strong>Octava (2:1) — La Figura en 8:</strong> Un péndulo se mueve el doble de rápido que el otro. El resultado es una figura en forma de 8 o lazada. En música, es la relación más consonante después del unísono: la misma nota en un registro diferente. El oído la percibe como idéntica, solo más aguda o grave.</li><li><strong>Quinta Perfecta (3:2) — La Curva Sagrada:</strong> Esta es la proporción que Pitágoras llamó la más armoniosa de la naturaleza. La figura resultante es una curva abierta y elegante, siempre en proceso de cierre pero nunca del todo cerrada, vibrante. No es casualidad que sea la base de la escala musical occidental y que aparezca en la afinación de todos los instrumentos de cuerda.</li><li><strong>Cuarta Justa (4:3) — La Hermana de la Quinta:</strong> Ligeramente más compleja que la quinta, produce figuras con más cruces y vueltas. En música es el intervalo complementario de la quinta: si subes una quinta desde Do llegas a Sol; si subes una cuarta desde Sol, regresas al Do. Geometría y música como espejo.</li><li><strong>Disonancia (proporciones irracionales) — El Caos Bello:</strong> Cuando la proporción entre frecuencias no es un número racional simple, la figura nunca se cierra. El trazo rellena el espacio de manera densa y caótica, como una malla. Es la representación visual de la tensión musical: el oído busca resolución igual que el ojo busca un patrón que nunca aparece.</li>",
+                seo_h3_2: "La Conexión con la Música: Por Qué Unos Intervalos \"Suenan Bien\"",
+                seo_p_3: "Durante siglos, filósofos y músicos se preguntaron por qué algunas combinaciones de notas producen placer y otras, malestar. La respuesta la dio la física: dos notas suenan consonantes cuando sus frecuencias tienen una proporción simple, es decir, cuando sus ondas se sincronizan con regularidad y sus ciclos se superponen limpiamente. La Quinta (3:2) significa que por cada 3 ciclos de la nota aguda, la nota grave completa exactamente 2. El oído percibe este patrón regular como estabilidad y belleza. La disonancia, en cambio, crea patrones irregulares de interferencia. El harmonógrafo lo hace visible: la consonancia dibuja figuras cerradas y simétricas; la disonancia dibuja mallas abiertas y sin forma. Estás literalmente <em>viendo</em> por qué la música te emociona.",
+                seo_h3_3: "Guía de Uso: Cómo Explorar el Generador",
+                seo_list_2: "<li><strong>Empieza con los Presets:</strong> Pulsa cada botón de acorde (Unísono, Octava, Quinta…) y observa la forma que aparece antes de tocar nada más. Interioriza la relación entre el nombre del intervalo y la figura.</li><li><strong>Cambia el Desfase:</strong> Con el mismo preset activado, mueve el deslizador de Desfase. Verás cómo la misma figura \"rota\" o se transforma manteniendo su esencia. Un círculo se vuelve elipse; una figura en 8 se inclina. La proporción no cambia, solo la \"fase\" del encuentro entre las dos oscilaciones.</li><li><strong>Ajusta la Fricción:</strong> La fricción controla cuánto tiempo duran las oscilaciones antes de detenerse. Con fricción baja, el trazo es largo y fino, como hilo. Con fricción alta, la espiral colapsa rápido y el centro queda más vacío. La fricción es el tiempo.</li><li><strong>Explora el territorio entre presets:</strong> Mueve manualmente las frecuencias de los péndulos A y B a valores que no sean proporciones simples. Observa cómo la figura nunca se cierra y el trazo va llenando el espacio. Estás en tierra de disonancia.</li><li><strong>Guarda tus favoritos:</strong> Cuando encuentres una figura que te emocione, usa el botón de guardar PNG o JPG. Cada combinación de frecuencia, fase y fricción es única e irrepetible, como una huella dactilar.</li>",
+                seo_p_4: "El harmonógrafo nos recuerda algo que las matemáticas y la música siempre han sabido: el universo tiene una gramática. Las mismas proporciones que hacen que un acorde suene bello son las que hacen que una figura sea elegante. No es magia ni misticismo —es física— pero la física, a veces, produce cosas que solo podemos llamar hermosas.",
+                footer_coffee: "☕ Invítame a un café", footer_legal: "Aviso Legal", footer_privacy: "Privacidad",
+                footer_cookies: "Cookies", footer_contact: "Contacto", footer_rights: "Todos los derechos reservados."
+            },
+            ca: {
+                nav_hub: "HUB", nav_back: "TORNAR", sim_title: "Harmonògraf",
+                btn_png: "💾 Guardar PNG", btn_jpg: "📸 Guardar JPG", btn_draw: "🖋️ Deixar anar els Pèndols (Dibuixar)",
+                group_presets: "Acords Visuals (Presets)", group_pendulums: "Pèndols (Freqüències)",
+                group_style: "Estil de Ploma", p_unison: "Uníson (1:1)", p_octave: "Octava (2:1)",
+                p_fifth: "Quinta (3:2)", p_fourth: "Quarta (4:3)", p_complex: "Complex", p_chaos: "Dissonància",
+                label_freqA: "Pèndol A (Eix X)", label_freqB: "Pèndol B (Eix Y)", label_damping: "Fricció",
+                label_phase: "Desfasament", label_color: "Color Llum", label_width: "Gruix",
+                art_title: "La Dansa dels Pèndols: Geometria Musical",
+                art_p1: "Has arribat a l'última eina de la col·lecció: l'Harmonògraf. Aquest dispositiu va ser molt popular al segle XIX per visualitzar l'harmonia musical.",
+                art_p2: "Imagina dos o tres pèndols oscil·lant. Un mou un paper i l'altre mou un bolígraf. El dibuix resultant és el registre del moviment combinat de tots dos. En física, aquestes corbes es coneixen com a Figures de Lissajous.",
+                art_sub1: "Com llegir els dibuixos",
+                art_p3: "El que veus a la pantalla és literalment un acord musical dibuixat:",
+                art_li1: "Consonància (Bellesa): Quan les proporcions són simples (2:1, 3:2), el dibuix és simètric.",
+                art_li2: "Dissonància (Caos): Quan les proporcions són complexes, crea una malla densa.",
+                art_sub2: "Els Presets Sagrats",
+                art_p4: "Utilitza els botons de dalt per veure les relacions clàssiques:",
+                art_li3: "Uníson (1:1): Dues notes iguals.",
+                art_li4: "Octava (2:1): La mateixa nota però més aguda.",
+                art_li5: "Quinta Perfecta (3:2): L'interval més sagrat.",
+                art_p5: "L'espiral cap al centre es deu a la fricció orgànica del traç.",
+                seo_h2_1: "L'Harmonògraf: Quan la Física Dibuixa Música",
+                seo_p_1: "A l'Anglaterra victoriana de la dècada de 1840, els salons de les classes cultes amagaven un objecte fascinant: l'harmonògraf. No era un instrument musical, sinó una màquina de dibuixar moguda per pèndols. Els convidats quedaven hipnotitzats en veure com dues oscil·lacions simples —dos pèndols— produïen figures d'una complexitat i bellesa inesperades. El que ignoraven és que estaven veient la música. No metafòricament: de forma literal i matemàtica, el so que produeix un acord i el dibuix que traça un harmonògraf són la mateixa cosa expressada en mitjans diferents.",
+                seo_h3_1: "La Física Darrere de la Bellesa: Què són les Figures de Lissajous",
+                seo_p_2: "Quan dos pèndols oscil·len simultàniament, cadascun controla un eix de moviment: el pèndol A mou la ploma d'esquerra a dreta (eix X) i el pèndol B la mou de dalt a baix (eix Y). La corba resultant no és aleatòria: és la suma vectorial de dos moviments harmònics simples. El matemàtic Jules Antoine Lissajous va estudiar aquestes figures l'any 1857 usant diapasons i miralls amb llum reflectida. Avui porten el seu nom. La clau de tot és a la <strong>proporció entre les freqüències</strong> dels dos pèndols:",
+                seo_list_1: "<li><strong>Uníson (1:1) — El Cercle o l'El·lipse:</strong> Tots dos pèndols oscil·len a la mateixa velocitat. Si estan en fase, el resultat és una línia diagonal. Si estan desfasats 90°, s'obté un cercle perfecte. És l'acord més estable: dues veus cantant exactament el mateix.</li><li><strong>Octava (2:1) — La Figura en 8:</strong> Un pèndol es mou el doble de ràpid que l'altre. El resultat és una figura en forma de 8 o llaç. En música, és la relació més consonant després de l'uníson: la mateixa nota en un registre diferent.</li><li><strong>Quinta Perfecta (3:2) — La Corba Sagrada:</strong> Aquesta és la proporció que Pitàgores va anomenar la més harmoniosa de la natura. La figura resultant és una corba oberta i elegant, sempre en procés de tancar-se però mai del tot, vibrant. No és casualitat que sigui la base de l'escala musical occidental.</li><li><strong>Quarta Justa (4:3) — La Germana de la Quinta:</strong> Lleugerament més complexa que la quinta, produeix figures amb més creuaments i voltes. En música és l'interval complementari de la quinta: la geometria i la música com a mirall.</li><li><strong>Dissonància (proporcions irracionals) — El Caos Bell:</strong> Quan la proporció entre freqüències no és un nombre racional simple, la figura mai no es tanca. El traç omple l'espai de manera densa i caòtica. És la representació visual de la tensió musical: l'oïda busca resolució igual que l'ull busca un patró que mai no apareix.</li>",
+                seo_h3_2: "La Connexió amb la Música: Per Què Alguns Intervals \"Sonen Bé\"",
+                seo_p_3: "Durant segles, filòsofs i músics es van preguntar per què algunes combinacions de notes produeixen plaer i d'altres, malestar. La resposta la va donar la física: dues notes sonen consonants quan les seves freqüències tenen una proporció simple, és a dir, quan les seves ones se sincronitzen amb regularitat. La Quinta (3:2) significa que per cada 3 cicles de la nota aguda, la nota greu completa exactament 2. L'oïda percep aquest patró regular com a estabilitat i bellesa. L'harmonògraf ho fa visible: la consonància dibuixa figures tancades i simètriques; la dissonància dibuixa malles obertes i sense forma. Estàs literalment <em>veient</em> per què la música t'emociona.",
+                seo_h3_3: "Guia d'Ús: Com Explorar el Generador",
+                seo_list_2: "<li><strong>Comença amb els Presets:</strong> Prem cada botó d'acord (Uníson, Octava, Quinta…) i observa la forma que apareix. Interioritza la relació entre el nom de l'interval i la figura.</li><li><strong>Canvia el Desfasament:</strong> Amb el mateix preset activat, mou el lliscador de Desfasament. Veuràs com la mateixa figura «rota» o es transforma mantenint la seva essència. Un cercle es converteix en el·lipse; una figura en 8 s'inclina.</li><li><strong>Ajusta la Fricció:</strong> La fricció controla quant de temps duren les oscil·lacions. Amb fricció baixa, el traç és llarg i fi. Amb fricció alta, l'espiral col·lapsa ràpid. La fricció és el temps.</li><li><strong>Explora el territori entre presets:</strong> Mou manualment les freqüències dels pèndols A i B a valors que no siguin proporcions simples. Observa com la figura mai no es tanca. Estàs en terra de dissonància.</li><li><strong>Desa els teus favorits:</strong> Quan trobis una figura que t'emocioni, usa el botó de desar PNG o JPG. Cada combinació de freqüència, fase i fricció és única i irrepetible.</li>",
+                seo_p_4: "L'harmonògraf ens recorda alguna cosa que les matemàtiques i la música sempre han sabut: l'univers té una gramàtica. Les mateixes proporcions que fan que un acord soni bell són les que fan que una figura sigui elegant. No és màgia ni misticisme —és física— però la física, de vegades, produeix coses que només podem anomenar hermoses.",
+                footer_coffee: "☕ Convida'm a un cafè", footer_legal: "Avís Legal", footer_privacy: "Privadesa",
+                footer_cookies: "Cookies", footer_contact: "Contacte", footer_rights: "Tots els drets reservats."
+            },
+            en: {
+                nav_hub: "HUB", nav_back: "BACK", sim_title: "Harmonograph",
+                btn_png: "💾 Save PNG", btn_jpg: "📸 Save JPG", btn_draw: "🖋️ Release Pendulums (Draw)",
+                group_presets: "Visual Chords (Presets)", group_pendulums: "Pendulums (Frequencies)",
+                group_style: "Pen Style", p_unison: "Unison (1:1)", p_octave: "Octave (2:1)",
+                p_fifth: "Perfect Fifth (3:2)", p_fourth: "Fourth (4:3)", p_complex: "Complex", p_chaos: "Dissonance",
+                label_freqA: "Pendulum A (X Axis)", label_freqB: "Pendulum B (Y Axis)", label_damping: "Damping",
+                label_phase: "Phase", label_color: "Light Color", label_width: "Thickness",
+                art_title: "The Dance of Pendulums: Musical Geometry",
+                art_p1: "You have reached the final tool: the Harmonograph. This device was very popular in the 19th century to visualize musical harmony.",
+                art_p2: "Imagine pendulums oscillating together. The resulting drawing is the record of their combined motion, known as Lissajous Figures.",
+                art_sub1: "How to read the drawings",
+                art_p3: "What you see on the screen is literally a musical chord drawn:",
+                art_li1: "Consonance (Beauty): Simple proportions create symmetry and stability.",
+                art_li2: "Dissonance (Chaos): Complex proportions create a dense, messy grid.",
+                art_sub2: "Sacred Presets",
+                art_p4: "Use the buttons above to explore classic relationships:",
+                art_li3: "Unison (1:1): Two equal notes.",
+                art_li4: "Octave (2:1): The same note but higher pitched.",
+                art_li5: "Perfect Fifth (3:2): The most sacred interval.",
+                art_p5: "The spiral towards the center is due to friction (damping), giving the stroke organic beauty.",
+                seo_h2_1: "The Harmonograph: When Physics Draws Music",
+                seo_p_1: "In Victorian England of the 1840s, the drawing rooms of the educated classes hid a fascinating object: the harmonograph. It was not a musical instrument but a drawing machine driven by pendulums. Guests were hypnotized watching how two simple oscillations — two pendulums — produced figures of unexpected complexity and beauty. What they did not realize is that they were seeing music. Not metaphorically: in a literal and mathematical sense, the sound produced by a chord and the drawing traced by a harmonograph are the same thing expressed in different media.",
+                seo_h3_1: "The Physics Behind Beauty: What are Lissajous Figures",
+                seo_p_2: "When two pendulums oscillate simultaneously, each controls one axis of movement: pendulum A moves the pen left and right (X axis) and pendulum B moves it up and down (Y axis). The resulting curve is not random: it is the vector sum of two simple harmonic motions. Mathematician Jules Antoine Lissajous studied these figures in 1857 using tuning forks and mirrors with reflected light. Today they bear his name. Everything hinges on the <strong>ratio between the frequencies</strong> of the two pendulums:",
+                seo_list_1: "<li><strong>Unison (1:1) — The Circle or Ellipse:</strong> Both pendulums oscillate at the same speed. If they are in phase, the result is a diagonal line. If offset by 90°, you get a perfect circle. It is the most stable chord: two voices singing exactly the same thing.</li><li><strong>Octave (2:1) — The Figure Eight:</strong> One pendulum moves twice as fast as the other. The result is a figure-eight or looping shape. In music, it is the most consonant relationship after unison: the same note in a different register. The ear perceives it as identical, just higher or lower.</li><li><strong>Perfect Fifth (3:2) — The Sacred Curve:</strong> This is the ratio Pythagoras called the most harmonious in nature. The resulting figure is an open, elegant curve, always in the process of closing but never quite completing — vibrant. It is no coincidence that it forms the foundation of the Western musical scale and appears in the tuning of all string instruments.</li><li><strong>Perfect Fourth (4:3) — The Fifth's Sister:</strong> Slightly more complex than the fifth, it produces figures with more crossings and turns. In music it is the complementary interval to the fifth: geometry and music as a mirror of each other.</li><li><strong>Dissonance (irrational ratios) — Beautiful Chaos:</strong> When the frequency ratio is not a simple rational number, the figure never closes. The line fills the space densely and chaotically, like a mesh. This is the visual representation of musical tension: the ear seeks resolution just as the eye seeks a pattern that never appears.</li>",
+                seo_h3_2: "The Connection with Music: Why Some Intervals \"Sound Good\"",
+                seo_p_3: "For centuries, philosophers and musicians wondered why some combinations of notes produce pleasure and others, discomfort. Physics provided the answer: two notes sound consonant when their frequencies share a simple ratio — when their waves synchronize regularly and their cycles overlap cleanly. The Fifth (3:2) means that for every 3 cycles of the higher note, the lower note completes exactly 2. The ear perceives this regular pattern as stability and beauty. Dissonance creates irregular interference patterns. The harmonograph makes it visible: consonance draws closed, symmetrical figures; dissonance draws open, formless meshes. You are literally <em>seeing</em> why music moves you.",
+                seo_h3_3: "User Guide: How to Explore the Generator",
+                seo_list_2: "<li><strong>Start with the Presets:</strong> Press each chord button (Unison, Octave, Fifth…) and observe the shape that appears before touching anything else. Internalize the relationship between the interval name and the figure.</li><li><strong>Change the Phase:</strong> With the same preset active, move the Phase slider. You will see the same figure \"rotate\" or transform while keeping its essence. A circle becomes an ellipse; a figure eight tilts. The ratio does not change, only the \"phase\" of the meeting between the two oscillations.</li><li><strong>Adjust the Damping:</strong> Damping controls how long the oscillations last before stopping. With low damping, the stroke is long and thin, like thread. With high damping, the spiral collapses quickly and the center stays emptier. Damping is time.</li><li><strong>Explore the territory between presets:</strong> Manually move pendulum A and B frequencies to values that are not simple ratios. Watch how the figure never closes and the line keeps filling the space. You are in dissonance territory.</li><li><strong>Save your favorites:</strong> When you find a figure that moves you, use the Save PNG or JPG button. Every combination of frequency, phase, and damping is unique and unrepeatable, like a fingerprint.</li>",
+                seo_p_4: "The harmonograph reminds us of something mathematics and music have always known: the universe has a grammar. The same proportions that make a chord sound beautiful are those that make a figure elegant. It is not magic or mysticism — it is physics — but physics, sometimes, produces things we can only call beautiful.",
+                footer_coffee: "☕ Buy me a coffee", footer_legal: "Legal Notice", footer_privacy: "Privacy",
+                footer_cookies: "Cookies", footer_contact: "Contact", footer_rights: "All rights reserved."
+            },
+            fr: {
+                nav_hub: "HUB", nav_back: "RETOUR", sim_title: "Harmonographe",
+                btn_png: "💾 Sauvegarder PNG", btn_jpg: "📸 Sauvegarder JPG", btn_draw: "🖋️ Lâcher les Pendules (Dessiner)",
+                group_presets: "Accords Visuels (Presets)", group_pendulums: "Pendules (Fréquences)",
+                group_style: "Style de Plume", p_unison: "Unisson (1:1)", p_octave: "Octave (2:1)",
+                p_fifth: "Quinte (3:2)", p_fourth: "Quarte (4:3)", p_complex: "Complexe", p_chaos: "Dissonance",
+                label_freqA: "Pendule A (Axe X)", label_freqB: "Pendule B (Axe Y)", label_damping: "Friction",
+                label_phase: "Déphasage", label_color: "Couleur Lumière", label_width: "Épaisseur",
+                art_title: "La Danse des Pendules : Géométrie Musicale",
+                art_p1: "Vous êtes arrivé au dernier outil de la collection : l'Harmonographe. Cet appareil était très populaire au XIXe siècle pour visualiser l'harmonie musicale.",
+                art_p2: "Imaginez deux ou trois pendules oscillant. L'un déplace un papier et l'autre un stylo. Le dessin résultant est l'enregistrement du mouvement combiné des deux. En physique, ces courbes sont appelées Figures de Lissajous.",
+                art_sub1: "Comment lire les dessins",
+                art_p3: "Ce que vous voyez à l'écran est littéralement un accord musical dessiné :",
+                art_li1: "Consonance (Beauté) : Lorsque les proportions sont simples (2:1, 3:2), le dessin est symétrique.",
+                art_li2: "Dissonance (Chaos) : Lorsque les proportions sont complexes, cela crée un maillage dense.",
+                art_sub2: "Les Presets Sacrés",
+                art_p4: "Utilisez les boutons ci-dessus pour voir les relations classiques :",
+                art_li3: "Unisson (1:1) : Deux notes identiques.",
+                art_li4: "Octave (2:1) : La même note mais plus aiguë.",
+                art_li5: "Quinte Parfaite (3:2) : L'intervalle le plus sacré.",
+                art_p5: "La spirale vers le centre est due à la friction organique du trait.",
+                seo_h2_1: "L'Harmonographe : Quand la Physique Dessine la Musique",
+                seo_p_1: "Dans l'Angleterre victorienne des années 1840, les salons des classes cultivées cachaient un objet fascinant : l'harmonographe. Ce n'était pas un instrument de musique, mais une machine à dessiner mue par des pendules. Les invités étaient hypnotisés en voyant comment deux oscillations simples — deux pendules — produisaient des figures d'une complexité et d'une beauté inattendues. Ce qu'ils ignoraient, c'est qu'ils voyaient la musique. Pas métaphoriquement : de façon littérale et mathématique, le son produit par un accord et le dessin tracé par un harmonographe sont la même chose exprimée dans des médias différents.",
+                seo_h3_1: "La Physique Derrière la Beauté : Que sont les Figures de Lissajous",
+                seo_p_2: "Lorsque deux pendules oscillent simultanément, chacun contrôle un axe de mouvement : le pendule A déplace le stylo de gauche à droite (axe X) et le pendule B le déplace de haut en bas (axe Y). La courbe résultante n'est pas aléatoire : c'est la somme vectorielle de deux mouvements harmoniques simples. Le mathématicien Jules Antoine Lissajous étudia ces figures en 1857 à l'aide de diapasons et de miroirs avec lumière réfléchie. Aujourd'hui elles portent son nom. Tout repose sur le <strong>rapport entre les fréquences</strong> des deux pendules :",
+                seo_list_1: "<li><strong>Unisson (1:1) — Le Cercle ou l'Ellipse :</strong> Les deux pendules oscillent à la même vitesse. S'ils sont en phase, le résultat est une ligne diagonale. Décalés de 90°, on obtient un cercle parfait. C'est l'accord le plus stable : deux voix chantant exactement la même chose.</li><li><strong>Octave (2:1) — Le Huit :</strong> Un pendule se déplace deux fois plus vite que l'autre. Le résultat est une figure en forme de 8 ou de nœud. En musique, c'est la relation la plus consonante après l'unisson : la même note dans un registre différent.</li><li><strong>Quinte Parfaite (3:2) — La Courbe Sacrée :</strong> C'est la proportion que Pythagore appelait la plus harmonieuse de la nature. La figure résultante est une courbe ouverte et élégante, toujours en train de se fermer mais sans jamais tout à fait y parvenir — vibrante. Ce n'est pas un hasard si elle constitue la base de la gamme musicale occidentale.</li><li><strong>Quarte Juste (4:3) — La Sœur de la Quinte :</strong> Légèrement plus complexe que la quinte, elle produit des figures avec plus de croisements et de boucles. En musique, c'est l'intervalle complémentaire de la quinte : la géométrie et la musique comme miroir l'une de l'autre.</li><li><strong>Dissonance (proportions irrationnelles) — Le Beau Chaos :</strong> Lorsque le rapport de fréquences n'est pas un nombre rationnel simple, la figure ne se ferme jamais. Le trait remplit l'espace de manière dense et chaotique. C'est la représentation visuelle de la tension musicale : l'oreille cherche une résolution tout comme l'œil cherche un motif qui n'apparaît jamais.</li>",
+                seo_h3_2: "Le Lien avec la Musique : Pourquoi Certains Intervalles « Sonnent Bien »",
+                seo_p_3: "Pendant des siècles, philosophes et musiciens se sont demandé pourquoi certaines combinaisons de notes produisent du plaisir et d'autres, de l'inconfort. La physique a fourni la réponse : deux notes sonnent de façon consonante lorsque leurs fréquences ont un rapport simple — quand leurs ondes se synchronisent régulièrement. La Quinte (3:2) signifie que pour chaque 3 cycles de la note aiguë, la note grave en complète exactement 2. L'oreille perçoit ce motif régulier comme stabilité et beauté. L'harmonographe le rend visible : la consonance dessine des figures fermées et symétriques ; la dissonance dessine des maillages ouverts et sans forme. Vous <em>voyez</em> littéralement pourquoi la musique vous émeut.",
+                seo_h3_3: "Guide d'Utilisation : Comment Explorer le Générateur",
+                seo_list_2: "<li><strong>Commencez par les Presets :</strong> Appuyez sur chaque bouton d'accord (Unisson, Octave, Quinte…) et observez la forme qui apparaît. Intériorisez la relation entre le nom de l'intervalle et la figure.</li><li><strong>Changez le Déphasage :</strong> Avec le même preset actif, déplacez le curseur de Déphasage. Vous verrez la même figure « pivoter » ou se transformer en conservant son essence. Un cercle devient une ellipse ; un huit s'incline.</li><li><strong>Ajustez la Friction :</strong> La friction contrôle la durée des oscillations. Avec une faible friction, le trait est long et fin. Avec une forte friction, la spirale s'effondre rapidement. La friction, c'est le temps.</li><li><strong>Explorez le territoire entre les presets :</strong> Déplacez manuellement les fréquences des pendules A et B vers des valeurs qui ne sont pas des rapports simples. Observez comment la figure ne se ferme jamais. Vous êtes en territoire de dissonance.</li><li><strong>Sauvegardez vos favoris :</strong> Quand vous trouvez une figure qui vous émeut, utilisez le bouton Sauvegarder PNG ou JPG. Chaque combinaison de fréquence, phase et friction est unique et irremplaçable.</li>",
+                seo_p_4: "L'harmonographe nous rappelle quelque chose que les mathématiques et la musique ont toujours su : l'univers a une grammaire. Les mêmes proportions qui font sonner un accord de façon belle sont celles qui rendent une figure élégante. Ce n'est pas de la magie ni du mysticisme — c'est de la physique — mais la physique, parfois, produit des choses qu'on ne peut qu'appeler belles.",
+                footer_coffee: "☕ Offrez-moi un café", footer_legal: "Mentions Légales", footer_privacy: "Confidentialité",
+                footer_cookies: "Cookies", footer_contact: "Contact", footer_rights: "Tous droits réservés."
+            },
+            de: {
+                nav_hub: "HUB", nav_back: "ZURÜCK", sim_title: "Harmonograph",
+                btn_png: "💾 PNG Speichern", btn_jpg: "📸 JPG Speichern", btn_draw: "🖋️ Pendel loslassen (Zeichnen)",
+                group_presets: "Visuelle Akkorde (Presets)", group_pendulums: "Pendel (Frequenzen)",
+                group_style: "Stiftstil", p_unison: "Unisono (1:1)", p_octave: "Oktave (2:1)",
+                p_fifth: "Quinte (3:2)", p_fourth: "Quarte (4:3)", p_complex: "Komplex", p_chaos: "Dissonanz",
+                label_freqA: "Pendel A (X-Achse)", label_freqB: "Pendel B (Y-Achse)", label_damping: "Reibung",
+                label_phase: "Phasenverschiebung", label_color: "Lichtfarbe", label_width: "Dicke",
+                art_title: "Der Tanz der Pendel: Musikalische Geometrie",
+                art_p1: "Sie haben das letzte Werkzeug der Sammlung erreicht: den Harmonographen. Dieses Gerät war im 19. Jahrhundert sehr beliebt, um musikalische Harmonie zu visualisieren.",
+                art_p2: "Stellen Sie sich zwei oder drei schwingende Pendel vor. Eines bewegt ein Papier und das andere einen Stift. Die resultierende Zeichnung ist die Aufzeichnung der kombinierten Bewegung beider. In der Physik sind diese Kurven als Lissajous-Figuren bekannt.",
+                art_sub1: "Wie man die Zeichnungen liest",
+                art_p3: "Was Sie auf dem Bildschirm sehen, ist buchstäblich ein gezeichneter musikalischer Akkord:",
+                art_li1: "Konsonanz (Schönheit): Wenn die Proportionen einfach sind (2:1, 3:2), ist die Zeichnung symmetrisch.",
+                art_li2: "Dissonanz (Chaos): Wenn die Proportionen komplex sind, entsteht ein dichtes Gitter.",
+                art_sub2: "Die Heiligen Presets",
+                art_p4: "Verwenden Sie die Schaltflächen oben, um die klassischen Beziehungen zu sehen:",
+                art_li3: "Unisono (1:1): Zwei gleiche Töne.",
+                art_li4: "Oktave (2:1): Der gleiche Ton, aber höher.",
+                art_li5: "Reine Quinte (3:2): Das heiligste Intervall.",
+                art_p5: "Die Spirale zur Mitte hin ist auf die organische Reibung des Strichs zurückzuführen.",
+                seo_h2_1: "Der Harmonograph: Wenn Physik Musik zeichnet",
+                seo_p_1: "Im viktorianischen England der 1840er Jahre verbarg sich in den Salons der gebildeten Klassen ein faszinierendes Objekt: der Harmonograph. Es war kein Musikinstrument, sondern eine von Pendeln angetriebene Zeichenmaschine. Die Gäste waren hypnotisiert, als sie sahen, wie zwei einfache Schwingungen — zwei Pendel — Figuren von unerwarteter Komplexität und Schönheit erzeugten. Was sie nicht ahnten: Sie sahen Musik. Nicht metaphorisch, sondern buchstäblich und mathematisch — der Klang eines Akkords und die Zeichnung eines Harmonographen sind dasselbe, ausgedrückt in verschiedenen Medien.",
+                seo_h3_1: "Die Physik hinter der Schönheit: Was sind Lissajous-Figuren",
+                seo_p_2: "Wenn zwei Pendel gleichzeitig schwingen, kontrolliert jedes eine Bewegungsachse: Pendel A bewegt den Stift nach links und rechts (X-Achse), Pendel B nach oben und unten (Y-Achse). Die entstehende Kurve ist nicht zufällig: Sie ist die Vektorsumme zweier einfacher harmonischer Bewegungen. Der Mathematiker Jules Antoine Lissajous untersuchte diese Figuren 1857 mit Stimmgabeln und Spiegeln mit reflektiertem Licht. Heute tragen sie seinen Namen. Alles hängt vom <strong>Verhältnis der Frequenzen</strong> der beiden Pendel ab:",
+                seo_list_1: "<li><strong>Unisono (1:1) — Der Kreis oder die Ellipse:</strong> Beide Pendel schwingen mit der gleichen Geschwindigkeit. Bei gleicher Phase entsteht eine diagonale Linie. Bei 90° Versatz ergibt sich ein perfekter Kreis. Es ist der stabilste Akkord: zwei Stimmen, die genau dasselbe singen.</li><li><strong>Oktave (2:1) — Die Acht:</strong> Ein Pendel bewegt sich doppelt so schnell wie das andere. Das Ergebnis ist eine Acht oder Schleifenform. In der Musik ist dies das konsonanteste Verhältnis nach dem Unisono: dieselbe Note in einem anderen Register.</li><li><strong>Reine Quinte (3:2) — Die Heilige Kurve:</strong> Dies ist das Verhältnis, das Pythagoras als das harmonischste in der Natur bezeichnete. Die entstehende Figur ist eine offene, elegante Kurve, stets dabei sich zu schließen, aber nie ganz vollständig — vibrierend. Kein Zufall, dass sie die Grundlage der westlichen Musikskala bildet.</li><li><strong>Reine Quarte (4:3) — Die Schwester der Quinte:</strong> Etwas komplexer als die Quinte, erzeugt sie Figuren mit mehr Kreuzungen und Schleifen. In der Musik ist es das komplementäre Intervall zur Quinte: Geometrie und Musik als Spiegel voneinander.</li><li><strong>Dissonanz (irrationale Verhältnisse) — Das schöne Chaos:</strong> Wenn das Frequenzverhältnis keine einfache rationale Zahl ist, schließt sich die Figur nie. Der Strich füllt den Raum dicht und chaotisch. Das ist die visuelle Darstellung musikalischer Spannung: Das Ohr sucht Auflösung, genau wie das Auge nach einem Muster sucht, das nie erscheint.</li>",
+                seo_h3_2: "Die Verbindung zur Musik: Warum Manche Intervalle -Gut Klingen-",
+                seo_p_3: "Jahrhundertelang fragten Philosophen und Musiker, warum manche Notenkombinationen Freude erzeugen und andere Unbehagen. Die Physik gab die Antwort: Zwei Töne klingen konsonant, wenn ihre Frequenzen ein einfaches Verhältnis haben — wenn sich ihre Wellen regelmäßig synchronisieren. Die Quinte (3:2) bedeutet: Auf jeden 3 Zyklen des höheren Tons kommen genau 2 des tieferen. Das Ohr nimmt dieses regelmäßige Muster als Stabilität und Schönheit wahr. Der Harmonograph macht es sichtbar: Konsonanz zeichnet geschlossene, symmetrische Figuren; Dissonanz zeichnet offene, formlose Gitter. Sie <em>sehen</em> buchstäblich, warum Musik Sie bewegt.",
+                seo_h3_3: "Bedienungsanleitung: So erkunden Sie den Generator",
+                seo_list_2: "<li><strong>Beginnen Sie mit den Presets:</strong> Drücken Sie jeden Akkordknopf (Unisono, Oktave, Quinte…) und beobachten Sie die entstehende Form. Verinnerlichen Sie die Beziehung zwischen dem Intervallnamen und der Figur.</li><li><strong>Ändern Sie die Phasenverschiebung:</strong> Bewegen Sie bei aktivem Preset den Schieberegler. Die Figur -dreht- sich oder verändert sich, behält aber ihr Wesen. Ein Kreis wird zur Ellipse; eine Acht neigt sich.</li><li><strong>Passen Sie die Reibung an:</strong> Reibung steuert, wie lange die Schwingungen anhalten. Bei geringer Reibung ist der Strich lang und dünn. Bei hoher Reibung kollabiert die Spirale schnell. Reibung ist Zeit.</li><li><strong>Erkunden Sie das Gebiet zwischen Presets:</strong> Verschieben Sie die Frequenzen der Pendel A und B manuell auf Werte, die keine einfachen Verhältnisse sind. Beobachten Sie, wie die Figur sich nie schließt. Sie befinden sich im Dissonanzgebiet.</li><li><strong>Speichern Sie Ihre Favoriten:</strong> Wenn Sie eine Figur finden, die Sie bewegt, verwenden Sie die Schaltfläche PNG oder JPG speichern. Jede Kombination aus Frequenz, Phase und Reibung ist einzigartig und unwiederholbar.</li>",
+                seo_p_4: "Der Harmonograph erinnert uns an etwas, das Mathematik und Musik immer gewusst haben: Das Universum hat eine Grammatik. Dieselben Proportionen, die einen Akkord schön klingen lassen, sind es, die eine Figur elegant machen. Es ist keine Magie oder Mystizismus — es ist Physik — aber die Physik erzeugt manchmal Dinge, die wir nur als schön bezeichnen können.",
+                footer_coffee: "☕ Spendier mir einen Kaffee", footer_legal: "Impressum", footer_privacy: "Datenschutz",
+                footer_cookies: "Cookies", footer_contact: "Kontakt", footer_rights: "Alle Rechte vorbehalten."
+            },
+            pt: {
+                nav_hub: "HUB", nav_back: "VOLTAR", sim_title: "Harmonógrafo",
+                btn_png: "💾 Salvar PNG", btn_jpg: "📸 Salvar JPG", btn_draw: "🖋️ Soltar Pêndulos (Desenhar)",
+                group_presets: "Acordes Visuais (Presets)", group_pendulums: "Pêndulos (Frequências)",
+                group_style: "Estilo da Pena", p_unison: "Uníssono (1:1)", p_octave: "Oitava (2:1)",
+                p_fifth: "Quinta (3:2)", p_fourth: "Quarta (4:3)", p_complex: "Complexo", p_chaos: "Dissonância",
+                label_freqA: "Pêndulo A (Eixo X)", label_freqB: "Pêndulo B (Eixo Y)", label_damping: "Fricção",
+                label_phase: "Desfasagem", label_color: "Cor da Luz", label_width: "Espessura",
+                art_title: "A Dança dos Pêndulos: Geometria Musical",
+                art_p1: "Chegou à última ferramenta da coleção: o Harmonógrafo. Este dispositivo foi muito popular no século XIX para visualizar a harmonia musical.",
+                art_p2: "Imagine dois ou três pêndulos oscilando. Um move um papel e o outro move uma caneta. O desenho resultante é o registo do movimento combinado de ambos. Na física, estas curvas são conhecidas como Figuras de Lissajous.",
+                art_sub1: "Como ler os desenhos",
+                art_p3: "O que vê no ecrã é literalmente um acorde musical desenhado:",
+                art_li1: "Consonância (Beleza): Quando as proporções são simples (2:1, 3:2), o desenho é simétrico.",
+                art_li2: "Dissonância (Caos): Quando as proporções são complexas, cria uma malha densa.",
+                art_sub2: "Os Presets Sagrados",
+                art_p4: "Utilize os botões acima para ver as relações clássicas:",
+                art_li3: "Uníssono (1:1): Duas notas iguais.",
+                art_li4: "Oitava (2:1): A mesma nota, mas mais aguda.",
+                art_li5: "Quinta Perfeita (3:2): O intervalo mais sagrado.",
+                art_p5: "A espiral em direção ao centro deve-se à fricção orgânica do traço.",
+                seo_h2_1: "O Harmonógrafo: Quando a Física Desenha Música",
+                seo_p_1: "Na Inglaterra vitoriana dos anos 1840, os salões das classes cultas escondiam um objeto fascinante: o harmonógrafo. Não era um instrumento musical, mas uma máquina de desenhar movida por pêndulos. Os convidados ficavam hipnotizados ao ver como duas oscilações simples — dois pêndulos — produziam figuras de uma complexidade e beleza inesperadas. O que ignoravam é que estavam a ver a música. Não metaforicamente: de forma literal e matemática, o som produzido por um acorde e o desenho traçado por um harmonógrafo são a mesma coisa expressa em meios diferentes.",
+                seo_h3_1: "A Física por Detrás da Beleza: O que são as Figuras de Lissajous",
+                seo_p_2: "Quando dois pêndulos oscilam simultaneamente, cada um controla um eixo de movimento: o pêndulo A move a caneta da esquerda para a direita (eixo X) e o pêndulo B move-a de cima para baixo (eixo Y). A curva resultante não é aleatória: é a soma vetorial de dois movimentos harmônicos simples. O matemático Jules Antoine Lissajous estudou estas figuras em 1857 usando diapasões e espelhos com luz refletida. Hoje levam o seu nome. Tudo depende da <strong>proporção entre as frequências</strong> dos dois pêndulos:",
+                seo_list_1: "<li><strong>Uníssono (1:1) — O Círculo ou a Elipse:</strong> Ambos os pêndulos oscilam à mesma velocidade. Se estiverem em fase, o resultado é uma linha diagonal. Se desfasados 90°, obtém-se um círculo perfeito. É o acorde mais estável: duas vozes cantando exatamente a mesma coisa.</li><li><strong>Oitava (2:1) — O Oito:</strong> Um pêndulo move-se o dobro mais rápido que o outro. O resultado é uma figura em forma de 8. Em música, é a relação mais consonante depois do uníssono: a mesma nota num registo diferente.</li><li><strong>Quinta Perfeita (3:2) — A Curva Sagrada:</strong> Esta é a proporção que Pitágoras chamou a mais harmoniosa da natureza. A figura resultante é uma curva aberta e elegante, sempre em processo de se fechar mas nunca de todo — vibrante. Não é coincidência que seja a base da escala musical ocidental.</li><li><strong>Quarta Justa (4:3) — A Irmã da Quinta:</strong> Ligeiramente mais complexa que a quinta, produz figuras com mais cruzamentos e voltas. Em música é o intervalo complementar da quinta: geometria e música como espelho uma da outra.</li><li><strong>Dissonância (proporções irracionais) — O Caos Belo:</strong> Quando a proporção de frequências não é um número racional simples, a figura nunca se fecha. O traço preenche o espaço de forma densa e caótica. É a representação visual da tensão musical: o ouvido procura resolução tal como o olho procura um padrão que nunca aparece.</li>",
+                seo_h3_2: "A Ligação com a Música: Por Que Alguns Intervalos \"Soam Bem\"",
+                seo_p_3: "Durante séculos, filósofos e músicos perguntaram-se por que algumas combinações de notas produzem prazer e outras, desconforto. A física deu a resposta: duas notas soam consonantes quando as suas frequências têm uma proporção simples — quando as suas ondas se sincronizam regularmente. A Quinta (3:2) significa que para cada 3 ciclos da nota aguda, a nota grave completa exatamente 2. O ouvido percebe este padrão regular como estabilidade e beleza. O harmonógrafo torna-o visível: a consonância desenha figuras fechadas e simétricas; a dissonância desenha malhas abertas e sem forma. Está literalmente a <em>ver</em> por que a música o emociona.",
+                seo_h3_3: "Guia de Utilização: Como Explorar o Gerador",
+                seo_list_2: "<li><strong>Comece pelos Presets:</strong> Prima cada botão de acorde (Uníssono, Oitava, Quinta…) e observe a forma que aparece. Interiorize a relação entre o nome do intervalo e a figura.</li><li><strong>Altere o Desfasamento:</strong> Com o mesmo preset ativo, mova o deslizador de Desfasamento. Verá a mesma figura \"rodar\" ou transformar-se mantendo a sua essência. Um círculo torna-se elipse; um oito inclina-se.</li><li><strong>Ajuste a Fricção:</strong> A fricção controla quanto tempo duram as oscilações. Com fricção baixa, o traço é longo e fino. Com fricção alta, a espiral colapsa rapidamente. A fricção é o tempo.</li><li><strong>Explore o território entre presets:</strong> Mova manualmente as frequências dos pêndulos A e B para valores que não sejam proporções simples. Observe como a figura nunca se fecha. Está em território de dissonância.</li><li><strong>Guarde os seus favoritos:</strong> Quando encontrar uma figura que o emocione, use o botão de guardar PNG ou JPG. Cada combinação de frequência, fase e fricção é única e irrepetível.</li>",
+                seo_p_4: "O harmonógrafo recorda-nos algo que a matemática e a música sempre souberam: o universo tem uma gramática. As mesmas proporções que fazem um acorde soar belo são as que tornam uma figura elegante. Não é magia nem misticismo — é física — mas a física, por vezes, produz coisas que só podemos chamar de belas.",
+                footer_coffee: "☕ Pague-me um café", footer_legal: "Aviso Legal", footer_privacy: "Privacidade",
+                footer_cookies: "Cookies", footer_contact: "Contacto", footer_rights: "Todos os direitos reservados."
+            },
+            it: {
+                nav_hub: "HUB", nav_back: "INDIETRO", sim_title: "Armonografo",
+                btn_png: "💾 Salva PNG", btn_jpg: "📸 Salva JPG", btn_draw: "🖋️ Rilascia Pendoli (Disegna)",
+                group_presets: "Accordi Visuali (Presets)", group_pendulums: "Pendoli (Frequenze)",
+                group_style: "Stile Penna", p_unison: "Unisono (1:1)", p_octave: "Ottava (2:1)",
+                p_fifth: "Quinta (3:2)", p_fourth: "Quarta (4:3)", p_complex: "Complesso", p_chaos: "Dissonanza",
+                label_freqA: "Pendolo A (Asse X)", label_freqB: "Pendolo B (Asse Y)", label_damping: "Attrito",
+                label_phase: "Sfasamento", label_color: "Colore Luce", label_width: "Spessore",
+                art_title: "La Danza dei Pendoli: Geometria Musicale",
+                art_p1: "Sei arrivato all'ultimo strumento della collezione: l'Armonografo. Questo dispositivo era molto popolare nel XIX secolo per visualizzare l'armonia musicale.",
+                art_p2: "Immagina due o tre pendoli oscillanti. Uno muove una carta e l'altro una penna. Il disegno risultante è la registrazione del movimento combinato di entrambi. In fisica, queste curve sono note come Figure di Lissajous.",
+                art_sub1: "Come leggere i disegni",
+                art_p3: "Quello che vedi sullo schermo è letteralmente un accordo musicale disegnato:",
+                art_li1: "Consonanza (Bellezza): Quando le proporzioni sono semplici (2:1, 3:2), il disegno è simmetrico.",
+                art_li2: "Dissonanza (Caos): Quando le proporzioni sono complesse, si crea una maglia densa.",
+                art_sub2: "I Preset Sacri",
+                art_p4: "Usa i pulsanti in alto per vedere le relazioni classiche:",
+                art_li3: "Unisono (1:1): Due note uguali.",
+                art_li4: "Ottava (2:1): La stessa nota ma più acuta.",
+                art_li5: "Quinta Perfetta (3:2): L'intervallo più sacro.",
+                art_p5: "La spirale verso il centro è dovuta all'attrito organico del tratto.",
+                seo_h2_1: "L'Armonografo: Quando la Fisica Disegna Musica",
+                seo_p_1: "Nell'Inghilterra vittoriana degli anni 1840, i salotti delle classi colte nascondevano un oggetto affascinante: l'armonografo. Non era uno strumento musicale, ma una macchina da disegno mossa da pendoli. Gli ospiti rimanevano ipnotizzati nel vedere come due semplici oscillazioni — due pendoli — producessero figure di inaspettata complessità e bellezza. Ciò che ignoravano è che stavano vedendo la musica. Non metaforicamente: in modo letterale e matematico, il suono prodotto da un accordo e il disegno tracciato da un armonografo sono la stessa cosa espressa in media diversi.",
+                seo_h3_1: "La Fisica Dietro la Bellezza: Cosa sono le Figure di Lissajous",
+                seo_p_2: "Quando due pendoli oscillano simultaneamente, ciascuno controlla un asse di movimento: il pendolo A muove la penna da sinistra a destra (asse X) e il pendolo B la muove dall'alto in basso (asse Y). La curva risultante non è casuale: è la somma vettoriale di due moti armonici semplici. Il matematico Jules Antoine Lissajous studiò queste figure nel 1857 usando diapason e specchi con luce riflessa. Oggi portano il suo nome. Tutto dipende dal <strong>rapporto tra le frequenze</strong> dei due pendoli:",
+                seo_list_1: "<li><strong>Unisono (1:1) — Il Cerchio o l'Ellisse:</strong> Entrambi i pendoli oscillano alla stessa velocità. Se in fase, il risultato è una linea diagonale. Se sfasati di 90°, si ottiene un cerchio perfetto. È l'accordo più stabile: due voci che cantano esattamente la stessa cosa.</li><li><strong>Ottava (2:1) — L'Otto:</strong> Un pendolo si muove il doppio più veloce dell'altro. Il risultato è una figura a forma di 8 o cappio. In musica è la relazione più consonante dopo l'unisono: la stessa nota in un registro diverso.</li><li><strong>Quinta Perfetta (3:2) — La Curva Sacra:</strong> È la proporzione che Pitagora chiamò la più armoniosa della natura. La figura risultante è una curva aperta ed elegante, sempre in procinto di chiudersi ma mai del tutto — vibrante. Non è un caso che sia alla base della scala musicale occidentale.</li><li><strong>Quarta Giusta (4:3) — La Sorella della Quinta:</strong> Leggermente più complessa della quinta, produce figure con più incroci e giri. In musica è l'intervallo complementare della quinta: geometria e musica come specchio l'una dell'altra.</li><li><strong>Dissonanza (proporzioni irrazionali) — Il Bel Caos:</strong> Quando il rapporto tra frequenze non è un numero razionale semplice, la figura non si chiude mai. Il tratto riempie lo spazio in modo denso e caotico. È la rappresentazione visiva della tensione musicale: l'orecchio cerca risoluzione proprio come l'occhio cerca un pattern che non appare mai.</li>",
+                seo_h3_2: "Il Legame con la Musica: Perché Alcuni Intervalli \"Suonano Bene\"",
+                seo_p_3: "Per secoli, filosofi e musicisti si sono chiesti perché alcune combinazioni di note producono piacere e altre disagio. La fisica ha dato la risposta: due note suonano consonanti quando le loro frequenze hanno un rapporto semplice — quando le loro onde si sincronizzano regolarmente. La Quinta (3:2) significa che per ogni 3 cicli della nota acuta, quella grave ne completa esattamente 2. L'orecchio percepisce questo schema regolare come stabilità e bellezza. L'armonografo lo rende visibile: la consonanza disegna figure chiuse e simmetriche; la dissonanza disegna maglie aperte e senza forma. Stai letteralmente <em>vedendo</em> perché la musica ti emoziona.",
+                seo_h3_3: "Guida all'Uso: Come Esplorare il Generatore",
+                seo_list_2: "<li><strong>Inizia con i Preset:</strong> Premi ogni pulsante di accordo (Unisono, Ottava, Quinta…) e osserva la forma che appare. Interiorizza la relazione tra il nome dell'intervallo e la figura.</li><li><strong>Cambia lo Sfasamento:</strong> Con lo stesso preset attivo, muovi il cursore di Sfasamento. Vedrai la stessa figura \"ruotare\" o trasformarsi mantenendo la sua essenza. Un cerchio diventa un'ellisse; un otto si inclina.</li><li><strong>Regola l'Attrito:</strong> L'attrito controlla per quanto tempo durano le oscillazioni. Con attrito basso, il tratto è lungo e sottile. Con attrito alto, la spirale collassa rapidamente. L'attrito è il tempo.</li><li><strong>Esplora il territorio tra i preset:</strong> Sposta manualmente le frequenze dei pendoli A e B su valori che non siano proporzioni semplici. Osserva come la figura non si chiude mai. Sei in territorio di dissonanza.</li><li><strong>Salva i tuoi preferiti:</strong> Quando trovi una figura che ti emoziona, usa il pulsante Salva PNG o JPG. Ogni combinazione di frequenza, fase e attrito è unica e irripetibile.</li>",
+                seo_p_4: "L'armonografo ci ricorda qualcosa che matematica e musica hanno sempre saputo: l'universo ha una grammatica. Le stesse proporzioni che fanno suonare bello un accordo sono quelle che rendono elegante una figura. Non è magia né misticismo — è fisica — ma la fisica, a volte, produce cose che possiamo solo chiamare belle.",
+                footer_coffee: "☕ Offrimi un caffè", footer_legal: "Avviso Legale", footer_privacy: "Privacy",
+                footer_cookies: "Cookies", footer_contact: "Contatto", footer_rights: "Tutti i diritti riservati."
+            },
+            nl: {
+                nav_hub: "HUB", nav_back: "TERUG", sim_title: "Harmonograaf",
+                btn_png: "💾 PNG Opslaan", btn_jpg: "📸 JPG Opslaan", btn_draw: "🖋️ Pendels Loslaten (Tekenen)",
+                group_presets: "Visuele Akkoorden (Presets)", group_pendulums: "Pendels (Frequenties)",
+                group_style: "Penstijl", p_unison: "Unisono (1:1)", p_octave: "Octaaf (2:1)",
+                p_fifth: "Kwint (3:2)", p_fourth: "Kwart (4:3)", p_complex: "Complex", p_chaos: "Dissonantie",
+                label_freqA: "Pendel A (X-as)", label_freqB: "Pendel B (Y-as)", label_damping: "Wrijving",
+                label_phase: "Faseverschuiving", label_color: "Lichtkleur", label_width: "Dikte",
+                art_title: "De Dans van de Pendels: Muzikale Geometrie",
+                art_p1: "Je bent bij het laatste instrument van de collectie aangekomen: de Harmonograaf. Dit apparaat was erg populair in de 19e eeuw om muzikale harmonie te visualiseren.",
+                art_p2: "Stel je twee of drie oscillerende pendels voor. De ene beweegt een papier en de andere een pen. De resulterende tekening is de registratie van de gecombineerde beweging van beide. In de natuurkunde staan deze curven bekend als Lissajous-figuren.",
+                art_sub1: "Hoe de tekeningen te lezen",
+                art_p3: "Wat je op het scherm ziet, is letterlijk een getekend muzikaal akkoord:",
+                art_li1: "Consonantie (Schoonheid): Wanneer de verhoudingen eenvoudig zijn (2:1, 3:2), is de tekening symmetrisch.",
+                art_li2: "Dissonantie (Chaos): Wanneer de verhoudingen complex zijn, ontstaat er een dicht raster.",
+                art_sub2: "De Heilige Presets",
+                art_p4: "Gebruik de knoppen hierboven om de klassieke relaties te zien:",
+                art_li3: "Unisono (1:1): Twee gelijke noten.",
+                art_li4: "Octaaf (2:1): Dezelfde noot maar hoger.",
+                art_li5: "Reine Kwint (3:2): Het meest heilige interval.",
+                art_p5: "De spiraal naar het midden is te danken aan de organische wrijving van de lijn.",
+                seo_h2_1: "De Harmonograaf: Wanneer Fysica Muziek Tekent",
+                seo_p_1: "In het Victoriaanse Engeland van de jaren 1840 verborg zich in de salons van de ontwikkelde klassen een fascinerend object: de harmonograaf. Het was geen muziekinstrument, maar een tekenmachine aangedreven door pendels. Gasten waren gehypnotiseerd als ze zagen hoe twee eenvoudige oscillaties — twee pendels — figuren van onverwachte complexiteit en schoonheid produceerden. Wat ze niet beseften: ze zagen muziek. Niet metaforisch, maar letterlijk en wiskundig — het geluid van een akkoord en de tekening van een harmonograaf zijn hetzelfde, uitgedrukt in verschillende media.",
+                seo_h3_1: "De Fysica Achter de Schoonheid: Wat zijn Lissajous-figuren",
+                seo_p_2: "Wanneer twee pendels gelijktijdig oscilleren, bestuurt elk één bewegingsas: pendel A beweegt de pen van links naar rechts (X-as) en pendel B van boven naar beneden (Y-as). De resulterende curve is niet willekeurig: het is de vectorsom van twee eenvoudige harmonische bewegingen. Wiskundige Jules Antoine Lissajous bestudeerde deze figuren in 1857 met stemvorken en spiegels met gereflecteerd licht. Vandaag dragen ze zijn naam. Alles draait om de <strong>verhouding tussen de frequenties</strong> van de twee pendels:",
+                seo_list_1: "<li><strong>Unisono (1:1) — De Cirkel of Ellips:</strong> Beide pendels oscilleren met dezelfde snelheid. Als ze in fase zijn, is het resultaat een diagonale lijn. Bij 90° verschuiving ontstaat een perfecte cirkel. Het is het meest stabiele akkoord: twee stemmen die precies hetzelfde zingen.</li><li><strong>Octaaf (2:1) — De Acht:</strong> Een pendel beweegt twee keer zo snel als de andere. Het resultaat is een achtvormige of lustfiguur. In muziek is dit de meest consonante verhouding na unisono: dezelfde noot in een ander register.</li><li><strong>Reine Kwint (3:2) — De Heilige Curve:</strong> Dit is de verhouding die Pythagoras de meest harmonieuze in de natuur noemde. De resulterende figuur is een open, elegante curve, altijd bezig zich te sluiten maar nooit helemaal — vibrend. Het is geen toeval dat dit de basis vormt van de westerse muziekschaal.</li><li><strong>Reine Kwart (4:3) — De Zuster van de Kwint:</strong> Iets complexer dan de kwint, produceert figuren met meer kruisingen en bochten. In muziek is het het complementaire interval van de kwint: meetkunde en muziek als elkaars spiegel.</li><li><strong>Dissonantie (irrationele verhoudingen) — Het Mooie Chaos:</strong> Wanneer de frequentieverhouding geen eenvoudig rationeel getal is, sluit de figuur zich nooit. De lijn vult de ruimte dicht en chaotisch. Dit is de visuele weergave van muzikale spanning: het oor zoekt oplossing net als het oog een patroon zoekt dat nooit verschijnt.</li>",
+                seo_h3_2: "De Verbinding met Muziek: Waarom Sommige Intervallen \"Goed Klinken\"",
+                seo_p_3: "Eeuwenlang vroegen filosofen en musici zich af waarom sommige nootcombinaties plezier geven en andere ongemak. De fysica gaf het antwoord: twee noten klinken consonant wanneer hun frequenties een eenvoudige verhouding hebben — wanneer hun golven zich regelmatig synchroniseren. De Kwint (3:2) betekent: voor elke 3 cycli van de hoge noot voltooit de lage noot er exact 2. Het oor ervaart dit regelmatige patroon als stabiliteit en schoonheid. De harmonograaf maakt het zichtbaar: consonantie tekent gesloten, symmetrische figuren; dissonantie tekent open, vormeloze rasters. Je <em>ziet</em> letterlijk waarom muziek je raakt.",
+                seo_h3_3: "Gebruiksgids: De Generator Verkennen",
+                seo_list_2: "<li><strong>Begin met de Presets:</strong> Druk op elke akkoordknop (Unisono, Octaaf, Kwint…) en observeer de vorm die verschijnt. Internaliseer de relatie tussen de intervalnaam en de figuur.</li><li><strong>Verander de Faseverschuiving:</strong> Met hetzelfde preset actief, beweeg je de faseschuifregelaar. Je ziet de figuur \"draaien\" of transformeren terwijl de essentie behouden blijft. Een cirkel wordt een ellips; een acht kantelt.</li><li><strong>Pas de Wrijving aan:</strong> Wrijving bepaalt hoe lang de oscillaties duren. Bij lage wrijving is de lijn lang en dun. Bij hoge wrijving stort de spiraal snel in. Wrijving is tijd.</li><li><strong>Verken het gebied tussen presets:</strong> Verplaats de frequenties van pendels A en B handmatig naar waarden die geen eenvoudige verhoudingen zijn. Zie hoe de figuur zich nooit sluit. Je bevindt je in dissonantiegebied.</li><li><strong>Sla je favorieten op:</strong> Wanneer je een figuur vindt die je raakt, gebruik je de knop PNG of JPG opslaan. Elke combinatie van frequentie, fase en wrijving is uniek en onherhaalbaar.</li>",
+                seo_p_4: "De harmonograaf herinnert ons aan iets wat wiskunde en muziek altijd hebben geweten: het universum heeft een grammatica. Dezelfde verhoudingen die een akkoord mooi laten klinken, zijn die welke een figuur elegant maken. Het is geen magie of mystiek — het is fysica — maar fysica produceert soms dingen die we alleen maar mooi kunnen noemen.",
+                footer_coffee: "☕ Koop een kop koffie", footer_legal: "Juridische Kennisgeving", footer_privacy: "Privacy",
+                footer_cookies: "Cookies", footer_contact: "Contact", footer_rights: "Alle rechten voorbehouden."
+            },
+            ja: {
+                nav_hub: "ハブ", nav_back: "戻る", sim_title: "ハーモノグラフ",
+                btn_png: "💾 PNGを保存", btn_jpg: "📸 JPGを保存", btn_draw: "🖋️ 振り子を放す（描画）",
+                group_presets: "視覚的コード（プリセット）", group_pendulums: "振り子（周波数）",
+                group_style: "ペンのスタイル", p_unison: "ユニゾン (1:1)", p_octave: "オクターブ (2:1)",
+                p_fifth: "完全五度 (3:2)", p_fourth: "完全四度 (4:3)", p_complex: "複雑", p_chaos: "不協和音",
+                label_freqA: "振り子 A (X軸)", label_freqB: "振り子 B (Y軸)", label_damping: "摩擦",
+                label_phase: "位相差", label_color: "光の色", label_width: "太さ",
+                art_title: "振り子のダンス：音楽的幾何学",
+                art_p1: "コレクションの最後のツール、ハーモノグラフに到達しました。この装置は、19世紀に音楽の調和を視覚化するために非常に人気がありました。",
+                art_p2: "2つまたは3つの振り子が振動しているのを想像してください。一方が紙を動かし、もう一方がペンを動かします。結果として得られる図形は、両方の複合運動の記録です。物理学では、これらの曲線はリサジュー図形として知られています。",
+                art_sub1: "図形の読み方",
+                art_p3: "画面に見えるものは、文字通り描かれた音楽のコード（和音）です：",
+                art_li1: "協和（美）：比率が単純な場合（2:1、3:2など）、図形は対称的で安定します。",
+                art_li2: "不協和（カオス）：比率が複雑な場合、密集した乱雑な網目が生じます。",
+                art_sub2: "神聖なプリセット",
+                art_p4: "上のボタンを使用して、古典的な関係を確認してください：",
+                art_li3: "ユニゾン (1:1)：2つの同じ音。",
+                art_li4: "オクターブ (2:1)：同じ音ですが、より高い音。",
+                art_li5: "完全五度 (3:2)：オクターブに次いで最も神聖な音程。",
+                art_p5: "中心に向かう螺旋は、線の有機的な摩擦（減衰）によるものです。",
+                seo_h2_1: "ハーモノグラフ：物理学が音楽を描くとき",
+                seo_p_1: "1840年代のヴィクトリア朝イングランド、教養ある階級のサロンには魅力的な物体が隠されていました：ハーモノグラフです。それは楽器ではなく、振り子によって動く描画機械でした。招待客たちは、2つの単純な振動——2つの振り子——が予想外に複雑で美しい図形を生み出す様子に催眠をかけられたように魅入っていました。彼らが気づかなかったのは、音楽を「見て」いたということです。比喩的にではなく：文字通り数学的に、和音が生み出す音とハーモノグラフが描く図形は、異なるメディアで表現された同じものなのです。",
+                seo_h3_1: "美の背後にある物理学：リサジュー図形とは何か",
+                seo_p_2: "2つの振り子が同時に振動するとき、それぞれが動きの一軸を制御します：振り子Aはペンを左右に動かし（X軸）、振り子Bは上下に動かします（Y軸）。生まれる曲線は偶然ではありません：2つの単純調和運動のベクトル和です。数学者ジュール・アントワーヌ・リサジューは1857年、音叉と反射光を使ったミラーでこれらの図形を研究しました。今日それらは彼の名を冠しています。すべては2つの振り子の<strong>周波数の比</strong>にかかっています：",
+                seo_list_1: "<li><strong>ユニゾン (1:1) — 円または楕円：</strong>両方の振り子が同じ速さで振動します。位相が同じなら対角線になります。90°ずれていれば完璧な円になります。最も安定した和音：2つの声がまったく同じことを歌っています。</li><li><strong>オクターブ (2:1) — 8の字：</strong>一方の振り子がもう一方の2倍の速さで動きます。結果は8の字またはループ形です。音楽ではユニゾンの次に最も協和した関係：異なる音域の同じ音です。</li><li><strong>完全五度 (3:2) — 神聖な曲線：</strong>ピタゴラスが自然界で最も調和的と呼んだ比率です。生まれる図形は開いた優雅な曲線で、常に閉じようとしているが決して完全には閉じない——振動しています。西洋音楽の音階の基礎をなすのは偶然ではありません。</li><li><strong>完全四度 (4:3) — 五度の姉妹：</strong>五度より少し複雑で、より多くの交差とループを持つ図形を生み出します。音楽では五度の補完的な音程：幾何学と音楽が互いの鏡のように。</li><li><strong>不協和音（無理数比）— 美しいカオス：</strong>周波数の比が単純な有理数でない場合、図形は決して閉じません。線は密に混沌と空間を埋めます。これは音楽的緊張の視覚的表現です：耳が解決を求めるように、目も現れないパターンを探し続けます。</li>",
+                seo_h3_2: "音楽との繋がり：なぜ一部の音程は「美しく聞こえる」のか",
+                seo_p_3: "何世紀もの間、哲学者や音楽家たちは、ある音の組み合わせが喜びをもたらし、他の組み合わせが不快感を生む理由を問い続けました。物理学がその答えを与えました：2つの音は、その周波数が単純な比を持つとき——つまり音波が規則的に同期するとき——協和音として聞こえます。完全五度 (3:2) は、高い音の3サイクルごとに、低い音がちょうど2サイクルを完了することを意味します。耳はこの規則的なパターンを安定と美として感知します。ハーモノグラフはそれを可視化します：協和は閉じた対称的な図形を描き、不協和は開いた形のない網目を描きます。あなたは文字通り、音楽が感動を呼ぶ理由を<em>見ている</em>のです。",
+                seo_h3_3: "使い方ガイド：ジェネレーターの探索方法",
+                seo_list_2: "<li><strong>プリセットから始める：</strong>各和音ボタン（ユニゾン、オクターブ、五度…）を押して現れる形を観察しましょう。音程の名前と図形の関係を内面化してください。</li><li><strong>位相差を変える：</strong>同じプリセットを有効にしたまま、位相差スライダーを動かしてください。同じ図形が本質を保ちながら「回転」したり変形したりするのが見えます。円が楕円になり、8の字が傾きます。</li><li><strong>摩擦を調整する：</strong>摩擦は振動がどのくらい続くかを制御します。摩擦が低いと線は長く細くなります。摩擦が高いと螺旋は素早く収縮します。摩擦は時間です。</li><li><strong>プリセット間の領域を探索する：</strong>振り子AとBの周波数を単純な比でない値に手動で動かしてください。図形が決して閉じないのを観察してください。不協和音の領域にいます。</li><li><strong>お気に入りを保存する：</strong>感動する図形を見つけたら、PNG または JPG 保存ボタンを使ってください。周波数、位相差、摩擦のすべての組み合わせは唯一無二で再現不可能です。</li>",
+                seo_p_4: "ハーモノグラフは、数学と音楽がずっと知っていたことを思い出させてくれます：宇宙には文法があります。和音を美しく響かせる同じ比率が、図形を優雅にします。魔法でも神秘主義でもありません——物理学です——しかし物理学は時として、美しいとしか呼べないものを生み出します。",
+                footer_coffee: "☕ コーヒーを一杯おごる", footer_legal: "法的通知", footer_privacy: "プライバシー",
+                footer_cookies: "クッキー", footer_contact: "お問い合わせ", footer_rights: "無断複写・転載を禁じます。"
+            }
+        };
+
+
+
+        // --- LÓGICA DEL SIMULADOR (INALTERADA) ---
+        const canvas = document.getElementById('harmonographCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const state = {
+            freqA: 2.0, freqB: 3.0, ampA: 200, ampB: 200, phase: 90,
+            damping: 0.0005, penColor: '#00ff41', penWidth: 0.5,
+            isDrawing: false, time: 0, maxTime: 6000
+        };
+
+        let points = [];
+        let animationId;
+
+        function init() {
+            resize();
+            window.addEventListener('resize', resize);
+            setupControls();
+            startDrawing();
         }
-    };
 
-    function changeLanguage(lang) {
-        document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
-        event?.target?.classList?.add('active');
-
-        const texts = translations[lang] || translations['en'];
-        document.querySelectorAll('[data-i18n]').forEach(el => {
-            const key = el.getAttribute('data-i18n');
-            if (texts[key]) el.innerHTML = texts[key];
-        });
-    }
-
-    // --- LÓGICA DEL SIMULADOR (INALTERADA) ---
-    const canvas = document.getElementById('harmonographCanvas');
-    const ctx = canvas.getContext('2d');
-
-    const state = {
-        freqA: 2.0, freqB: 3.0, ampA: 200, ampB: 200, phase: 90,
-        damping: 0.0005, penColor: '#00ff41', penWidth: 0.5,
-        isDrawing: false, time: 0, maxTime: 6000
-    };
-
-    let points = [];
-    let animationId;
-
-    function init() {
-        resize();
-        window.addEventListener('resize', resize);
-        setupControls();
-        startDrawing();
-    }
-
-    function resize() {
-        const parent = canvas.parentElement;
-        canvas.width = parent.clientWidth;
-        canvas.height = parent.clientHeight;
-        const minDim = Math.min(canvas.width, canvas.height);
-        state.ampA = minDim * 0.4;
-        state.ampB = minDim * 0.4;
-        if(!state.isDrawing) drawStatic();
-    }
-
-    function startDrawing() {
-        state.isDrawing = true;
-        state.time = 0;
-        points = [];
-        if(animationId) cancelAnimationFrame(animationId);
-        ctx.fillStyle = '#000';
-        ctx.fillRect(0,0, canvas.width, canvas.height);
-        animate();
-    }
-
-    function animate() {
-        if (!state.isDrawing) return;
-        const stepsPerFrame = 12;
-        const dt = 0.05;
-        ctx.strokeStyle = state.penColor;
-        ctx.lineWidth = state.penWidth;
-        ctx.lineJoin = 'round';
-        ctx.lineCap = 'round';
-        ctx.beginPath();
-
-        if (points.length > 0) {
-            const lastP = points[points.length - 1];
-            ctx.moveTo(lastP.x, lastP.y);
+        function resize() {
+            const parent = canvas.parentElement;
+            canvas.width = parent.clientWidth;
+            canvas.height = parent.clientHeight;
+            const minDim = Math.min(canvas.width, canvas.height);
+            state.ampA = minDim * 0.4;
+            state.ampB = minDim * 0.4;
+            if (!state.isDrawing) drawStatic();
         }
 
-        for (let i = 0; i < stepsPerFrame; i++) {
-            state.time += dt;
-            const phaseRad = state.phase * Math.PI / 180;
-            const decay = Math.exp(-state.damping * state.time);
-            if (decay < 0.01) { state.isDrawing = false; break; }
-
-            const x = canvas.width/2 + state.ampA * Math.sin(state.freqA * state.time) * decay;
-            const y = canvas.height/2 + state.ampB * Math.sin(state.freqB * state.time + phaseRad) * decay;
-            ctx.lineTo(x, y);
-            points.push({x, y});
+        function startDrawing() {
+            state.isDrawing = true;
+            state.time = 0;
+            points = [];
+            if (animationId) cancelAnimationFrame(animationId);
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            animate();
         }
-        ctx.stroke();
-        if (state.isDrawing) animationId = requestAnimationFrame(animate);
-    }
 
-    function drawStatic() {
-        ctx.fillStyle = '#000';
-        ctx.fillRect(0,0, canvas.width, canvas.height);
-        if(points.length < 2) return;
-        ctx.strokeStyle = state.penColor;
-        ctx.lineWidth = state.penWidth;
-        ctx.beginPath();
-        ctx.moveTo(points[0].x, points[0].y);
-        for(let i=1; i<points.length; i++) ctx.lineTo(points[i].x, points[i].y);
-        ctx.stroke();
-    }
+        function animate() {
+            if (!state.isDrawing) return;
+            const stepsPerFrame = 12;
+            const dt = 0.05;
+            ctx.strokeStyle = state.penColor;
+            ctx.lineWidth = state.penWidth;
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            ctx.beginPath();
 
-    function setupControls() {
-        document.getElementById('freqA').oninput = (e) => { state.freqA = parseFloat(e.target.value); document.getElementById('valA').innerText = state.freqA.toFixed(2); startDrawing(); };
-        document.getElementById('freqB').oninput = (e) => { state.freqB = parseFloat(e.target.value); document.getElementById('valB').innerText = state.freqB.toFixed(2); startDrawing(); };
-        document.getElementById('damping').oninput = (e) => { state.damping = parseFloat(e.target.value); startDrawing(); };
-        document.getElementById('phase').oninput = (e) => { state.phase = parseInt(e.target.value); document.getElementById('valPhase').innerText = state.phase + '°'; startDrawing(); };
-        document.getElementById('penColor').oninput = (e) => { state.penColor = e.target.value; if(!state.isDrawing) drawStatic(); };
-        document.getElementById('penWidth').oninput = (e) => { state.penWidth = parseFloat(e.target.value); if(!state.isDrawing) drawStatic(); };
-        document.getElementById('btnDraw').onclick = () => startDrawing();
-        document.getElementById('btnPng').onclick = () => saveImage('png');
-        document.getElementById('btnJpg').onclick = () => saveImage('jpeg');
-    }
+            if (points.length > 0) {
+                const lastP = points[points.length - 1];
+                ctx.moveTo(lastP.x, lastP.y);
+            }
 
-    window.setPreset = (mode) => {
-        document.querySelectorAll('.btn-preset').forEach(b => b.classList.remove('active'));
-        if(event) event.target.classList.add('active');
-        if(mode === 'unison') updateSliders(1.0, 1.0, 90);
-        else if(mode === 'octave') updateSliders(1.0, 2.0, 90);
-        else if(mode === 'fifth') updateSliders(2.0, 3.0, 90);
-        else if(mode === 'fourth') updateSliders(3.0, 4.0, 90);
-        else if(mode === 'complex') updateSliders(2.01, 3.01, 45);
-        else if(mode === 'chaos') updateSliders(Math.random()*5+1, Math.random()*5+1, Math.random()*360);
-        startDrawing();
-    };
+            for (let i = 0; i < stepsPerFrame; i++) {
+                state.time += dt;
+                const phaseRad = state.phase * Math.PI / 180;
+                const decay = Math.exp(-state.damping * state.time);
+                if (decay < 0.01) { state.isDrawing = false; break; }
 
-    function updateSliders(fa, fb, ph) {
-        state.freqA = fa; state.freqB = fb; state.phase = ph;
-        document.getElementById('freqA').value = fa; document.getElementById('valA').innerText = fa.toFixed(2);
-        document.getElementById('freqB').value = fb; document.getElementById('valB').innerText = fb.toFixed(2);
-        document.getElementById('phase').value = ph; document.getElementById('valPhase').innerText = ph + '°';
-    }
-
-    function saveImage(format) {
-        const link = document.createElement('a');
-        link.download = `graphics-labs-harmonograph.${format}`;
-        if(format === 'jpeg') {
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = canvas.width; tempCanvas.height = canvas.height;
-            const tCtx = tempCanvas.getContext('2d');
-            tCtx.fillStyle = '#000'; tCtx.fillRect(0,0, canvas.width, canvas.height);
-            tCtx.drawImage(canvas, 0, 0);
-            link.href = tempCanvas.toDataURL('image/jpeg', 0.9);
-        } else {
-            link.href = canvas.toDataURL('image/png');
+                const x = canvas.width / 2 + state.ampA * Math.sin(state.freqA * state.time) * decay;
+                const y = canvas.height / 2 + state.ampB * Math.sin(state.freqB * state.time + phaseRad) * decay;
+                ctx.lineTo(x, y);
+                points.push({ x, y });
+            }
+            ctx.stroke();
+            if (state.isDrawing) animationId = requestAnimationFrame(animate);
         }
-        link.click();
-    }
 
-    init();
-</script>
+        function drawStatic() {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            if (points.length < 2) return;
+            ctx.strokeStyle = state.penColor;
+            ctx.lineWidth = state.penWidth;
+            ctx.beginPath();
+            ctx.moveTo(points[0].x, points[0].y);
+            for (let i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y);
+            ctx.stroke();
+        }
+
+        function setupControls() {
+            document.getElementById('freqA').oninput = (e) => { state.freqA = parseFloat(e.target.value); document.getElementById('valA').innerText = state.freqA.toFixed(2); startDrawing(); };
+            document.getElementById('freqB').oninput = (e) => { state.freqB = parseFloat(e.target.value); document.getElementById('valB').innerText = state.freqB.toFixed(2); startDrawing(); };
+            document.getElementById('damping').oninput = (e) => { state.damping = parseFloat(e.target.value); startDrawing(); };
+            document.getElementById('phase').oninput = (e) => { state.phase = parseInt(e.target.value); document.getElementById('valPhase').innerText = state.phase + '°'; startDrawing(); };
+            document.getElementById('penColor').oninput = (e) => { state.penColor = e.target.value; if (!state.isDrawing) drawStatic(); };
+            document.getElementById('penWidth').oninput = (e) => { state.penWidth = parseFloat(e.target.value); if (!state.isDrawing) drawStatic(); };
+            document.getElementById('btnDraw').onclick = () => startDrawing();
+            document.getElementById('btnPng').onclick = () => saveImage('png');
+            document.getElementById('btnJpg').onclick = () => saveImage('jpeg');
+        }
+
+        window.setPreset = (mode) => {
+            document.querySelectorAll('.btn-preset').forEach(b => b.classList.remove('active'));
+            if (event) event.target.classList.add('active');
+            if (mode === 'unison') updateSliders(1.0, 1.0, 90);
+            else if (mode === 'octave') updateSliders(1.0, 2.0, 90);
+            else if (mode === 'fifth') updateSliders(2.0, 3.0, 90);
+            else if (mode === 'fourth') updateSliders(3.0, 4.0, 90);
+            else if (mode === 'complex') updateSliders(2.01, 3.01, 45);
+            else if (mode === 'chaos') updateSliders(Math.random() * 5 + 1, Math.random() * 5 + 1, Math.random() * 360);
+            startDrawing();
+        };
+
+        function updateSliders(fa, fb, ph) {
+            state.freqA = fa; state.freqB = fb; state.phase = ph;
+            document.getElementById('freqA').value = fa; document.getElementById('valA').innerText = fa.toFixed(2);
+            document.getElementById('freqB').value = fb; document.getElementById('valB').innerText = fb.toFixed(2);
+            document.getElementById('phase').value = ph; document.getElementById('valPhase').innerText = ph + '°';
+        }
+
+        function saveImage(format) {
+            const link = document.createElement('a');
+            link.download = `graphics-labs-harmonograph.${format}`;
+            if (format === 'jpeg') {
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = canvas.width; tempCanvas.height = canvas.height;
+                const tCtx = tempCanvas.getContext('2d');
+                tCtx.fillStyle = '#000'; tCtx.fillRect(0, 0, canvas.width, canvas.height);
+                tCtx.drawImage(canvas, 0, 0);
+                link.href = tempCanvas.toDataURL('image/jpeg', 0.9);
+            } else {
+                link.href = canvas.toDataURL('image/png');
+            }
+            link.click();
+        }
+
+        function setLang(lang) {
+            const l = lang.toLowerCase();
+            localStorage.setItem('gl_lang', l);
+            const t = translations[l] || translations['es'] || translations['en'];
+
+            if (!t) return;
+
+            // Traducción súper limpia usando tus etiquetas data-i18n
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) {
+                    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.placeholder = t[key];
+                    else el.innerHTML = t[key];
+                }
+            });
+
+            // Resaltado de botones
+            document.querySelectorAll('.lang-switch button, .lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.id === 'btn-' + l || btn.innerText.toLowerCase() === l);
+            });
+        }
+
+        // Inicializar simulador
+        init();
+
+        /* --- INICIALIZACIÓN SÍNCRONA DE IDIOMAS --- */
+        const pathParts = window.location.pathname.split('/');
+        const urlLang = pathParts.find(p => window.__GL_LANGS && window.__GL_LANGS.includes(p));
+        const finalLang = urlLang || localStorage.getItem('gl_lang') || 'ca';
+        setLang(finalLang);
+    </script>
 </body>
+
 </html>

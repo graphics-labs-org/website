@@ -1,10 +1,21 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="ca">
 <head>
     <meta charset="UTF-8">
+    <script>
+    // --- i18n URL Router ---
+    (function() {
+        window.__GL_LANG = 'ca';
+        window.__GL_LANG_UPPER = 'CA';
+        window.__GL_LANGS = ['es', 'ca', 'en', 'fr', 'de', 'pt', 'it', 'nl', 'ja'];
+        // NOTE: switchLangUrl and setLang are defined fully in the body script below.
+        // localStorage seed so fallback works before body script loads.
+        localStorage.setItem('gl_lang', 'ca');
+    })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ulam Spirals | Graphics Labs</title>
-    <meta name="description" content="Espirales de Ulam: visualización interactiva de números primos en espirales concéntricas. Descubre los misteriosos patrones numéricos que emergen del infinito.">
+    <title>Ulam Spiral | Graphics Labs</title>
+    <meta name="description" content="Laboratori interactiu de Ulam Spiral. Experimenta amb art generatiu i matemàtiques visuals a Graphics Labs.">
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3150277567590534"
      crossorigin="anonymous"></script>
     
@@ -202,69 +213,99 @@
         .coffee-btn { background: linear-gradient(45deg, #FFDD00, #FBB03B); color: #000; padding: 8px 15px; border-radius: 20px; text-decoration: none; font-weight: bold; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 5px; transition: transform 0.2s; }
         .coffee-btn:hover { transform: scale(1.05); }
 
-    </style>
+    
+        /* ==GL-NAV== */
+        .top-nav{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;background:rgba(0,0,0,0.8);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,0.08);position:sticky;top:0;z-index:1000;flex-wrap:wrap;gap:10px;box-sizing:border-box;}
+        .nav-left{display:flex;align-items:center;}
+        .nav-bc{font-size:.8rem;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;display:flex;align-items:center;white-space:nowrap;}
+        .nav-bc .gl-hub{color:rgba(255,255,255,.45);text-decoration:none;transition:color .2s;}
+        .nav-bc .gl-hub:hover{color:rgba(255,255,255,.85);}
+        .nav-bc .gl-sep{color:rgba(255,255,255,.2);margin:0 7px;font-weight:400;}
+        .nav-bc .gl-sec{color:var(--primary);text-decoration:none;transition:opacity .2s;}
+        .nav-bc .gl-sec:hover{opacity:.75;}
+        .lang-switch{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;}
+        .lang-switch button,.lang-selector button,.lang-btn{background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.1);color:#999;width:38px;height:28px;cursor:pointer;border-radius:4px;font-size:.7rem;font-weight:700;transition:.2s;display:flex;align-items:center;justify-content:center;}
+        .lang-switch button:hover,.lang-selector button:hover,.lang-btn:hover{border-color:var(--primary);color:var(--primary);}
+        .lang-switch button.active,.lang-selector button.active,.lang-btn.active{background:var(--primary);color:#000;border-color:var(--primary);}
+        @media(max-width:620px){.top-nav{flex-direction:column;align-items:flex-start;padding:12px 15px;}.lang-switch,.lang-selector{width:100%;justify-content:center;}}
+        /* ==/GL-NAV== */
+        </style>
+    <link rel="canonical" href="https://graphics-labs.org/ca/labs/ulam-spiral/" />
+
+    <link rel="alternate" hreflang="es" href="https://graphics-labs.org/es/labs/ulam-spiral/" />
+    <link rel="alternate" hreflang="ca" href="https://graphics-labs.org/ca/labs/ulam-spiral/" />
+    <link rel="alternate" hreflang="en" href="https://graphics-labs.org/en/labs/ulam-spiral/" />
+    <link rel="alternate" hreflang="fr" href="https://graphics-labs.org/fr/labs/ulam-spiral/" />
+    <link rel="alternate" hreflang="de" href="https://graphics-labs.org/de/labs/ulam-spiral/" />
+    <link rel="alternate" hreflang="pt" href="https://graphics-labs.org/pt/labs/ulam-spiral/" />
+    <link rel="alternate" hreflang="it" href="https://graphics-labs.org/it/labs/ulam-spiral/" />
+    <link rel="alternate" hreflang="nl" href="https://graphics-labs.org/nl/labs/ulam-spiral/" />
+    <link rel="alternate" hreflang="ja" href="https://graphics-labs.org/ja/labs/ulam-spiral/" />
+    <link rel="alternate" hreflang="x-default" href="https://graphics-labs.org/es/labs/ulam-spiral/" />
 </head>
 <body oncontextmenu="return false;">
 
     <canvas id="bg-canvas"></canvas>
 
     <div class="container">
-        <nav>
-            <div class="nav-links">
-                <a href="../../index.html" class="nav-btn" id="nav-main">← HUB PRINCIPAL</a>
-                <a href="javascript:void(0);" onclick="smartBack('../../index.html')" class="nav-btn" id="nav-math">← VOLVER ATRÁS</a>
-            </div>
-            <div class="logo">GRAPHICS LABS</div>
-            <div class="lang-switch">
-                <button onclick="setLang('es')" id="btn-es" class="active">ES</button>
-                <button onclick="setLang('ca')" id="btn-ca">CA</button>
-                <button onclick="setLang('en')" id="btn-en">EN</button>
-                <button onclick="setLang('fr')" id="btn-fr">FR</button>
-                <button onclick="setLang('de')" id="btn-de">DE</button>
-                <button onclick="setLang('pt')" id="btn-pt">PT</button>
-                <button onclick="setLang('it')" id="btn-it">IT</button>
-                <button onclick="setLang('nl')" id="btn-nl">NL</button>
-                <button onclick="setLang('ja')" id="btn-ja">JP</button>
-            </div>
-        </nav>
+        <nav class="top-nav">
+    <div class="nav-left">
+        <div class="nav-bc">
+            <a href="../../index.html" class="gl-hub">GRAPHICS LABS</a>
+            <span class="gl-sep">&gt;</span>
+            <a href="../math-index.html" class="gl-sec">MATH LABS</a>
+        </div>
+    </div>
+    <div class="lang-switch">
+        <button onclick="switchLangUrl('es')" id="btn-es" class="lang-btn">ES</button>
+        <button onclick="switchLangUrl('ca')" id="btn-ca" class="lang-btn active">CA</button>
+        <button onclick="switchLangUrl('en')" id="btn-en" class="lang-btn">EN</button>
+        <button onclick="switchLangUrl('fr')" id="btn-fr" class="lang-btn">FR</button>
+        <button onclick="switchLangUrl('de')" id="btn-de" class="lang-btn">DE</button>
+        <button onclick="switchLangUrl('pt')" id="btn-pt" class="lang-btn">PT</button>
+        <button onclick="switchLangUrl('it')" id="btn-it" class="lang-btn">IT</button>
+        <button onclick="switchLangUrl('nl')" id="btn-nl" class="lang-btn">NL</button>
+        <button onclick="switchLangUrl('ja')" id="btn-ja" class="lang-btn">JA</button>
+    </div>
+</nav>
 
-        <h1 id="txt-title">ESPIRAL DE ULAM</h1>
-        <p style="color:var(--muted); margin-bottom: 20px;" id="txt-desc">Visualización de la distribución de números primos en un patrón en espiral.</p>
+        <h1 id="txt-title" data-i18n="title">ESPIRAL DE ULAM</h1>
+        <p style="color:var(--muted); margin-bottom: 20px;" id="txt-desc" data-i18n="desc">Visualización de la distribución de números primos en un patrón en espiral.</p>
 
         <div class="controls">
             <div class="input-group">
                 <div>
-                    <label id="lbl-max">Máximo (N):</label><br>
+                    <label id="lbl-max" data-i18n="lbl_max">Máximo (N):</label><br>
                     <input type="number" id="inp-max" value="40000" min="100" max="1000000" step="1000">
                 </div>
                 <div>
-                    <label id="lbl-zoom">Zoom (px):</label><br>
+                    <label id="lbl-zoom" data-i18n="lbl_zoom">Zoom (px):</label><br>
                     <input type="number" id="inp-zoom" value="2" min="1" max="10">
                 </div>
                 <div>
-                    <label id="lbl-start">Inicio:</label><br>
+                    <label id="lbl-start" data-i18n="lbl_start">Inicio:</label><br>
                     <input type="number" id="inp-start" value="1" min="1">
                 </div>
             </div>
             <div class="input-group">
-                <button class="action-btn" onclick="generateSpiral()" id="btn-gen">GENERAR</button>
-                <button class="secondary-btn" onclick="saveImage()" id="btn-save">💾 JPG</button>
+                <button class="action-btn" onclick="generateSpiral()" id="btn-gen" data-i18n="btn_gen">GENERAR</button>
+                <button class="secondary-btn" onclick="saveImage()" id="btn-save" data-i18n="btn_save">💾 JPG</button>
             </div>
         </div>
 
         <div id="canvas-container">
             <canvas id="ulam-canvas" width="800" height="800"></canvas>
-            <p style="color:var(--muted); font-size: 0.8rem; margin-top:5px;" id="txt-canvas-note">Usa el botón GUARDAR JPG para descargar tu imagen.</p>
+            <p style="color:var(--muted); font-size: 0.8rem; margin-top:5px;" id="txt-canvas-note" data-i18n="canvas_note">Usa el botón GUARDAR JPG para descargar tu imagen.</p>
         </div>
 
         <div class="info-section">
-            <h2 id="info-h-history">El Hallazgo Accidental</h2>
-            <p id="info-p1">
+            <h2 id="info-h-history" data-i18n="history_title">El Hallazgo Accidental</h2>
+            <p id="info-p1" data-i18n="p1">
                 En 1963, el matemático polaco <strong>Stanislaw Ulam</strong> se encontraba en una reunión científica. Presa del aburrimiento, comenzó a garabatear números enteros consecutivos en una cuadrícula, empezando por el 1 en el centro y moviéndose en espiral hacia afuera. Instintivamente, marcó los <span class="math-highlight">números primos</span>.
             </p>
             
-            <h2 id="info-h-why">¿Por qué se llama "Espiral" si no veo una espiral?</h2>
-            <p id="info-p-why-1">
+            <h2 id="info-h-why" data-i18n="why_title">¿Por qué se llama "Espiral" si no veo una espiral?</h2>
+            <p id="info-p-why-1" data-i18n="p_why_1">
                 Es una pregunta excelente y es la confusión número uno con este gráfico. La "espiral" es el método de construcción (el camino invisible), no el resultado final visible. Imagina que dibujas una línea conectando todos los números naturales en orden (1, 2, 3...) saliendo del centro. Si haces eso, verías una espiral cuadrada perfecta:
             </p>
 
@@ -277,18 +318,18 @@
 |    |           |
 20   7---8---9--10</div>
 
-            <p id="info-p-why-2">
+            <p id="info-p-why-2" data-i18n="p_why_2">
                 En la visualización final (tu imagen), borramos la línea de la espiral y apagamos los números compuestos (4, 6, 8...), dejando encendida la luz solo en los <strong>Números Primos</strong> (2, 3, 5, 7, 11...). Lo sorprendente es que, al borrar la estructura, los números primos (que deberían ser aleatorios) se quedan formando líneas diagonales.
             </p>
-            <p id="info-p-why-summary" style="color: var(--highlight); font-weight: bold;">
+            <p id="info-p-why-summary" style="color: var(--highlight); font-weight: bold;" data-i18n="p_why_summary">
                 En resumen: Se llama "Espiral de Ulam" por cómo se colocan los asientos del teatro, no por dónde se sienta la gente.
             </p>
 
-            <h2 id="info-h-math">La Matemática del Patrón</h2>
-            <p id="info-p3">
+            <h2 id="info-h-math" data-i18n="math_title">La Matemática del Patrón</h2>
+            <p id="info-p3" data-i18n="p3">
                 Las líneas diagonales, horizontales y verticales visibles corresponden a polinomios cuadráticos. Por ejemplo, la diagonal más prominente a menudo se relaciona con el famoso polinomio de Euler: <span class="math-highlight">f(n) = n² + n + 41</span>, que genera una densidad inusualmente alta de números primos.
             </p>
-            <p id="info-p4">
+            <p id="info-p4" data-i18n="p4">
                 En esta herramienta de <strong>Graphics Labs</strong>, cada punto verde brillante representa un número primo. Al aumentar el número "Máximo (N)" y reducir el "Zoom", puedes observar estructuras a gran escala que se asemejan a galaxias o circuitos integrados.
             </p>
         </div>
@@ -305,18 +346,18 @@
 
     <footer>
         <div class="legal-links">
-            <a href="../../legal.html" id="link-legal">Aviso Legal</a>
-            <a href="../../privacy.html" id="link-privacy">Política de Privacidad</a>
-            <a href="../../cookies.html" id="link-cookies">Política de Cookies</a>
-            <a href="mailto:pbazan@gmail.com" id="link-contact">Contacto</a>
+            <a href="../../legal.html" id="link-legal" data-i18n="legal">Aviso Legal</a>
+            <a href="../../privacy.html" id="link-privacy" data-i18n="privacy">Política de Privacidad</a>
+            <a href="../../cookies.html" id="link-cookies" data-i18n="cookies">Política de Cookies</a>
+            <a href="/cdn-cgi/l/email-protection#09796b68736867496e64686065276a6664" id="link-contact" data-i18n="contact">Contacto</a>
         </div>
         <span id="footer-rights">© 2026 Graphics Labs</span>
         <a href="https://paypal.me/pbazan" target="_blank" class="coffee-btn">
-            ☕ <span id="btn-coffee">Invítame a un café</span>
+            ☕ <span id="btn-coffee" data-i18n="coffee">Invítame a un café</span>
         </a>
     </footer>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
         /* --- 1. NAVEGACIÓN --- */
         function smartBack(fallbackUrl) {
             if (window.history.length > 1 && document.referrer && document.referrer.includes(window.location.host)) {
@@ -492,41 +533,66 @@
 
         let currentLang = 'es';
 
+        
+        
+        
         function setLang(lang) {
-            localStorage.setItem('gl_lang', lang);
-            currentLang = lang;
-            const t = translations[lang] || translations['es'];
-            
-            document.getElementById('nav-main').innerText = t.nav_main;
-            document.getElementById('nav-math').innerText = t.nav_math;
-            document.getElementById('txt-title').innerText = t.title;
-            document.getElementById('txt-desc').innerText = t.desc;
-            document.getElementById('lbl-max').innerText = t.lbl_max;
-            document.getElementById('lbl-zoom').innerText = t.lbl_zoom;
-            document.getElementById('lbl-start').innerText = t.lbl_start;
-            document.getElementById('btn-gen').innerText = t.btn_gen;
-            document.getElementById('btn-save').innerText = t.btn_save;
-            document.getElementById('txt-canvas-note').innerText = t.canvas_note;
+            const l = lang.toLowerCase();
+            localStorage.setItem('gl_lang', l);
+            const t = translations[l] || translations['es'] || translations['en'];
 
-            document.getElementById('info-h-history').innerText = t.history_title;
-            document.getElementById('info-p1').innerText = t.p1;
-            document.getElementById('info-h-why').innerText = t.why_title;
-            document.getElementById('info-p-why-1').innerText = t.p_why_1;
-            document.getElementById('info-p-why-2').innerText = t.p_why_2;
-            document.getElementById('info-p-why-summary').innerText = t.p_why_summary;
-            document.getElementById('info-h-math').innerText = t.math_title;
-            document.getElementById('info-p3').innerText = t.p3;
-            document.getElementById('info-p4').innerText = t.p4;
+            if (!t) return;
 
-            document.getElementById('link-legal').innerText = t.legal;
-            document.getElementById('link-privacy').innerText = t.privacy;
-            document.getElementById('link-cookies').innerText = t.cookies;
-            document.getElementById('link-contact').innerText = t.contact;
-            document.getElementById('btn-coffee').innerText = t.coffee;
+            // 1. Update elements with data-i18n attribute
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) {
+                    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                        el.placeholder = t[key];
+                    } else {
+                        el.innerHTML = t[key];
+                    }
+                }
+            });
 
-            document.querySelectorAll('.lang-switch button').forEach(b => b.classList.remove('active'));
-            document.getElementById('btn-' + lang).classList.add('active');
+            // 2. Fallback for ID-based translations (specific to this lab)
+            Object.keys(t).forEach(key => {
+                const possibleIds = [key, 'txt-' + key, 'info-h-' + key, 'info-p-' + key, key.replace('_', '-')];
+                possibleIds.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el && t[key]) {
+                        if (t[key].includes('<')) el.innerHTML = t[key];
+                        else el.innerText = t[key];
+                    }
+                });
+            });
+
+            // 3. Highlight active language buttons
+            document.querySelectorAll('.lang-switch button, .lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.id === 'btn-' + l || btn.innerText.toLowerCase() === l);
+            });
         }
+        window.setLang = setLang;
+
+        function switchLangUrl(lang) {
+            const pathParts = window.location.pathname.split('/');
+            const langIndex = pathParts.findIndex(p => ['es', 'ca', 'en', 'fr', 'de', 'pt', 'it', 'nl', 'ja'].includes(p));
+            if (langIndex !== -1) {
+                pathParts[langIndex] = lang.toLowerCase();
+                window.location.href = pathParts.join('/');
+            } else {
+                setLang(lang);
+            }
+        }
+        window.switchLangUrl = switchLangUrl;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const pathParts = window.location.pathname.split('/');
+            const urlLang = pathParts.find(p => ['es', 'ca', 'en', 'fr', 'de', 'pt', 'it', 'nl', 'ja'].includes(p));
+            const lang = urlLang || localStorage.getItem('gl_lang') || 'es';
+            setLang(lang);
+        });
+    
 
         /* --- 4. FONDO DE PARTÍCULAS (DINÁMICO) --- */
         const bgCanvas = document.getElementById('bg-canvas');
@@ -658,9 +724,6 @@
             link.href = tempCanvas.toDataURL('image/png'); link.click();
         }
 
-        const saved = localStorage.getItem('gl_lang') || 'es';
-        setLang(saved);
-        setTimeout(generateSpiral, 100); 
     </script>
 </body>
 </html>

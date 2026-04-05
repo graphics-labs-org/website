@@ -1,50 +1,44 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <script>
-    // --- i18n URL Router ---
-    (function() {
-        window.__GL_LANG = 'es';
-        window.__GL_LANG_UPPER = 'ES';
-        window.__GL_LANGS = ['es', 'ca', 'en', 'fr', 'de', 'pt', 'it', 'nl', 'ja'];
-        
-        // Override localStorage to always use URL-based language
-        localStorage.setItem('gl_lang', 'es');
-        
-        // Language switcher: navigate to the equivalent page in the target language folder
-        window.switchLangUrl = function(targetLang) {
-            var path = window.location.pathname;
-            // Replace current lang segment with target lang
-            var newPath = path.replace(/^\/(es|ca|en|fr|de|pt|it|nl|ja)\//, '/' + targetLang.toLowerCase() + '/');
-            if (newPath === path) {
-                // Fallback: prepend lang
-                newPath = '/' + targetLang.toLowerCase() + '/';
-            }
-            window.location.href = newPath + window.location.hash;
-        };
-        
-        // Auto-call setLang on DOMContentLoaded to apply translations
-        // Some labs use uppercase keys (ES/EN), others lowercase (es/en)
-        document.addEventListener('DOMContentLoaded', function() {
-            if (typeof setLang === 'function') {
-                // Try uppercase first (used by most lab pages with inline translations)
-                try { setLang('ES'); } catch(e) {}
-                // Also try lowercase (used by magic-square style pages)
-                try { setLang('es'); } catch(e) {}
-            }
-        });
-    })();
+        // --- i18n URL Router ---
+        (function () {
+            var _p = window.location.pathname.match(/^\/(es|ca|en|fr|de|pt|it|nl|ja)\//i);
+            window.__GL_LANG = _p ? _p[1].toLowerCase() : 'ca';
+            window.__GL_LANG_UPPER = window.__GL_LANG.toUpperCase();
+            window.__GL_LANGS = ['es', 'ca', 'en', 'fr', 'de', 'pt', 'it', 'nl', 'ja'];
+
+            // FUNCIÓN DE ENRUTAMIENTO Y PROTECCIÓN DOBLE CLIC
+            window.switchLangUrl = function (targetLang) {
+                var path = window.location.pathname;
+                var langPattern = /\/(es|ca|en|fr|de|pt|it|nl|ja)\//i;
+
+                // Si ya estamos en el idioma seleccionado, cancelamos la redirección
+                var match = path.match(langPattern);
+                if (match && match[1].toLowerCase() === targetLang.toLowerCase()) {
+                    return;
+                }
+
+                var newPath = path.replace(langPattern, '/' + targetLang.toLowerCase() + '/');
+                if (newPath === path) {
+                    newPath = '/' + targetLang.toLowerCase() + '/';
+                }
+                window.location.href = newPath + window.location.hash;
+            };
+        })();
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fourier Lab | Graphics Labs</title>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3150277567590534"
-     crossorigin="anonymous"></script>
-    <meta name="description" content="Laboratorio interactivo de Fourier Lab. Experimenta con arte generativo y matemáticas visuales en Graphics Labs.">
+        crossorigin="anonymous"></script>
+    
     <style>
         /* --- ESTILOS BASE --- */
         :root {
-            --primary: #00ff41; 
+            --primary: #00ff41;
             --primary-dim: rgba(0, 255, 65, 0.3);
             --secondary: #bd00ff;
             --highlight: #ffee00;
@@ -55,8 +49,13 @@
             --muted: #aaaaaa;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', monospace, sans-serif; }
-        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', monospace, sans-serif;
+        }
+
         body {
             background-color: #050505;
             color: var(--text);
@@ -65,10 +64,17 @@
             flex-direction: column;
             min-height: 100vh;
             user-select: none;
-            overscroll-behavior: none; 
+            overscroll-behavior: none;
         }
 
-        #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
 
         .container {
             position: relative;
@@ -96,24 +102,56 @@
             gap: 20px;
             align-items: center;
             backdrop-filter: blur(10px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
 
-        .buttons-row { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; margin-top: 10px; width: 100%; }
+        .buttons-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 10px;
+            width: 100%;
+        }
 
         button.action-btn {
-            background: var(--primary); color: #000; border: none; padding: 10px 20px; border-radius: 5px;
-            cursor: pointer; font-weight: bold; transition: 0.3s; text-transform: uppercase; font-size: 0.9rem;
+            background: var(--primary);
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+            text-transform: uppercase;
+            font-size: 0.9rem;
             min-width: 150px;
         }
-        button.action-btn:hover { box-shadow: 0 0 15px var(--primary); transform: scale(1.05); }
-        
-        button.secondary-btn {
-            background: transparent; border: 1px solid var(--secondary); color: var(--secondary);
-            padding: 8px 15px; border-radius: 5px; cursor: pointer; transition: 0.3s; font-size: 0.9rem;
-            display: flex; align-items: center; gap: 5px;
+
+        button.action-btn:hover {
+            box-shadow: 0 0 15px var(--primary);
+            transform: scale(1.05);
         }
-        button.secondary-btn:hover { background: var(--secondary); color: #fff; box-shadow: 0 0 15px var(--secondary); }
+
+        button.secondary-btn {
+            background: transparent;
+            border: 1px solid var(--secondary);
+            color: var(--secondary);
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        button.secondary-btn:hover {
+            background: var(--secondary);
+            color: #fff;
+            box-shadow: 0 0 15px var(--secondary);
+        }
 
         /* --- VISUALIZADOR --- */
         #canvas-container {
@@ -134,7 +172,7 @@
             box-shadow: 0 0 30px rgba(0, 255, 65, 0.1);
             max-width: 100%;
             cursor: crosshair;
-            touch-action: none; 
+            touch-action: none;
         }
 
         .status-text {
@@ -156,12 +194,30 @@
             line-height: 1.8;
             color: #ddd;
         }
-        .info-section h2 { color: var(--primary); margin-bottom: 20px; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-top: 40px; }
-        .info-section h2:first-child { margin-top: 0; }
-        .info-section p { margin-bottom: 20px; font-size: 1rem; text-align: justify; }
-        
+
+        .info-section h2 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+            margin-top: 40px;
+        }
+
+        .info-section h2:first-child {
+            margin-top: 0;
+        }
+
+        .info-section p {
+            margin-bottom: 20px;
+            font-size: 1rem;
+            text-align: justify;
+        }
+
         .math-box {
-            background: rgba(0,0,0,0.5);
+            background: rgba(0, 0, 0, 0.5);
             border-left: 4px solid var(--secondary);
             padding: 20px;
             margin: 20px 0;
@@ -172,40 +228,294 @@
             text-align: center;
         }
 
-        .dl-section { margin-top: 30px; border-top: 1px dashed var(--border); padding-top: 20px; text-align: center; }
-        
-        .btn-txt-dl {
-            display: inline-block; background: rgba(255, 255, 255, 0.1); color: var(--muted); text-decoration: none;
-            padding: 15px 25px; border: 1px solid var(--muted); border-radius: 4px; font-family: var(--font-mono);
-            font-size: 0.9rem; transition: 0.3s; cursor: pointer;
+        .dl-section {
+            margin-top: 30px;
+            border-top: 1px dashed var(--border);
+            padding-top: 20px;
+            text-align: center;
         }
-        .btn-txt-dl:hover { background: var(--secondary); color: #000; border-color: var(--secondary); box-shadow: 0 0 10px var(--secondary); }
+
+        .btn-txt-dl {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--muted);
+            text-decoration: none;
+            padding: 15px 25px;
+            border: 1px solid var(--muted);
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+
+        .btn-txt-dl:hover {
+            background: var(--secondary);
+            color: #000;
+            border-color: var(--secondary);
+            box-shadow: 0 0 10px var(--secondary);
+        }
 
         .ad-container {
-            width: 100%; max-width: 728px; margin: 30px auto; min-height: 90px;
-            display: flex; justify-content: center; align-items: center;
-            border: 1px dashed rgba(255,255,255,0.2); border-radius: 8px; background: rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 728px;
+            margin: 30px auto;
+            min-height: 90px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.2);
         }
-        .ad-placeholder-text { color: var(--border); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; }
+
+        .ad-placeholder-text {
+            color: var(--border);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
 
         /* Nav & Footer */
-        nav { display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .nav-links { display: flex; gap: 15px; }
-        .nav-btn { text-decoration: none; color: var(--muted); font-size: 0.9rem; border: 1px solid var(--border); padding: 5px 10px; border-radius: 4px; transition: 0.3s; background: rgba(0,0,0,0.5); cursor: pointer; }
-        .nav-btn:hover { color: var(--primary); border-color: var(--primary); }
-        .logo { font-size: 1.2rem; font-weight: bold; color: var(--primary); text-decoration: none; letter-spacing: 2px; }
-        .lang-switch button { background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: var(--muted); padding: 5px 10px; cursor: pointer; border-radius: 4px; margin-left: 2px;}
-        .lang-switch button.active { background-color: var(--primary) !important; color: #000 !important; border-color: var(--primary) !important; font-weight: bold; }
-        
-        footer { margin-top: auto; background: rgba(0,0,0,0.9); backdrop-filter: blur(5px); border-top: 1px solid var(--border); padding: 30px 20px; text-align: center; font-size: 0.8rem; color: var(--muted); display: flex; flex-direction: column; gap: 15px; align-items: center; position: relative; z-index: 20; }
-        .legal-links { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin-bottom: 10px; }
-        .legal-links a { color: var(--muted); text-decoration: none; transition: 0.3s; border-bottom: 1px solid transparent; }
-        .legal-links a:hover { color: var(--primary); border-bottom-color: var(--primary); }
-        .coffee-btn { background: linear-gradient(45deg, #FFDD00, #FBB03B); color: #000; padding: 8px 15px; border-radius: 20px; text-decoration: none; font-weight: bold; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 5px; transition: transform 0.2s; }
-        .coffee-btn:hover { transform: scale(1.05); }
+        nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
 
-    </style>
-    <link rel="canonical" href="https://graphics-labs.org/es/labs/fourier-lab/" />
+        .nav-links {
+            display: flex;
+            gap: 15px;
+        }
+
+        .nav-btn {
+            text-decoration: none;
+            color: var(--muted);
+            font-size: 0.9rem;
+            border: 1px solid var(--border);
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: 0.3s;
+            background: rgba(0, 0, 0, 0.5);
+            cursor: pointer;
+        }
+
+        .nav-btn:hover {
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .logo {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary);
+            text-decoration: none;
+            letter-spacing: 2px;
+        }
+
+        .lang-switch button {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border);
+            color: var(--muted);
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-left: 2px;
+        }
+
+        .lang-switch button.active {
+            background-color: var(--primary) !important;
+            color: #000 !important;
+            border-color: var(--primary) !important;
+            font-weight: bold;
+        }
+
+        footer {
+            margin-top: auto;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(5px);
+            border-top: 1px solid var(--border);
+            padding: 30px 20px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--muted);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+            position: relative;
+            z-index: 20;
+        }
+
+        .legal-links {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+
+        .legal-links a {
+            color: var(--muted);
+            text-decoration: none;
+            transition: 0.3s;
+            border-bottom: 1px solid transparent;
+        }
+
+        .legal-links a:hover {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .coffee-btn {
+            background: linear-gradient(45deg, #FFDD00, #FBB03B);
+            color: #000;
+            padding: 8px 15px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: transform 0.2s;
+        }
+
+        .coffee-btn:hover {
+            transform: scale(1.05);
+        }
+
+
+        /* ==GL-NAV== */
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 20px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            flex-wrap: wrap;
+            gap: 10px;
+            box-sizing: border-box;
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-bc {
+            font-size: .8rem;
+            font-weight: 900;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+        }
+
+        .nav-bc .gl-hub {
+            color: rgba(255, 255, 255, .45);
+            text-decoration: none;
+            transition: color .2s;
+        }
+
+        .nav-bc .gl-hub:hover {
+            color: rgba(255, 255, 255, .85);
+        }
+
+        .nav-bc .gl-sep {
+            color: rgba(255, 255, 255, .2);
+            margin: 0 7px;
+            font-weight: 400;
+        }
+
+        .nav-bc .gl-sec {
+            color: var(--primary);
+            text-decoration: none;
+            transition: opacity .2s;
+        }
+
+        .nav-bc .gl-sec:hover {
+            opacity: .75;
+        }
+
+        .lang-switch {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .lang-switch button,
+        .lang-selector button,
+        .lang-btn {
+            background: rgba(0, 0, 0, .4);
+            border: 1px solid rgba(255, 255, 255, .1);
+            color: #999;
+            width: 38px;
+            height: 28px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: .7rem;
+            font-weight: 700;
+            transition: .2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lang-switch button:hover,
+        .lang-selector button:hover,
+        .lang-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .lang-switch button.active,
+        .lang-selector button.active,
+        .lang-btn.active {
+            background: var(--primary);
+            color: #000;
+            border-color: var(--primary);
+        }
+
+        @media(max-width:620px) {
+            .top-nav {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 12px 15px;
+            }
+
+            .lang-switch,
+            .lang-selector {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* ==/GL-NAV== */
+    
+        /* Fix SEO H1 Automático */
+        h1#txt-title, h1[data-i18n="lab_title"] {
+            font-size: 1.5rem;
+            color: var(--primary, #00ff41);
+            margin-bottom: 20px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+</style>
+    
 
     <link rel="alternate" hreflang="es" href="https://graphics-labs.org/es/labs/fourier-lab/" />
     <link rel="alternate" hreflang="ca" href="https://graphics-labs.org/ca/labs/fourier-lab/" />
@@ -217,37 +527,44 @@
     <link rel="alternate" hreflang="nl" href="https://graphics-labs.org/nl/labs/fourier-lab/" />
     <link rel="alternate" hreflang="ja" href="https://graphics-labs.org/ja/labs/fourier-lab/" />
     <link rel="alternate" hreflang="x-default" href="https://graphics-labs.org/es/labs/fourier-lab/" />
+    
+    <link rel="canonical" href="https://graphics-labs.org/es/labs/fourier-lab/" />
+    <meta name="description" content="Laboratorio interactivo de Fourier Lab. Experimenta con arte generativo y matemáticas visuales en Graphics Labs.">
 </head>
+
 <body oncontextmenu="return false;">
 
     <canvas id="bg-canvas"></canvas>
 
     <div class="container">
-        <nav>
-            <div class="nav-links">
-                <a onclick="smartBack('../../index.html')" class="nav-btn" id="nav-main">← HUB PRINCIPAL</a>
-                <a onclick="smartBack('../../index.html')" class="nav-btn" id="nav-math">← HUB MATH</a>
+        <nav class="top-nav">
+            <div class="nav-left">
+                <div class="nav-bc">
+                    <a href="../../index.html" class="gl-hub">GRAPHICS LABS</a>
+                    <span class="gl-sep">&gt;</span>
+                    <a href="../math-index.html" class="gl-sec">MATH LABS</a>
+                </div>
             </div>
-            <div class="logo">GRAPHICS LABS</div>
             <div class="lang-switch">
-                <button onclick="switchLangUrl('es')" id="btn-es">ES</button>
-                <button onclick="switchLangUrl('ca')" id="btn-ca">CA</button>
-                <button onclick="switchLangUrl('en')" id="btn-en">EN</button>
-                <button onclick="switchLangUrl('fr')" id="btn-fr">FR</button>
-                <button onclick="switchLangUrl('de')" id="btn-de">DE</button>
-                <button onclick="switchLangUrl('pt')" id="btn-pt">PT</button>
-                <button onclick="switchLangUrl('it')" id="btn-it">IT</button>
-                <button onclick="switchLangUrl('nl')" id="btn-nl">NL</button>
-                <button onclick="switchLangUrl('ja')" id="btn-ja">JP</button>
+                <button onclick="switchLangUrl('es')" id="btn-es" class="lang-btn">ES</button>
+                <button onclick="switchLangUrl('ca')" id="btn-ca" class="lang-btn active">CA</button>
+                <button onclick="switchLangUrl('en')" id="btn-en" class="lang-btn">EN</button>
+                <button onclick="switchLangUrl('fr')" id="btn-fr" class="lang-btn">FR</button>
+                <button onclick="switchLangUrl('de')" id="btn-de" class="lang-btn">DE</button>
+                <button onclick="switchLangUrl('pt')" id="btn-pt" class="lang-btn">PT</button>
+                <button onclick="switchLangUrl('it')" id="btn-it" class="lang-btn">IT</button>
+                <button onclick="switchLangUrl('nl')" id="btn-nl" class="lang-btn">NL</button>
+                <button onclick="switchLangUrl('ja')" id="btn-ja" class="lang-btn">JA</button>
             </div>
         </nav>
 
         <h1 id="txt-title">PROYECTO FOURIER</h1>
-        <p style="color:var(--muted); margin-bottom: 20px;" id="txt-desc">Transformada de Fourier y visualización de Epiciclos.</p>
+        <p style="color:var(--muted); margin-bottom: 20px;" id="txt-desc">Transformada de Fourier y visualización de
+            Epiciclos.</p>
 
         <div class="controls">
             <div class="status-text" id="status-display">MODO: VISUALIZACIÓN</div>
-            
+
             <div class="buttons-row">
                 <button class="action-btn" onclick="startDrawing()" id="btn-draw">✏️ DIBUJAR</button>
                 <button class="secondary-btn" onclick="loadExample()" id="btn-example">★ EJEMPLO (π)</button>
@@ -257,20 +574,26 @@
 
         <div id="canvas-container">
             <canvas id="fourier-canvas" width="800" height="600"></canvas>
-            <p style="color:var(--muted); font-size: 0.8rem; margin-top:5px;" id="txt-note">Haz clic en 'DIBUJAR' y traza una línea continua en el recuadro.</p>
+            <p style="color:var(--muted); font-size: 0.8rem; margin-top:5px;" id="txt-note">Haz clic en 'DIBUJAR' y
+                traza una línea continua en el recuadro.</p>
         </div>
 
         <div class="info-section">
             <h2 id="info-h-calc">Dibujando con Círculos</h2>
             <p id="info-p-calc">
-                Joseph Fourier descubrió en 1807 que cualquier función periódica (o forma cerrada) puede reescribirse como una suma infinita de funciones sinusoidales simples. En términos visuales: cualquier dibujo puede crearse sumando círculos que giran sobre otros círculos (epiciclos).
+                Joseph Fourier descubrió en 1807 que cualquier función periódica (o forma cerrada) puede reescribirse
+                como una suma infinita de funciones sinusoidales simples. En términos visuales: cualquier dibujo puede
+                crearse sumando círculos que giran sobre otros círculos (epiciclos).
             </p>
 
             <h2 id="info-h-dft">La Transformada (DFT)</h2>
             <p id="info-p-dft">
-                Cuando dibujas en este laboratorio, tomamos tus coordenadas $(x, y)$ y las convertimos en números complejos. Luego aplicamos la Transformada Discreta de Fourier para encontrar la "receta" de tu dibujo: el tamaño (amplitud), velocidad (frecuencia) y ángulo inicial (fase) de cada círculo necesario para recrearlo.
+                Cuando dibujas en este laboratorio, tomamos tus coordenadas $(x, y)$ y las convertimos en números
+                complejos. Luego aplicamos la Transformada Discreta de Fourier para encontrar la "receta" de tu dibujo:
+                el tamaño (amplitud), velocidad (frecuencia) y ángulo inicial (fase) de cada círculo necesario para
+                recrearlo.
             </p>
-            
+
             <div class="math-box">
                 X[k] = Σ x[n] · e^(-i·2π·k·n / N)
             </div>
@@ -278,7 +601,8 @@
             <div class="dl-section">
                 <h3 style="color:var(--secondary); margin-bottom:15px;" id="h-dl-coeff">Descarga de Coeficientes</h3>
                 <p id="p-dl-coeff" style="font-size:0.9rem;">
-                    Descarga los datos matemáticos puros de tu dibujo: frecuencia, amplitud y fase de cada epiciclo calculado.
+                    Descarga los datos matemáticos puros de tu dibujo: frecuencia, amplitud y fase de cada epiciclo
+                    calculado.
                 </p>
                 <button onclick="downloadCoefficients()" class="btn-txt-dl" id="btn-dl-coeff">
                     ⬇ Descargar Coeficientes (.csv)
@@ -287,12 +611,49 @@
         </div>
 
         <div class="ad-container">
-        <ins class="adsbygoogle"
-             style="display:block"
-             data-ad-client="ca-pub-3150277567590534"
-             data-ad-format="auto"
-             data-full-width-responsive="true"></ins>
-        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+            <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3150277567590534"
+                data-ad-format="auto" data-full-width-responsive="true"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+        <div class="info-section">
+            <h2 data-i18n="seo_h2_1">Transformada de Fourier: La Magia de Descomponer Ondas</h2>
+            <p data-i18n="seo_p_1">La Transformada de Fourier es uno de los conceptos matemáticos más fascinantes y
+                útiles de la historia. Descubierta por Jean-Baptiste Joseph Fourier en 1822, esta herramienta nos enseña
+                una verdad universal: <strong>cualquier señal compleja puede descomponerse en una suma de ondas simples
+                    y perfectas</strong> (senos y cosenos).</p>
+            <p data-i18n="seo_p_2">En este laboratorio interactivo, exploramos la variante geométrica de este teorema a
+                través de los famosos 'Epiciclos'.</p>
+
+            <h2 data-i18n="seo_h3_1">La Matemática detrás del Simulador (Epiciclos)</h2>
+            <p data-i18n="seo_p_3">Lo que estás viendo en la pantalla no es magia, es trigonometría en movimiento. El
+                simulador utiliza una serie de círculos giratorios conectados entre sí. Cada círculo representa una onda
+                individual con tres propiedades fundamentales:</p>
+
+            <ul data-i18n="seo_list_1"
+                style="margin-bottom: 20px; padding-left: 20px; color: #ddd; font-size: 1rem; line-height: 1.8;">
+                <li><strong>Radio (Amplitud):</strong> Define el tamaño del círculo y la fuerza de esa onda específica.
+                </li>
+                <li><strong>Velocidad (Frecuencia):</strong> Determina qué tan rápido gira el círculo. Algunos giran
+                    lentamente creando la forma base, mientras que otros giran a gran velocidad para añadir los pequeños
+                    detalles.</li>
+                <li><strong>Ángulo Inicial (Fase):</strong> Es la posición de inicio del círculo, crucial para que el
+                    dibujo comience en el punto exacto.</li>
+            </ul>
+
+            <h2 data-i18n="seo_h3_2">Cómo usar este Laboratorio de Fourier</h2>
+            <p data-i18n="seo_p_4">Hemos diseñado este espacio para que experimentes de primera mano cómo las
+                matemáticas pueden generar arte. Sigue estos pasos:</p>
+
+            <ol data-i18n="seo_list_2"
+                style="margin-bottom: 20px; padding-left: 20px; color: #ddd; font-size: 1rem; line-height: 1.8;">
+                <li><strong>Dibuja tu propia onda:</strong> Utiliza el cursor para trazar cualquier forma continua en el
+                    lienzo. Puede ser una letra, una espiral o un contorno abstracto.</li>
+                <li><strong>Ajusta los Epiciclos:</strong> El algoritmo calculará instantáneamente los círculos
+                    necesarios para replicar tu dibujo.</li>
+                <li><strong>Observa la Reconstrucción:</strong> Inicia la animación y observa cómo la suma del
+                    movimiento de todos los círculos individuales logra trazar de nuevo la forma compleja que creaste.
+                </li>
+            </ol>
         </div>
     </div>
 
@@ -342,12 +703,12 @@
                 }
                 sum.re = sum.re / N;
                 sum.im = sum.im / N;
-                X[k] = { 
-                    re: sum.re, 
-                    im: sum.im, 
-                    freq: k, 
-                    amp: Math.sqrt(sum.re * sum.re + sum.im * sum.im), 
-                    phase: Math.atan2(sum.im, sum.re) 
+                X[k] = {
+                    re: sum.re,
+                    im: sum.im,
+                    freq: k,
+                    amp: Math.sqrt(sum.re * sum.re + sum.im * sum.im),
+                    phase: Math.atan2(sum.im, sum.re)
                 };
             }
             return X;
@@ -357,12 +718,12 @@
         const canvas = document.getElementById('fourier-canvas');
         const ctx = canvas.getContext('2d');
         const statusDisplay = document.getElementById('status-display');
-        
-        let drawing = []; 
-        let fourierX = []; 
+
+        let drawing = [];
+        let fourierX = [];
         let time = 0;
-        let path = []; 
-        let state = -1; 
+        let path = [];
+        let state = -1;
         let isMouseDown = false;
 
         /* --- 4. INPUT USUARIO --- */
@@ -373,7 +734,7 @@
             path = [];
             time = 0;
             statusDisplay.innerText = translations[currentLang].state_drawing;
-            ctx.clearRect(0,0,canvas.width, canvas.height);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
 
         function getMousePos(e) {
@@ -393,32 +754,32 @@
         }
 
         function handleStart(e) {
-            if(state !== 0) return;
+            if (state !== 0) return;
             isMouseDown = true;
             drawing = [];
         }
 
         function handleMove(e) {
-            if(state === 0 && isMouseDown) {
-                if(e.cancelable) e.preventDefault();
+            if (state === 0 && isMouseDown) {
+                if (e.cancelable) e.preventDefault();
                 const pos = getMousePos(e);
                 drawing.push(new Complex(pos.x, pos.y));
-                
+
                 // Dibujo visual inmediato para el usuario
                 ctx.lineWidth = 2;
                 ctx.strokeStyle = "#fff";
-                if(drawing.length > 1) {
-                    const prev = drawing[drawing.length-2];
+                if (drawing.length > 1) {
+                    const prev = drawing[drawing.length - 2];
                     ctx.beginPath();
-                    ctx.moveTo(prev.re + canvas.width/2, prev.im + canvas.height/2);
-                    ctx.lineTo(pos.x + canvas.width/2, pos.y + canvas.height/2);
+                    ctx.moveTo(prev.re + canvas.width / 2, prev.im + canvas.height / 2);
+                    ctx.lineTo(pos.x + canvas.width / 2, pos.y + canvas.height / 2);
                     ctx.stroke();
                 }
             }
         }
 
         function handleEnd() {
-            if(state === 0 && drawing.length > 5) {
+            if (state === 0 && drawing.length > 5) {
                 isMouseDown = false;
                 state = 1;
                 statusDisplay.innerText = translations[currentLang].state_computing;
@@ -429,15 +790,15 @@
         canvas.addEventListener('mousedown', handleStart);
         canvas.addEventListener('mousemove', handleMove);
         window.addEventListener('mouseup', handleEnd);
-        canvas.addEventListener('touchstart', handleStart, {passive: false});
-        canvas.addEventListener('touchmove', handleMove, {passive: false});
+        canvas.addEventListener('touchstart', handleStart, { passive: false });
+        canvas.addEventListener('touchmove', handleMove, { passive: false });
         canvas.addEventListener('touchend', handleEnd);
 
         /* --- 5. LÓGICA ANIMACIÓN --- */
         function computeFourier() {
-            const skip = Math.ceil(drawing.length / 300); 
+            const skip = Math.ceil(drawing.length / 300);
             let reduced = [];
-            for(let i=0; i<drawing.length; i+=skip) reduced.push(drawing[i]);
+            for (let i = 0; i < drawing.length; i += skip) reduced.push(drawing[i]);
             fourierX = dft(reduced);
             fourierX.sort((a, b) => b.amp - a.amp);
             state = 2;
@@ -474,7 +835,7 @@
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 let v = epicycles(canvas.width / 2, canvas.height / 2, 0, fourierX, ctx);
                 path.unshift(v);
-                
+
                 ctx.beginPath();
                 ctx.moveTo(path[0].x, path[0].y);
                 for (let i = 1; i < path.length; i++) ctx.lineTo(path[i].x, path[i].y);
@@ -494,10 +855,10 @@
             state = 1;
             statusDisplay.innerText = "CARGANDO...";
             drawing = [];
-            const pi = [[-50,-50], [50,-50], [50,-40], [10,-40], [10,50], [30,50], [30,60], [0,60], [0,-40], [-20,-40], [-20,50], [-40,50], [-40,-40], [-50,-40]];
-            for(let i=0; i<pi.length; i++) {
-                let p1 = pi[i], p2 = pi[(i+1)%pi.length];
-                for(let t=0; t<1; t+=0.1) drawing.push(new Complex((p1[0]+(p2[0]-p1[0])*t)*2, (p1[1]+(p2[1]-p1[1])*t)*2));
+            const pi = [[-50, -50], [50, -50], [50, -40], [10, -40], [10, 50], [30, 50], [30, 60], [0, 60], [0, -40], [-20, -40], [-20, 50], [-40, 50], [-40, -40], [-50, -40]];
+            for (let i = 0; i < pi.length; i++) {
+                let p1 = pi[i], p2 = pi[(i + 1) % pi.length];
+                for (let t = 0; t < 1; t += 0.1) drawing.push(new Complex((p1[0] + (p2[0] - p1[0]) * t) * 2, (p1[1] + (p2[1] - p1[1]) * t) * 2));
             }
             setTimeout(computeFourier, 100);
         }
@@ -510,9 +871,9 @@
         }
 
         function downloadCoefficients() {
-            if(!fourierX.length) return;
+            if (!fourierX.length) return;
             let csv = "Frequency,Amplitude,Phase\n" + fourierX.map(f => `${f.freq},${f.amp.toFixed(4)},${f.phase.toFixed(4)}`).join("\n");
-            const blob = new Blob([csv], {type: 'text/csv'});
+            const blob = new Blob([csv], { type: 'text/csv' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.setAttribute('href', url);
@@ -533,27 +894,27 @@
 
         class P {
             constructor() {
-                this.x = Math.random()*bgCanvas.width; this.y = Math.random()*bgCanvas.height;
-                this.size = Math.random()*12+8; this.sx = Math.random()-0.5; this.sy = Math.random()-0.5;
-                this.t = ['∫', 'e', 'iπ', 'sin', 'cos', 'Σ', 'ƒ'][Math.floor(Math.random()*5)];
+                this.x = Math.random() * bgCanvas.width; this.y = Math.random() * bgCanvas.height;
+                this.size = Math.random() * 12 + 8; this.sx = Math.random() - 0.5; this.sy = Math.random() - 0.5;
+                this.t = ['∫', 'e', 'iπ', 'sin', 'cos', 'Σ', 'ƒ'][Math.floor(Math.random() * 5)];
             }
             up() {
                 this.x += this.sx; this.y += this.sy;
-                if(mouse.x){
-                    let dx = mouse.x-this.x, dy = mouse.y-this.y, d = Math.sqrt(dx*dx+dy*dy);
-                    if(d<mouse.radius){
-                        this.x -= (dx/d)*((mouse.radius-d)/mouse.radius)*5;
-                        this.y -= (dy/d)*((mouse.radius-d)/mouse.radius)*5;
+                if (mouse.x) {
+                    let dx = mouse.x - this.x, dy = mouse.y - this.y, d = Math.sqrt(dx * dx + dy * dy);
+                    if (d < mouse.radius) {
+                        this.x -= (dx / d) * ((mouse.radius - d) / mouse.radius) * 5;
+                        this.y -= (dy / d) * ((mouse.radius - d) / mouse.radius) * 5;
                     }
                 }
-                if(this.x>bgCanvas.width) this.x=0; if(this.x<0) this.x=bgCanvas.width;
-                if(this.y>bgCanvas.height) this.y=0; if(this.y<0) this.y=bgCanvas.height;
-                bgCtx.font = this.size+'px monospace'; bgCtx.fillStyle = 'rgba(0,255,65,0.15)';
+                if (this.x > bgCanvas.width) this.x = 0; if (this.x < 0) this.x = bgCanvas.width;
+                if (this.y > bgCanvas.height) this.y = 0; if (this.y < 0) this.y = bgCanvas.height;
+                bgCtx.font = this.size + 'px monospace'; bgCtx.fillStyle = 'rgba(0,255,65,0.15)';
                 bgCtx.fillText(this.t, this.x, this.y);
             }
         }
-        function initP(){ particles = []; for(let i=0; i<100; i++) particles.push(new P()); }
-        function animP(){ bgCtx.clearRect(0,0,bgCanvas.width,bgCanvas.height); particles.forEach(p=>p.up()); requestAnimationFrame(animP); }
+        function initP() { particles = []; for (let i = 0; i < 100; i++) particles.push(new P()); }
+        function animP() { bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height); particles.forEach(p => p.up()); requestAnimationFrame(animP); }
         initP(); animP();
 
         /* --- 8. MULTI-IDIOMA --- */
@@ -572,7 +933,17 @@
                 p_dft: "Cuando dibujas, tomamos tus coordenadas y las convertimos en números complejos. Luego aplicamos la Transformada Discreta de Fourier para encontrar la 'receta': tamaño, velocidad y ángulo de cada círculo.",
                 h_dl_coeff: "Descarga de Coeficientes", p_dl_coeff: "Descarga los datos matemáticos puros: frecuencia, amplitud y fase de cada epiciclo.",
                 btn_dl_coeff: "⬇ Descargar Coeficientes (.csv)",
-                legal: "Aviso Legal", privacy: "Privacidad", cookies: "Cookies", contact: "Contacto", coffee: "Invítame a un café"
+                legal: "Aviso Legal", privacy: "Privacidad", cookies: "Cookies", contact: "Contacto", coffee: "Invítame a un café",
+                // --- NUEVO TEXTO SEO ADSENSE ---
+                seo_h2_1: "Transformada de Fourier: La Magia de Descomponer Ondas",
+                seo_p_1: "La Transformada de Fourier es uno de los conceptos matemáticos más fascinantes y útiles de la historia. Descubierta por Jean-Baptiste Joseph Fourier en 1822, esta herramienta nos enseña una verdad universal: <strong>cualquier señal compleja puede descomponerse en una suma de ondas simples y perfectas</strong> (senos y cosenos).",
+                seo_p_2: "En este laboratorio interactivo, exploramos la variante geométrica de este teorema a través de los famosos 'Epiciclos'.",
+                seo_h3_1: "La Matemática detrás del Simulador (Epiciclos)",
+                seo_p_3: "Lo que estás viendo en la pantalla no es magia, es trigonometría en movimiento. El simulador utiliza una serie de círculos giratorios conectados entre sí. Cada círculo representa una onda individual con tres propiedades fundamentales:",
+                seo_list_1: "<li><strong>Radio (Amplitud):</strong> Define el tamaño del círculo y la fuerza de esa onda específica.</li><li><strong>Velocidad (Frecuencia):</strong> Determina qué tan rápido gira el círculo. Algunos giran lentamente creando la forma base, mientras que otros giran a gran velocidad para añadir los pequeños detalles.</li><li><strong>Ángulo Inicial (Fase):</strong> Es la posición de inicio del círculo, crucial para que el dibujo comience en el punto exacto.</li>",
+                seo_h3_2: "Cómo usar este Laboratorio de Fourier",
+                seo_p_4: "Hemos diseñado este espacio para que experimentes de primera mano cómo las matemáticas pueden generar arte. Sigue estos pasos:",
+                seo_list_2: "<li><strong>Dibuja tu propia onda:</strong> Utiliza el cursor para trazar cualquier forma continua en el lienzo. Puede ser una letra, una espiral o un contorno abstracto.</li><li><strong>Ajusta los Epiciclos:</strong> El algoritmo calculará instantáneamente los círculos necesarios para replicar tu dibujo.</li><li><strong>Observa la Reconstrucción:</strong> Inicia la animación y observa cómo la suma del movimiento de todos los círculos individuales logra trazar de nuevo la forma compleja que creaste.</li>"
             },
             'en': {
                 nav_main: "← MAIN HUB", nav_math: "← MATH HUB",
@@ -588,7 +959,17 @@
                 p_dft: "When you draw, we take your coordinates as complex numbers. Then we apply the Discrete Fourier Transform to find the 'recipe': size, speed, and angle of each circle.",
                 h_dl_coeff: "Download Coefficients", p_dl_coeff: "Download pure math data: frequency, amplitude, and phase of each epicycle.",
                 btn_dl_coeff: "⬇ Download Coefficients (.csv)",
-                legal: "Legal Notice", privacy: "Privacy Policy", cookies: "Cookies", contact: "Contact", coffee: "Buy me a coffee"
+                legal: "Legal Notice", privacy: "Privacy Policy", cookies: "Cookies", contact: "Contact", coffee: "Buy me a coffee",
+                // --- NUEVO TEXTO SEO ADSENSE ---
+                seo_h2_1: "Fourier Transform: The Magic of Decomposing Waves",
+                seo_p_1: "The Fourier Transform is one of the most fascinating mathematical concepts. Discovered in 1822, it teaches us a universal truth: <strong>any complex signal can be decomposed into a sum of simple, perfect waves</strong>.",
+                seo_p_2: "In this interactive lab, we explore the geometric variant of this theorem through the famous 'Epicycles'.",
+                seo_h3_1: "The Mathematics Behind the Simulator (Epicycles)",
+                seo_p_3: "What you are seeing on the screen is not magic, it's trigonometry in motion. The simulator uses connected rotating circles:",
+                seo_list_1: "<li><strong>Radius (Amplitude):</strong> Defines the size of the circle.</li><li><strong>Velocity (Frequency):</strong> Determines how fast the circle rotates.</li><li><strong>Initial Angle (Phase):</strong> The starting position of the circle.</li>",
+                seo_h3_2: "How to use this Fourier Lab",
+                seo_p_4: "We designed this space for you to experience how mathematics generates art:",
+                seo_list_2: "<li><strong>Draw your own wave:</strong> Use the cursor to trace any continuous shape.</li><li><strong>Adjust the Epicycles:</strong> The algorithm will instantly calculate the needed circles.</li><li><strong>Observe the Reconstruction:</strong> Start the animation and watch the circles retrace your shape.</li>"
             },
             'ca': {
                 nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH",
@@ -604,7 +985,17 @@
                 p_dft: "Quan dibuixes, prenem les teves coordenades com a nombres complexos. Després apliquem la Transformada Discreta de Fourier per trobar la 'recepta': mida, velocitat i angle de cada cercle.",
                 h_dl_coeff: "Descàrrega de Coeficients", p_dl_coeff: "Descarrega les dades matemàtiques pures: freqüència, amplitud i fase.",
                 btn_dl_coeff: "⬇ Descarregar Coeficients (.csv)",
-                legal: "Avís Legal", privacy: "Privacitat", cookies: "Cookies", contact: "Contacte", coffee: "Convida'm a un cafè"
+                legal: "Avís Legal", privacy: "Privacitat", cookies: "Cookies", contact: "Contacte", coffee: "Convida'm a un cafè",
+                // --- NUEVO TEXTO SEO ADSENSE ---
+                seo_h2_1: "Transformada de Fourier: La Màgia de Descompondre Ones",
+                seo_p_1: "La Transformada de Fourier és un dels conceptes matemàtics més fascinants i útils. Descoberta el 1822, aquesta eina ens ensenya una veritat universal: <strong>qualsevol senyal complex pot descompondre's en una suma d'ones simples i perfectes</strong>.",
+                seo_p_2: "En aquest laboratori interactiu, explorem la variant geomètrica d'aquest teorema a través dels famosos 'Epicicles'.",
+                seo_h3_1: "La Matemàtica darrere del Simulador (Epicicles)",
+                seo_p_3: "El que estàs veient a la pantalla no és màgia, és trigonometria en moviment. El simulador utilitza una sèrie de cercles giratoris connectats:",
+                seo_list_1: "<li><strong>Ràdi (Amplitud):</strong> Defineix la mida del cercle.</li><li><strong>Velocitat (Freqüència):</strong> Determina com de ràpid gira el cercle.</li><li><strong>Angle Inicial (Fase):</strong> És la posició d'inici del cercle.</li>",
+                seo_h3_2: "Com utilitzar aquest Laboratori de Fourier",
+                seo_p_4: "Hem dissenyat aquest espai perquè experimentis com les matemàtiques generen art:",
+                seo_list_2: "<li><strong>Dibuixa la teva pròpia ona:</strong> Utilitza el cursor per traçar qualsevol forma contínua.</li><li><strong>Ajusta els Epicicles:</strong> L'algoritme calcularà instantàniament els cercles necessaris.</li><li><strong>Observa la Reconstrucció:</strong> Inicia l'animació i observa com els cercles tracen la teva forma.</li>"
             },
             'fr': {
                 nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH",
@@ -620,7 +1011,17 @@
                 p_dft: "Lorsque vous dessinez, nous prenons vos coordonnées comme nombres complexes. Ensuite, nous appliquons la Transformée de Fourier Discrète pour trouver la 'recette' : taille, vitesse et angle de chaque cercle.",
                 h_dl_coeff: "Télécharger Coefficients", p_dl_coeff: "Téléchargez les données mathématiques pures : fréquence, amplitude et phase.",
                 btn_dl_coeff: "⬇ Télécharger Coefficients (.csv)",
-                legal: "Mentions Légales", privacy: "Confidentialité", cookies: "Cookies", contact: "Contact", coffee: "Offrez-moi un café"
+                legal: "Mentions Légales", privacy: "Confidentialité", cookies: "Cookies", contact: "Contact", coffee: "Offrez-moi un café",
+                // --- NUEVO TEXTO SEO ADSENSE ---
+                seo_h2_1: "Transformée de Fourier : La Magie de Décomposer les Ondes",
+                seo_p_1: "La Transformée de Fourier nous enseigne une vérité universelle : <strong>tout signal complexe peut être décomposé en une somme d'ondes simples et parfaites</strong>.",
+                seo_p_2: "Dans ce laboratoire, nous explorons la variante géométrique à travers les célèbres « Épicycles ».",
+                seo_h3_1: "Les Mathématiques derrière le Simulateur",
+                seo_p_3: "Ce n'est pas de la magie, c'est de la trigonométrie en mouvement. Le simulateur utilise des cercles tournants connectés :",
+                seo_list_1: "<li><strong>Rayon (Amplitude) :</strong> Définit la taille du cercle.</li><li><strong>Vitesse (Fréquence) :</strong> Détermine la rapidité de rotation.</li><li><strong>Angle Initial (Phase) :</strong> La position de départ.</li>",
+                seo_h3_2: "Comment utiliser ce Laboratoire",
+                seo_p_4: "Expérimentez la façon dont les mathématiques génèrent de l'art :",
+                seo_list_2: "<li><strong>Dessinez votre onde :</strong> Tracez une forme continue.</li><li><strong>Ajustez les Épicycles :</strong> L'algorithme calculera les cercles nécessaires.</li><li><strong>Observez la Reconstruction :</strong> Lancez l'animation et regardez.</li>"
             },
             'de': {
                 nav_main: "← HAUPT-HUB", nav_math: "← MATH HUB",
@@ -636,7 +1037,17 @@
                 p_dft: "Wenn Sie zeichnen, nehmen wir Ihre Koordinaten als komplexe Zahlen. Dann wenden wir die Diskrete Fourier-Transformation an, um das 'Rezept' zu finden: Größe, Geschwindigkeit und Winkel jedes Kreises.",
                 h_dl_coeff: "Koeffizienten herunterladen", p_dl_coeff: "Laden Sie reine mathematische Daten herunter: Frequenz, Amplitude und Phase.",
                 btn_dl_coeff: "⬇ Koeffizienten herunterladen (.csv)",
-                legal: "Impressum", privacy: "Datenschutz", cookies: "Cookies", contact: "Kontakt", coffee: "Kauf mir einen Kaffee"
+                legal: "Impressum", privacy: "Datenschutz", cookies: "Cookies", contact: "Kontakt", coffee: "Kauf mir einen Kaffee",
+                // --- NUEVO TEXTO SEO ADSENSE ---
+                seo_h2_1: "Fourier-Transformation: Die Magie der Wellenzerlegung",
+                seo_p_1: "Die Fourier-Transformation lehrt uns eine universelle Wahrheit: <strong>Jedes komplexe Signal kann in eine Summe von einfachen, perfekten Wellen zerlegt werden</strong>.",
+                seo_p_2: "In diesem Labor erforschen wir die geometrische Variante durch die berühmten „Epizykel“.",
+                seo_h3_1: "Die Mathematik hinter dem Simulator",
+                seo_p_3: "Es ist keine Magie, sondern angewandte Trigonometrie. Der Simulator nutzt rotierende, miteinander verbundene Kreise:",
+                seo_list_1: "<li><strong>Radius (Amplitude):</strong> Definiert die Größe des Kreises.</li><li><strong>Geschwindigkeit (Frequenz):</strong> Bestimmt, wie schnell sich der Kreis dreht.</li><li><strong>Anfangswinkel (Phase):</strong> Die Startposition.</li>",
+                seo_h3_2: "Wie man dieses Labor nutzt",
+                seo_p_4: "Erleben Sie, wie Mathematik Kunst erzeugt:",
+                seo_list_2: "<li><strong>Zeichnen Sie Ihre Welle:</strong> Zeichnen Sie eine kontinuierliche Form.</li><li><strong>Epizykel anpassen:</strong> Der Algorithmus berechnet die benötigten Kreise.</li><li><strong>Beobachten Sie:</strong> Starten Sie die Animation.</li>"
             },
             'pt': {
                 nav_main: "← HUB PRINCIPAL", nav_math: "← HUB MATH",
@@ -652,7 +1063,17 @@
                 p_dft: "Quando você desenha, tomamos suas coordenadas como números complexos. Em seguida, aplicamos a Transformada Discreta de Fourier para encontrar a 'receita': tamanho, velocidade e ângulo de cada círculo.",
                 h_dl_coeff: "Baixar Coeficientes", p_dl_coeff: "Baixe dados matemáticos puros: frequência, amplitude e fase.",
                 btn_dl_coeff: "⬇ Baixar Coeficientes (.csv)",
-                legal: "Aviso Legal", privacy: "Privacidade", cookies: "Cookies", contact: "Contato", coffee: "Pagar um café"
+                legal: "Aviso Legal", privacy: "Privacidade", cookies: "Cookies", contact: "Contato", coffee: "Pagar um café",
+                // --- NUEVO TEXTO SEO ADSENSE ---
+                seo_h2_1: "Transformada de Fourier: A Magia de Decompor Ondas",
+                seo_p_1: "A Transformada de Fourier ensina-nos uma verdade universal: <strong>qualquer sinal complexo pode ser decomposto numa soma de ondas simples e perfeitas</strong>.",
+                seo_p_2: "Neste laboratório, exploramos a variante geométrica através dos famosos 'Epiciclos'.",
+                seo_h3_1: "A Matemática por trás do Simulador",
+                seo_p_3: "Não é magia, é trigonometria em movimento. O simulador utiliza círculos giratórios ligados entre si:",
+                seo_list_1: "<li><strong>Raio (Amplitude):</strong> Define o tamanho do círculo.</li><li><strong>Velocidade (Frequência):</strong> Determina a rapidez da rotação.</li><li><strong>Ângulo Inicial (Fase):</strong> A posição inicial.</li>",
+                seo_h3_2: "Como usar este Laboratório",
+                seo_p_4: "Experimente como a matemática gera arte:",
+                seo_list_2: "<li><strong>Desenhe a sua onda:</strong> Trace uma forma contínua.</li><li><strong>Ajuste os Epiciclos:</strong> O algoritmo calculará os círculos necessários.</li><li><strong>Observe a Reconstrução:</strong> Inicie a animação.</li>"
             },
             'it': {
                 nav_main: "← HUB PRINCIPALE", nav_math: "← HUB MATH",
@@ -668,7 +1089,17 @@
                 p_dft: "Quando disegni, prendiamo le tue coordinate como números complejos. Quindi applichiamo la Trasformata Discreta di Fourier per trovare la 'ricetta': dimensione, velocità e angolo di ogni cerchio.",
                 h_dl_coeff: "Scarica Coefficienti", p_dl_coeff: "Scarica dati matematici puri: frequenza, ampiezza e fase.",
                 btn_dl_coeff: "⬇ Scarica Coefficienti (.csv)",
-                legal: "Note Legali", privacy: "Privacy", cookies: "Cookies", contact: "Contatto", coffee: "Offrimi un caffè"
+                legal: "Note Legali", privacy: "Privacy", cookies: "Cookies", contact: "Contatto", coffee: "Offrimi un caffè",
+                // --- NUEVO TEXTO SEO ADSENSE ---
+                seo_h2_1: "Trasformata di Fourier: La Magia di Scomporre le Onde",
+                seo_p_1: "La Trasformata di Fourier ci insegna una verità universale: <strong>qualsiasi segnale complesso può essere scomposto in una somma di onde semplici e perfette</strong>.",
+                seo_p_2: "In questo laboratorio esploriamo la variante geometrica attraverso i famosi 'Epicicli'.",
+                seo_h3_1: "La Matematica dietro il Simulatore",
+                seo_p_3: "Non è magia, è trigonometria in movimento. Il simulatore utilizza cerchi rotanti collegati:",
+                seo_list_1: "<li><strong>Raggio (Ampiezza):</strong> Definisce la dimensione del cerchio.</li><li><strong>Velocità (Frequenza):</strong> Determina la velocità di rotazione.</li><li><strong>Angolo Iniziale (Fase):</strong> La posizione di partenza.</li>",
+                seo_h3_2: "Come usare questo Laboratorio",
+                seo_p_4: "Sperimenta come la matematica genera arte:",
+                seo_list_2: "<li><strong>Disegna la tua onda:</strong> Traccia una forma continua.</li><li><strong>Regola gli Epicicli:</strong> L'algoritmo calcolerà i cerchi necessari.</li><li><strong>Osserva la Ricostruzione:</strong> Avvia l'animazione.</li>"
             },
             'nl': {
                 nav_main: "← HOOFDHUB", nav_math: "← MATH HUB",
@@ -684,7 +1115,17 @@
                 p_dft: "Wanneer je tekent, nemen we je coördinaten als complexe getallen. Vervolgens passen we de Discrete Fourier Transformatie toe om het 'recept' te vinden: grootte, snelheid en hoek van elke cirkel.",
                 h_dl_coeff: "Coëfficiënten Downloaden", p_dl_coeff: "Download pure wiskundige gegevens: frequentie, amplitude en fase.",
                 btn_dl_coeff: "⬇ Download Coëfficiënten (.csv)",
-                legal: "Juridisch", privacy: "Privacy", cookies: "Cookies", contact: "Contact", coffee: "Koop koffie"
+                legal: "Juridisch", privacy: "Privacy", cookies: "Cookies", contact: "Contact", coffee: "Koop koffie",
+                // --- NUEVO TEXTO SEO ADSENSE ---
+                seo_h2_1: "Fouriertransformatie: De Magie van Golven Ontleden",
+                seo_p_1: "De Fouriertransformatie leert ons een universele waarheid: <strong>elk complex signaal kan worden ontleed in een som van eenvoudige, perfecte golven</strong>.",
+                seo_p_2: "In dit lab onderzoeken we de geometrische variant via de beroemde 'Epicycli'.",
+                seo_h3_1: "De Wiskunde achter de Simulator",
+                seo_p_3: "Het is geen magie, het is goniometrie in beweging. De simulator gebruikt verbonden, draaiende cirkels:",
+                seo_list_1: "<li><strong>Radius (Amplitude):</strong> Bepaalt de grootte van de cirkel.</li><li><strong>Snelheid (Frequentie):</strong> Bepaalt hoe snel de cirkel draait.</li><li><strong>Beginhoek (Fase):</strong> De startpositie.</li>",
+                seo_h3_2: "Hoe gebruik je dit Lab",
+                seo_p_4: "Ervaar hoe wiskunde kunst genereert:",
+                seo_list_2: "<li><strong>Teken je golf:</strong> Teken een doorlopende vorm.</li><li><strong>Pas de Epicycli aan:</strong> Het algoritme berekent de cirkels.</li><li><strong>Bekijk de Reconstructie:</strong> Start de animatie.</li>"
             },
             'ja': {
                 nav_main: "← メインハブ", nav_math: "← 数学ハブ",
@@ -700,43 +1141,76 @@
                 p_dft: "あなたが描くとき、座標を複素数として取得します。次に離散フーリエ変換を適用して、各円のサイズ、速度、角度という「レシピ」を見つけます。",
                 h_dl_coeff: "係数のダウンロード", p_dl_coeff: "周波数、振幅、位相などの純粋な数学データをダウンロードします。",
                 btn_dl_coeff: "⬇ 係数をDL (.csv)",
-                legal: "法的通知", privacy: "プライバシー", cookies: "クッキー", contact: "連絡先", coffee: "コーヒーを奢る"
+                legal: "法的通知", privacy: "プライバシー", cookies: "クッキー", contact: "連絡先", coffee: "コーヒーを奢る",
+                // --- NUEVO TEXTO SEO ADSENSE ---
+                seo_h2_1: "フーリエ変換：波を分解する魔法",
+                seo_p_1: "フーリエ変換は<strong>あらゆる複雑な信号は、単純で完璧な波の足し合わせに分解できる</strong>という普遍的な真理を教えてくれます。",
+                seo_p_2: "このラボでは、「周転円」を通じて探求します。",
+                seo_h3_1: "シミュレーターの背後にある数学",
+                seo_p_3: "魔法ではなく動く三角法です。シミュレーターは回転する円を使用します：",
+                seo_list_1: "<li><strong>半径（振幅）：</strong> 円の大きさを定義します。</li><li><strong>速度（周波数）：</strong> 円の回転速度を決定します。</li><li><strong>初期角（位相）：</strong> 円の開始位置です。</li>",
+                seo_h3_2: "このラボの使い方",
+                seo_p_4: "数学が芸術を生み出す体験をしてください：",
+                seo_list_2: "<li><strong>自分の波を描く：</strong> 連続した形を描きます。</li><li><strong>周転円を調整：</strong> アルゴリズムが必要な円を計算します。</li><li><strong>再構築を観察：</strong> アニメーションを開始します。</li>"
             }
         };
 
-        const savedLang = localStorage.getItem('gl_lang') || 'es';
-        let currentLang = savedLang;
-        
-        function setLang(lang) {
-            localStorage.setItem('gl_lang', lang); currentLang = lang;
-            const t = translations[lang] || translations['es'];
-            document.getElementById('nav-main').innerText = t.nav_main;
-            document.getElementById('nav-math').innerText = t.nav_math;
-            document.getElementById('txt-title').innerText = t.title;
-            document.getElementById('txt-desc').innerText = t.desc;
-            document.getElementById('btn-draw').innerText = t.btn_draw;
-            document.getElementById('btn-example').innerText = t.btn_example;
-            document.getElementById('btn-save').innerText = t.btn_save;
-            document.getElementById('txt-note').innerText = t.txt_note;
-            document.getElementById('info-h-calc').innerText = t.h_calc;
-            document.getElementById('info-p-calc').innerText = t.p_calc;
-            document.getElementById('info-h-dft').innerText = t.h_dft;
-            document.getElementById('info-p-dft').innerText = t.p_dft;
-            document.getElementById('h-dl-coeff').innerText = t.h_dl_coeff;
-            document.getElementById('p-dl-coeff').innerText = t.p_dl_coeff;
-            document.getElementById('btn-dl-coeff').innerText = t.btn_dl_coeff;
-            document.getElementById('link-legal').innerText = t.legal;
-            document.getElementById('link-privacy').innerText = t.privacy;
-            document.getElementById('link-cookies').innerText = t.cookies;
-            document.getElementById('link-contact').innerText = t.contact;
-            document.getElementById('btn-coffee').innerText = t.coffee;
+        let currentLang = 'ca'; // Guardamos el idioma global
 
-            document.querySelectorAll('.lang-switch button').forEach(b => {
-                b.classList.toggle('active', b.id === 'btn-' + lang);
+        function setLang(lang) {
+            const l = lang.toLowerCase();
+            localStorage.setItem('gl_lang', l);
+            const t = translations[l] || translations['ca'];
+            currentLang = l; // <-- Vital para que los textos de "DIBUJANDO..." cambien de idioma
+
+            if (!t) return;
+
+            // 1. Por atributo data-i18n
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) {
+                    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.placeholder = t[key];
+                    else el.innerHTML = t[key];
+                }
+            });
+
+            // 2. Mapeo inteligente (reemplaza TODOS los guiones bajos por medios)
+            Object.keys(t).forEach(key => {
+                const dashedKey = key.replace(/_/g, '-');
+                // Al buscar dashedKey (ej: h-calc), al sumarle 'info-' encajará perfecto con 'info-h-calc'
+                const possibleIds = [
+                    key, 'txt-' + key, dashedKey, 'info-' + dashedKey, 'lbl-' + dashedKey, 'btn-' + dashedKey, 'link-' + dashedKey, 'footer-' + dashedKey
+                ];
+                possibleIds.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el && t[key]) {
+                        if (t[key].includes('<')) el.innerHTML = t[key];
+                        else el.innerText = t[key];
+                    }
+                });
+            });
+
+            // 3. Resaltado de botones
+            document.querySelectorAll('.lang-switch button, .lang-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.id === 'btn-' + l || btn.innerText.toLowerCase() === l) btn.classList.add('active');
             });
         }
+        window.setLang = setLang;
 
-        setLang(savedLang); loadExample(); requestAnimationFrame(drawLoop);
+        /* --- INICIALIZACIÓN SÍNCRONA (Sin parpadeo) --- */
+        const pathParts = window.location.pathname.split('/');
+        const urlLang = pathParts.find(p => ['es', 'ca', 'en', 'fr', 'de', 'pt', 'it', 'nl', 'ja'].includes(p));
+        const finalLang = urlLang || localStorage.getItem('gl_lang') || 'ca';
+
+        setLang(finalLang);
+
+        // Arrancamos el canvas cuando todo esté listo
+        window.addEventListener('load', () => {
+            loadExample();
+            requestAnimationFrame(drawLoop);
+        });
     </script>
 </body>
+
 </html>

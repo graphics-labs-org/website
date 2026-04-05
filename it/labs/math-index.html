@@ -243,7 +243,22 @@
             .card p { font-size: 0.9rem; }
             .ad-container { max-width: 320px; min-height: 50px; }
         }
-    </style>
+    
+        /* ==GL-NAV== */
+        nav{display:flex;justify-content:space-between;align-items:center;padding:30px 0 10px 0;margin-bottom:30px;flex-wrap:wrap;gap:12px;}
+        .nav-left{display:flex;align-items:center;}
+        .nav-bc{font-size:.9rem;font-weight:900;letter-spacing:2px;text-transform:uppercase;display:flex;align-items:center;white-space:nowrap;}
+        .nav-bc .gl-hub{color:rgba(255,255,255,.45);text-decoration:none;transition:color .2s;}
+        .nav-bc .gl-hub:hover{color:rgba(255,255,255,.85);}
+        .nav-bc .gl-sep{color:rgba(255,255,255,.2);margin:0 8px;font-weight:400;}
+        .nav-bc .gl-sec{color:var(--primary);}
+        .lang-switch{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;}
+        .lang-switch button{background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.1);color:#999;width:44px;height:34px;cursor:pointer;border-radius:4px;font-size:.8rem;font-weight:700;transition:.2s;}
+        .lang-switch button:hover{border-color:var(--primary);color:var(--primary);}
+        .lang-switch button.active{background:var(--primary);color:#000;border-color:var(--primary);}
+        @media(max-width:700px){nav{flex-direction:column;align-items:flex-start;gap:10px;}.lang-switch{width:100%;justify-content:center;}}
+        /* ==/GL-NAV== */
+        </style>
     <link rel="canonical" href="https://graphics-labs.org/it/labs/math-index.html" />
 
     <link rel="alternate" hreflang="es" href="https://graphics-labs.org/es/labs/math-index.html" />
@@ -263,19 +278,22 @@
     <div class="container">
         <nav>
             <div class="nav-left">
-                <a href="../index.html" class="back-btn" data-i18n="ui.back_to_labs"></a>
-                <div class="brand-title">MATH LABS</div>
+                <div class="nav-bc">
+                    <a href="../index.html" class="gl-hub">GRAPHICS LABS</a>
+                    <span class="gl-sep">&gt;</span>
+                    <span class="gl-sec">MATH LABS</span>
+                </div>
             </div>
             <div class="lang-switch">
                 <button onclick="switchLangUrl('es')" id="btn-es">ES</button>
-                <button onclick="switchLangUrl('ca')" id="btn-ca">CA</button>
-                <button onclick="switchLangUrl('en')" id="btn-en">EN</button>
-                <button onclick="switchLangUrl('fr')" id="btn-fr">FR</button>
-                <button onclick="switchLangUrl('de')" id="btn-de">DE</button>
-                <button onclick="switchLangUrl('pt')" id="btn-pt">PT</button>
-                <button onclick="switchLangUrl('it')" id="btn-it">IT</button>
-                <button onclick="switchLangUrl('nl')" id="btn-nl">NL</button>
-                <button onclick="switchLangUrl('ja')" id="btn-ja">JP</button>
+        <button onclick="switchLangUrl('ca')" id="btn-ca">CA</button>
+        <button onclick="switchLangUrl('en')" id="btn-en">EN</button>
+        <button onclick="switchLangUrl('fr')" id="btn-fr">FR</button>
+        <button onclick="switchLangUrl('de')" id="btn-de">DE</button>
+        <button onclick="switchLangUrl('pt')" id="btn-pt">PT</button>
+        <button onclick="switchLangUrl('it')" id="btn-it">IT</button>
+        <button onclick="switchLangUrl('nl')" id="btn-nl">NL</button>
+        <button onclick="switchLangUrl('ja')" id="btn-ja">JP</button>
             </div>
         </nav>
 

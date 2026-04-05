@@ -1,50 +1,27 @@
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
     <meta charset="UTF-8">
     <script>
-    // --- i18n URL Router ---
-    (function() {
-        window.__GL_LANG = 'de';
-        window.__GL_LANG_UPPER = 'DE';
-        window.__GL_LANGS = ['es', 'ca', 'en', 'fr', 'de', 'pt', 'it', 'nl', 'ja'];
-        
-        // Override localStorage to always use URL-based language
-        localStorage.setItem('gl_lang', 'de');
-        
-        // Language switcher: navigate to the equivalent page in the target language folder
-        window.switchLangUrl = function(targetLang) {
-            var path = window.location.pathname;
-            // Replace current lang segment with target lang
-            var newPath = path.replace(/^\/(es|ca|en|fr|de|pt|it|nl|ja)\//, '/' + targetLang.toLowerCase() + '/');
-            if (newPath === path) {
-                // Fallback: prepend lang
-                newPath = '/' + targetLang.toLowerCase() + '/';
-            }
-            window.location.href = newPath + window.location.hash;
-        };
-        
-        // Auto-call setLang on DOMContentLoaded to apply translations
-        // Some labs use uppercase keys (ES/EN), others lowercase (es/en)
-        document.addEventListener('DOMContentLoaded', function() {
-            if (typeof setLang === 'function') {
-                // Try uppercase first (used by most lab pages with inline translations)
-                try { setLang('DE'); } catch(e) {}
-                // Also try lowercase (used by magic-square style pages)
-                try { setLang('de'); } catch(e) {}
-            }
-        });
-    })();
+        // --- i18n URL Router ---
+        (function () {
+            var _p = window.location.pathname.match(/^\/(es|ca|en|fr|de|pt|it|nl|ja)\//);
+            window.__GL_LANG = _p ? _p[1] : 'es';
+            window.__GL_LANG_UPPER = window.__GL_LANG.toUpperCase();
+            window.__GL_LANGS = ['es', 'ca', 'en', 'fr', 'de', 'pt', 'it', 'nl', 'ja'];
+            localStorage.setItem('gl_lang', window.__GL_LANG);
+        })();
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Phi Lab | Graphics Labs</title>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3150277567590534"
-     crossorigin="anonymous"></script>
-    <meta name="description" content="Interaktives Phi Lab-Labor. Experimentieren Sie mit generativer Kunst und visueller Mathematik bei Graphics Labs.">
+        crossorigin="anonymous"></script>
+    
     <style>
         /* --- ESTILOS BASE --- */
         :root {
-            --primary: #00ff41; 
+            --primary: #00ff41;
             --primary-dim: rgba(0, 255, 65, 0.3);
             --secondary: #bd00ff;
             --highlight: #ffee00;
@@ -55,9 +32,15 @@
             --muted: #aaaaaa;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', monospace, sans-serif; }
-        
-        html, body {
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', monospace, sans-serif;
+        }
+
+        html,
+        body {
             width: 100%;
             color: var(--text);
             overflow-x: hidden;
@@ -67,7 +50,15 @@
             user-select: none;
         }
 
-        #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background-color: #050505; }
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background-color: #050505;
+        }
 
         .container {
             position: relative;
@@ -95,7 +86,7 @@
             gap: 20px;
             align-items: center;
             backdrop-filter: blur(10px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
 
         .slider-group {
@@ -108,13 +99,15 @@
 
         input[type=range] {
             -webkit-appearance: none;
-            appearance: none;         /* Propiedad estándar para eliminar la advertencia */
+            appearance: none;
+            /* Propiedad estándar para eliminar la advertencia */
             width: 80%;
             height: 6px;
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 3px;
             outline: none;
         }
+
         input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none;
             width: 20px;
@@ -125,7 +118,10 @@
             box-shadow: 0 0 10px var(--primary);
             transition: 0.2s;
         }
-        input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
 
         .value-display {
             font-family: 'Courier New', monospace;
@@ -155,8 +151,12 @@
             font-size: 0.9rem;
             min-width: 140px;
         }
-        button.action-btn:hover { box-shadow: 0 0 15px var(--primary); transform: scale(1.05); }
-        
+
+        button.action-btn:hover {
+            box-shadow: 0 0 15px var(--primary);
+            transform: scale(1.05);
+        }
+
         button.secondary-btn {
             background: transparent;
             border: 1px solid var(--secondary);
@@ -166,9 +166,17 @@
             cursor: pointer;
             transition: 0.3s;
             font-size: 0.9rem;
-            display: flex; align-items: center; gap: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
-        button.secondary-btn:hover { background: var(--secondary); color: #fff; box-shadow: 0 0 15px var(--secondary); transform: scale(1.05); }
+
+        button.secondary-btn:hover {
+            background: var(--secondary);
+            color: #fff;
+            box-shadow: 0 0 15px var(--secondary);
+            transform: scale(1.05);
+        }
 
         /* --- CANVAS --- */
         #canvas-container {
@@ -186,7 +194,7 @@
             background: #000;
             border: 1px solid var(--border);
             border-radius: 50%;
-            box-shadow: 0 0 30px rgba(189, 0, 255, 0.2); 
+            box-shadow: 0 0 30px rgba(189, 0, 255, 0.2);
             margin-bottom: 15px;
             max-width: 100%;
         }
@@ -203,9 +211,27 @@
             line-height: 1.8;
             color: #ddd;
         }
-        .info-section h2 { color: var(--secondary); margin-bottom: 20px; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-top: 40px; }
-        .info-section h2:first-child { margin-top: 0; }
-        .info-section p { margin-bottom: 20px; font-size: 1rem; text-align: justify; }
+
+        .info-section h2 {
+            color: var(--secondary);
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+            margin-top: 40px;
+        }
+
+        .info-section h2:first-child {
+            margin-top: 0;
+        }
+
+        .info-section p {
+            margin-bottom: 20px;
+            font-size: 1rem;
+            text-align: justify;
+        }
 
         .dl-section {
             margin-top: 30px;
@@ -227,6 +253,7 @@
             transition: 0.3s;
             cursor: pointer;
         }
+
         .btn-txt-dl:hover {
             background: var(--secondary);
             color: #fff;
@@ -236,30 +263,264 @@
 
         /* --- ADS & NAV --- */
         .ad-container {
-            width: 100%; max-width: 728px; margin: 30px auto; min-height: 90px;
-            display: flex; justify-content: center; align-items: center;
-            border: 1px dashed rgba(255,255,255,0.1); border-radius: 8px; background: rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 728px;
+            margin: 30px auto;
+            min-height: 90px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px dashed rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.2);
         }
-        .ad-placeholder-text { color: var(--border); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; }
 
-        nav { display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .nav-links { display: flex; gap: 15px; }
-        .nav-btn { text-decoration: none; color: var(--muted); font-size: 0.9rem; border: 1px solid var(--border); padding: 5px 10px; border-radius: 4px; transition: 0.3s; background: rgba(0,0,0,0.5); cursor: pointer; }
-        .nav-btn:hover { color: var(--primary); border-color: var(--primary); }
-        .logo { font-size: 1.2rem; font-weight: bold; color: var(--primary); text-decoration: none; letter-spacing: 2px; }
-        
-        .lang-switch button { background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: var(--muted); padding: 5px 10px; cursor: pointer; border-radius: 4px; margin-left: 2px;}
-        .lang-switch button.active { background-color: var(--primary) !important; color: #000 !important; border-color: var(--primary) !important; font-weight: bold; }
-        
-        footer { margin-top: auto; background: rgba(0,0,0,0.9); backdrop-filter: blur(5px); border-top: 1px solid var(--border); padding: 30px 20px; text-align: center; font-size: 0.8rem; color: var(--muted); display: flex; flex-direction: column; gap: 15px; align-items: center; position: relative; z-index: 20; }
-        .legal-links { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin-bottom: 10px; }
-        .legal-links a { color: var(--muted); text-decoration: none; transition: 0.3s; border-bottom: 1px solid transparent; }
-        .legal-links a:hover { color: var(--primary); border-bottom-color: var(--primary); }
-        .coffee-btn { background: linear-gradient(45deg, #FFDD00, #FBB03B); color: #000; padding: 8px 15px; border-radius: 20px; text-decoration: none; font-weight: bold; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 5px; transition: transform 0.2s; }
-        .coffee-btn:hover { transform: scale(1.05); }
+        .ad-placeholder-text {
+            color: var(--border);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
 
-    </style>
-    <link rel="canonical" href="https://graphics-labs.org/de/labs/phi-lab/" />
+        nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 15px;
+        }
+
+        .nav-btn {
+            text-decoration: none;
+            color: var(--muted);
+            font-size: 0.9rem;
+            border: 1px solid var(--border);
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: 0.3s;
+            background: rgba(0, 0, 0, 0.5);
+            cursor: pointer;
+        }
+
+        .nav-btn:hover {
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .logo {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary);
+            text-decoration: none;
+            letter-spacing: 2px;
+        }
+
+        .lang-switch button {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border);
+            color: var(--muted);
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-left: 2px;
+        }
+
+        .lang-switch button.active {
+            background-color: var(--primary) !important;
+            color: #000 !important;
+            border-color: var(--primary) !important;
+            font-weight: bold;
+        }
+
+        footer {
+            margin-top: auto;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(5px);
+            border-top: 1px solid var(--border);
+            padding: 30px 20px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--muted);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+            position: relative;
+            z-index: 20;
+        }
+
+        .legal-links {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+
+        .legal-links a {
+            color: var(--muted);
+            text-decoration: none;
+            transition: 0.3s;
+            border-bottom: 1px solid transparent;
+        }
+
+        .legal-links a:hover {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .coffee-btn {
+            background: linear-gradient(45deg, #FFDD00, #FBB03B);
+            color: #000;
+            padding: 8px 15px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: transform 0.2s;
+        }
+
+        .coffee-btn:hover {
+            transform: scale(1.05);
+        }
+
+
+        /* ==GL-NAV== */
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 20px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            flex-wrap: wrap;
+            gap: 10px;
+            box-sizing: border-box;
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-bc {
+            font-size: .8rem;
+            font-weight: 900;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+        }
+
+        .nav-bc .gl-hub {
+            color: rgba(255, 255, 255, .45);
+            text-decoration: none;
+            transition: color .2s;
+        }
+
+        .nav-bc .gl-hub:hover {
+            color: rgba(255, 255, 255, .85);
+        }
+
+        .nav-bc .gl-sep {
+            color: rgba(255, 255, 255, .2);
+            margin: 0 7px;
+            font-weight: 400;
+        }
+
+        .nav-bc .gl-sec {
+            color: var(--primary);
+            text-decoration: none;
+            transition: opacity .2s;
+        }
+
+        .nav-bc .gl-sec:hover {
+            opacity: .75;
+        }
+
+        .lang-switch {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .lang-switch button,
+        .lang-selector button,
+        .lang-btn {
+            background: rgba(0, 0, 0, .4);
+            border: 1px solid rgba(255, 255, 255, .1);
+            color: #999;
+            width: 38px;
+            height: 28px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: .7rem;
+            font-weight: 700;
+            transition: .2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lang-switch button:hover,
+        .lang-selector button:hover,
+        .lang-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .lang-switch button.active,
+        .lang-selector button.active,
+        .lang-btn.active {
+            background: var(--primary);
+            color: #000;
+            border-color: var(--primary);
+        }
+
+        @media(max-width:620px) {
+            .top-nav {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 12px 15px;
+            }
+
+            .lang-switch,
+            .lang-selector {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* ==/GL-NAV== */
+    
+        /* Fix SEO H1 Automático */
+        h1#txt-title, h1[data-i18n="lab_title"] {
+            font-size: 1.5rem;
+            color: var(--primary, #00ff41);
+            margin-bottom: 20px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+</style>
+    
 
     <link rel="alternate" hreflang="es" href="https://graphics-labs.org/es/labs/phi-lab/" />
     <link rel="alternate" hreflang="ca" href="https://graphics-labs.org/ca/labs/phi-lab/" />
@@ -271,36 +532,43 @@
     <link rel="alternate" hreflang="nl" href="https://graphics-labs.org/nl/labs/phi-lab/" />
     <link rel="alternate" hreflang="ja" href="https://graphics-labs.org/ja/labs/phi-lab/" />
     <link rel="alternate" hreflang="x-default" href="https://graphics-labs.org/es/labs/phi-lab/" />
+    <meta name="description"
+        content="Interaktives Labor für Phi Lab. Experimentieren Sie mit generativer Kunst und visueller Mathematik in Graphics Labs.">
+    <link rel="canonical" href="https://graphics-labs.org/de/labs/phi-lab/" />
 </head>
+
 <body oncontextmenu="return false;">
 
     <canvas id="bg-canvas"></canvas>
 
     <div class="container">
-        <nav>
-            <div class="nav-links">
-                <a href="../../index.html" class="nav-btn" id="nav-main">← HUB PRINCIPAL</a>
-                <a href="javascript:void(0);" onclick="smartBack('../../index.html')" class="nav-btn" id="nav-math">← VOLVER ATRÁS</a>
+        <nav class="top-nav">
+            <div class="nav-left">
+                <div class="nav-bc">
+                    <a href="../../index.html" class="gl-hub">GRAPHICS LABS</a>
+                    <span class="gl-sep">&gt;</span>
+                    <a href="../math-index.html" class="gl-sec">MATH LABS</a>
+                </div>
             </div>
-            <div class="logo">GRAPHICS LABS</div>
             <div class="lang-switch">
-                <button onclick="switchLangUrl('es')" id="btn-es" class="active">ES</button>
-                <button onclick="switchLangUrl('ca')" id="btn-ca">CA</button>
-                <button onclick="switchLangUrl('en')" id="btn-en">EN</button>
-                <button onclick="switchLangUrl('fr')" id="btn-fr">FR</button>
-                <button onclick="switchLangUrl('de')" id="btn-de">DE</button>
-                <button onclick="switchLangUrl('pt')" id="btn-pt">PT</button>
-                <button onclick="switchLangUrl('it')" id="btn-it">IT</button>
-                <button onclick="switchLangUrl('nl')" id="btn-nl">NL</button>
-                <button onclick="switchLangUrl('ja')" id="btn-ja">JP</button>
+                <button onclick="switchLangUrl('es')" id="btn-es" class="lang-btn">ES</button>
+                <button onclick="switchLangUrl('ca')" id="btn-ca" class="lang-btn active">CA</button>
+                <button onclick="switchLangUrl('en')" id="btn-en" class="lang-btn">EN</button>
+                <button onclick="switchLangUrl('fr')" id="btn-fr" class="lang-btn">FR</button>
+                <button onclick="switchLangUrl('de')" id="btn-de" class="lang-btn">DE</button>
+                <button onclick="switchLangUrl('pt')" id="btn-pt" class="lang-btn">PT</button>
+                <button onclick="switchLangUrl('it')" id="btn-it" class="lang-btn">IT</button>
+                <button onclick="switchLangUrl('nl')" id="btn-nl" class="lang-btn">NL</button>
+                <button onclick="switchLangUrl('ja')" id="btn-ja" class="lang-btn">JA</button>
             </div>
         </nav>
 
         <h1 id="txt-title">PROYECTO PHI (φ)</h1>
-        <p style="color:var(--muted); margin-bottom: 20px;" id="txt-desc">Generador de Filotaxis y la Proporción Áurea.</p>
+        <p style="color:var(--muted); margin-bottom: 20px;" id="txt-desc">Generador de Filotaxis y la Proporción Áurea.
+        </p>
 
         <div class="controls">
-            
+
             <div class="slider-group">
                 <label id="lbl-angle">Ángulo de Crecimiento:</label>
                 <input type="range" id="slider-angle" min="0" max="360" step="0.1" value="137.5" oninput="updateArt()">
@@ -312,7 +580,7 @@
                 <input type="range" id="slider-count" min="100" max="3000" step="10" value="800" oninput="updateArt()">
                 <div class="value-display" id="val-count">800</div>
             </div>
-            
+
             <div class="slider-group">
                 <label id="lbl-zoom">Zoom / Dispersión:</label>
                 <input type="range" id="slider-c" min="2" max="20" step="0.5" value="8" oninput="updateArt()">
@@ -321,63 +589,85 @@
             <div class="buttons-row">
                 <button class="action-btn" onclick="resetToGolden()" id="btn-golden">RESET ÁUREO</button>
                 <button class="secondary-btn" onclick="toggleColor()" id="btn-color">🎨 COLOR</button>
-                <button class="secondary-btn" onclick="setGradientMode()" id="btn-gradient" style="background: linear-gradient(45deg, var(--primary-dim), rgba(189, 0, 255, 0.3)); border:1px solid var(--primary); color: #fff;">🌈 GRADIENTE</button>
+                <button class="secondary-btn" onclick="setGradientMode()" id="btn-gradient"
+                    style="background: linear-gradient(45deg, var(--primary-dim), rgba(189, 0, 255, 0.3)); border:1px solid var(--primary); color: #fff;">🌈
+                    GRADIENTE</button>
                 <button class="secondary-btn" onclick="saveImage()" id="btn-save">💾 IMG</button>
             </div>
         </div>
 
         <div id="canvas-container">
             <canvas id="phi-canvas" width="800" height="800"></canvas>
-            <p style="color:var(--muted); font-size: 0.8rem; margin-top:5px;" id="txt-note">Observa cómo el ángulo de 137.5° crea el empaquetado perfecto.</p>
+            <p style="color:var(--muted); font-size: 0.8rem; margin-top:5px;" id="txt-note">Observa cómo el ángulo de
+                137.5° crea el empaquetado perfecto.</p>
         </div>
 
         <div class="info-section">
             <h2 id="info-h-nature">La Geometría de la Naturaleza</h2>
             <p id="info-p-nature">
-                La filotaxis es el patrón que utilizan las plantas para organizar sus hojas y semillas. La naturaleza descubrió que utilizando un ángulo muy específico, puede empaquetar la mayor cantidad de semillas en el menor espacio posible sin que se solapen. Este fenómeno es visible en girasoles, piñas de abeto y cactus.
+                La filotaxis es el patrón que utilizan las plantas para organizar sus hojas y semillas. La naturaleza
+                descubrió que utilizando un ángulo muy específico, puede empaquetar la mayor cantidad de semillas en el
+                menor espacio posible sin que se solapen. Este fenómeno es visible en girasoles, piñas de abeto y
+                cactus.
             </p>
 
             <h2 id="info-h-golden">El Ángulo Áureo</h2>
             <p id="info-p-golden">
-                Ese ángulo mágico es aproximadamente 137.508°, conocido como el Ángulo Áureo. Se deriva del Número Áureo (Phi, φ = 1.618...). En este laboratorio, puedes mover el control deslizante. Nota cómo una desviación de tan solo 0.1 grados destruye la espiral perfecta y crea líneas rectas o caos ineficiente. La precisión de la naturaleza es absoluta.
+                Ese ángulo mágico es aproximadamente 137.508°, conocido como el Ángulo Áureo. Se deriva del Número Áureo
+                (Phi, φ = 1.618...). En este laboratorio, puedes mover el control deslizante. Nota cómo una desviación
+                de tan solo 0.1 grados destruye la espiral perfecta y crea líneas rectas o caos ineficiente. La
+                precisión de la naturaleza es absoluta.
             </p>
-            
+
             <h2 id="info-h-fib">La Secuencia de Fibonacci</h2>
             <p id="info-p-fib">
-                Estrechamente relacionada con Phi está la secuencia de Fibonacci (1, 1, 2, 3, 5, 8, 13...). Si cuentas las espirales en un girasol hacia la izquierda y hacia la derecha, casi siempre obtendrás dos números vecinos de esta secuencia. Este es uno de los puentes más hermosos entre la aritmética y la botánica.
+                Estrechamente relacionada con Phi está la secuencia de Fibonacci (1, 1, 2, 3, 5, 8, 13...). Si cuentas
+                las espirales en un girasol hacia la izquierda y hacia la derecha, casi siempre obtendrás dos números
+                vecinos de esta secuencia. Este es uno de los puentes más hermosos entre la aritmética y la botánica.
             </p>
 
             <div class="dl-section">
                 <h3 style="color:var(--secondary); margin-bottom:15px;" id="h-dl-fib">Descarga de Datos</h3>
                 <p id="p-dl-fib" style="font-size:0.9rem;">
-                    Genera y descarga instantáneamente los primeros 1000 números de la secuencia de Fibonacci para tus propios análisis matemáticos.
+                    Genera y descarga instantáneamente los primeros 1000 números de la secuencia de Fibonacci para tus
+                    propios análisis matemáticos.
                 </p>
                 <button onclick="downloadFibonacci()" class="btn-txt-dl" id="btn-dl-fib">
                     ⬇ Descargar Secuencia Fibonacci (.txt)
                 </button>
             </div>
+
+            <h2 id="seo_h2_1"></h2>
+            <p id="seo_p_1"></p>
+            <p id="seo_p_2"></p>
+
+            <h3 id="seo_h3_1"></h3>
+            <p id="seo_p_3"></p>
+            <ul>
+                <li id="seo_list_1"></li>
+                <li id="seo_list_2"></li>
+            </ul>
+            <p id="seo_p_4"></p>
+            <p id="seo_p_5"></p>
         </div>
 
         <div class="ad-container">
-        <ins class="adsbygoogle"
-             style="display:block"
-             data-ad-client="ca-pub-3150277567590534"
-             data-ad-format="auto"
-             data-full-width-responsive="true"></ins>
-        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+            <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3150277567590534"
+                data-ad-format="auto" data-full-width-responsive="true"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
         </div>
     </div>
 
     <footer>
         <div class="legal-links">
-            <a href="../../legal.html" id="link-legal">Aviso Legal</a>
-            <a href="../../privacy.html" id="link-privacy">Política de Privacidad</a>
-            <a href="../../cookies.html" id="link-cookies">Política de Cookies</a>
-            <a href="mailto:pbazan@gmail.com" id="link-contact">Contacto</a>
+            <a href="../../legal.html" id="link-legal" data-i18n="legal">Aviso Legal</a>
+            <a href="../../privacy.html" id="link-privacy" data-i18n="privacy">Política de Privacidad</a>
+            <a href="../../cookies.html" id="link-cookies" data-i18n="cookies">Política de Cookies</a>
+            <a href="mailto:pbazan@gmail.com" id="link-contact" data-i18n="contact">Contacto</a>
         </div>
-        <span id="footer-rights">© 2026 Graphics Labs</span>
+        <span id="footer-rights" data-i18n="rights">© 2026 Graphics Labs</span>
         <a href="https://paypal.me/pbazan" target="_blank" class="coffee-btn">
-            ☕ <span id="btn-coffee">Invítame a un café</span>
+            ☕ <span id="btn-coffee" data-i18n="coffee">Invítame a un café</span>
         </a>
     </footer>
 
@@ -385,14 +675,14 @@
         /* --- 1. CONFIGURACIÓN Y VARIABLES --- */
         const canvas = document.getElementById('phi-canvas');
         const ctx = canvas.getContext('2d');
-        
+
         const sliderAngle = document.getElementById('slider-angle');
         const sliderCount = document.getElementById('slider-count');
         const sliderC = document.getElementById('slider-c');
         const valAngle = document.getElementById('val-angle');
         const valCount = document.getElementById('val-count');
-        
-        let colorMode = 0; 
+
+        let colorMode = 0;
 
         function smartBack(fallbackUrl) {
             if (window.history.length > 1 && document.referrer && document.referrer.includes(window.location.host)) {
@@ -425,10 +715,10 @@
                 const y = r * Math.sin(a) + cy;
 
                 ctx.beginPath();
-                
+
                 if (colorMode === 0) {
-                    const dist = r / (canvas.width/2); 
-                    ctx.fillStyle = `rgba(${100 + dist*155}, 255, ${100 + dist*155}, ${1 - dist*0.5})`;
+                    const dist = r / (canvas.width / 2);
+                    ctx.fillStyle = `rgba(${100 + dist * 155}, 255, ${100 + dist * 155}, ${1 - dist * 0.5})`;
                     ctx.arc(x, y, 3, 0, Math.PI * 2);
                 } else if (colorMode === 1) {
                     ctx.fillStyle = `hsl(${n % 360}, 80%, 50%)`;
@@ -437,14 +727,14 @@
                     ctx.fillStyle = `hsl(${r * 0.8}, 70%, 50%)`;
                     ctx.arc(x, y, 4, 0, Math.PI * 2);
                 } else if (colorMode === 3) {
-                    const ratio = x / canvas.width; 
+                    const ratio = x / canvas.width;
                     const rVal = 0 + ratio * (189 - 0);
                     const gVal = 255 + ratio * (0 - 255);
                     const bVal = 65 + ratio * (255 - 65);
                     ctx.fillStyle = `rgb(${rVal}, ${gVal}, ${bVal})`;
-                    ctx.arc(x, y, 4.5, 0, Math.PI * 2); 
+                    ctx.arc(x, y, 4.5, 0, Math.PI * 2);
                 }
-                
+
                 ctx.fill();
             }
         }
@@ -514,7 +804,16 @@
                 p_fib: "Estrechamente relacionada con Phi está la secuencia de Fibonacci (1, 1, 2, 3, 5, 8, 13...). Si cuentas las espirales en un girasol hacia la izquierda y hacia la derecha, casi siempre obtendrás dos números vecinos de esta secuencia. Este es uno de los puentes más hermosos entre la aritmética y la botánica.",
                 h_dl_fib: "Descarga de Datos", p_dl_fib: "Genera y descarga instantáneamente los primeros 1000 números de la secuencia de Fibonacci para tus propios análisis matemáticos.",
                 btn_dl_fib: "⬇ Descargar Fibonacci (.txt)",
-                legal: "Aviso Legal", privacy: "Política Privacidad", cookies: "Cookies", contact: "Contacto", coffee: "Invítame a un café", rights: "© 2026 Graphics Labs", ad_text: "AD SPACE"
+                legal: "Aviso Legal", privacy: "Política Privacidad", cookies: "Cookies", contact: "Contacto", coffee: "Invítame a un café", rights: "© 2026 Graphics Labs", ad_text: "AD SPACE",
+                seo_h2_1: "¿Cómo funciona el algoritmo de este simulador botánico?",
+                seo_p_1: "Este laboratorio interactivo recrea computacionalmente el modelo de Vogel, una fórmula matemática propuesta en 1979 para simular el patrón de crecimiento de la flor del girasol. El simulador dibuja los puntos (que representan semillas o primordios) desde el centro hacia afuera, calculando la posición exacta de cada nueva semilla basándose en coordenadas polares bidimensionales.",
+                seo_p_2: "El motor de renderizado utiliza el ángulo de crecimiento seleccionado en el panel de control y un factor de dispersión para colocar cientos de elementos en tiempo real. Al alterar la variable del ángulo, incluso en fracciones de grado, puedes visualizar visualmente cómo las plantas intentan resolver el problema del empaquetamiento óptimo para maximizar la absorción de luz solar y la recolección de agua de lluvia.",
+                seo_h3_1: "La fórmula de Vogel paso a paso",
+                seo_p_3: "La magia geométrica que ves en la pantalla se logra aplicando dos ecuaciones muy simples a cada índice de semilla (n), comenzando desde la semilla 0 en el centro del lienzo:",
+                seo_list_1: "Radio (r): Se calcula multiplicando una constante de escala por la raíz cuadrada del número de la semilla (r = c * √n). Esto asegura que el área de crecimiento por semilla se mantenga constante.",
+                seo_list_2: "Ángulo (θ): Se obtiene multiplicando el número de la semilla por el ángulo de divergencia seleccionado (θ = n * 137.5°).",
+                seo_p_4: "Cuando el ángulo de divergencia se fija exactamente en la proporción áurea, el patrón resultante forma conjuntos de espirales logarítmicas llamadas parásticas, que giran en direcciones opuestas hacia el exterior.",
+                seo_p_5: "El número Phi (1.6180339887...) es considerado matemáticamente el número más irracional de todos. Esto significa que es el más difícil de aproximar mediante fracciones simples. Para las plantas, esta propiedad matemática es crucial: garantiza que las hojas superiores nunca cubran y proyecten sombra exacta sobre las hojas inferiores. Esta es la fascinante razón evolutiva por la que la geometría sagrada es tan prevalente y vital en los ecosistemas naturales de nuestro planeta."
             },
             'en': {
                 nav_main: "← MAIN HUB", nav_math: "← GO BACK",
@@ -530,7 +829,16 @@
                 p_fib: "Closely related to Phi is the Fibonacci sequence (1, 1, 2, 3, 5, 8, 13...). If you count the spirals on a sunflower to the left and to the right, you will almost always get two neighboring numbers from this sequence. This is one of the most beautiful bridges between arithmetic and botany.",
                 h_dl_fib: "Data Download", p_dl_fib: "Instantly generate and download the first 1000 numbers of the Fibonacci sequence for your own mathematical analysis.",
                 btn_dl_fib: "⬇ Download Fibonacci (.txt)",
-                legal: "Legal Notice", privacy: "Privacy Policy", cookies: "Cookies", contact: "Contact", coffee: "Buy me a coffee", rights: "© 2026 Graphics Labs", ad_text: "AD SPACE"
+                legal: "Legal Notice", privacy: "Privacy Policy", cookies: "Cookies", contact: "Contact", coffee: "Buy me a coffee", rights: "© 2026 Graphics Labs", ad_text: "AD SPACE",
+                seo_h2_1: "How does this botanical simulator algorithm work?",
+                seo_p_1: "This interactive laboratory computationally recreates Vogel's model, a mathematical formula proposed in 1979 to simulate the growth pattern of a sunflower head. The simulator draws points (representing seeds or primordia) from the center outwards, calculating the exact position of each new seed based on two-dimensional polar coordinates.",
+                seo_p_2: "The rendering engine uses the growth angle selected in the control panel and a dispersion factor to place hundreds of elements in real-time. By altering the angle variable, even by fractions of a degree, you can visually see how plants attempt to solve the optimal packing problem to maximize sunlight absorption and rainwater collection.",
+                seo_h3_1: "Vogel's formula step by step",
+                seo_p_3: "The geometric magic you see on screen is achieved by applying two very simple equations to each seed index (n), starting from seed 0 in the center of the canvas:",
+                seo_list_1: "Radius (r): Calculated by multiplying a scaling constant by the square root of the seed number (r = c * √n). This ensures the growth area per seed remains constant.",
+                seo_list_2: "Angle (θ): Obtained by multiplying the seed number by the selected divergence angle (θ = n * 137.5°).",
+                seo_p_4: "When the divergence angle is set exactly to the golden ratio, the resulting pattern forms sets of logarithmic spirals called parastichies, which rotate in opposite directions outwards.",
+                seo_p_5: "The number Phi (1.6180339887...) is mathematically considered the most irrational number of all. This means it is the hardest to approximate using simple fractions. For plants, this mathematical property is crucial: it guarantees that upper leaves never cover and cast an exact shadow on lower leaves. This is the fascinating evolutionary reason why sacred geometry is so prevalent and vital in our planet's natural ecosystems."
             },
             'ca': {
                 nav_main: "← HUB PRINCIPAL", nav_math: "← TORNAR ENRERE",
@@ -546,7 +854,16 @@
                 p_fib: "Estretament relacionada amb Phi està la seqüència de Fibonacci (1, 1, 2, 3, 5, 8, 13...). Si comptes les espirals en un gira-sol cap a l'esquerra i cap a la dreta, gairebé sempre obtindràs dos nombres veïns d'aquesta seqüència. Aquest és un dels ponts més bells entre l'aritmètica i la botànica.",
                 h_dl_fib: "Descàrrega de Dades", p_dl_fib: "Genera i descarrega instantàniament els primers 1000 nombres de la seqüència de Fibonacci per a les teves anàlisis matemàtiques.",
                 btn_dl_fib: "⬇ Descarregar Fibonacci (.txt)",
-                legal: "Avís Legal", privacy: "Política Privacitat", cookies: "Cookies", contact: "Contacte", coffee: "Convida'm a un cafè", rights: "© 2026 Graphics Labs", ad_text: "AD SPACE"
+                legal: "Avís Legal", privacy: "Política Privacitat", cookies: "Cookies", contact: "Contacte", coffee: "Convida'm a un cafè", rights: "© 2026 Graphics Labs", ad_text: "AD SPACE",
+                seo_h2_1: "Com funciona l'algorisme d'aquest simulador botànic?",
+                seo_p_1: "Aquest laboratori interactiu recrea computacionalment el model de Vogel, una fórmula matemàtica proposada el 1979 per simular el patró de creixement de la flor del gira-sol. El simulador dibuixa els punts (que representen llavors o primordis) des del centre cap enfora, calculant la posició exacta de cada nova llavor basant-se en coordenades polars bidimensionals.",
+                seo_p_2: "El motor de renderitzat utilitza l'angle de creixement seleccionat al tauler de control i un factor de dispersió per col·locar centenars d'elements en temps real. En alterar la variable de l'angle, fins i tot en fraccions de grau, pots visualitzar com les plantes intenten resoldre el problema de l'empaquetament òptim per maximitzar l'absorció de llum solar i la recollida d'aigua de pluja.",
+                seo_h3_1: "La fórmula de Vogel pas a pas",
+                seo_p_3: "La màgia geomètrica que veus a la pantalla s'aconsegueix aplicant dues equacions molt simples a cada índex de llavor (n), començant des de la llavor 0 al centre del llenç:",
+                seo_list_1: "Radi (r): Es calcula multiplicant una constant d'escala per l'arrel quadrada del nombre de la llavor (r = c * √n). Això assegura que l'àrea de creixement per llavor es mantingui constant.",
+                seo_list_2: "Angle (θ): S'obté multiplicant el nombre de la llavor per l'angle de divergència seleccionat (θ = n * 137.5°).",
+                seo_p_4: "Quan l'angle de divergència es fixa exactament en la proporció àuria, el patró resultant forma conjunts d'espirals logarítmiques anomenades paràstiques, que giren en direccions oposades cap a l'exterior.",
+                seo_p_5: "El nombre Phi (1.6180339887...) és considerat matemàticament el nombre més irracional de tots. Això vol dir que és el més difícil d'aproximar mitjançant fraccions simples. Per a les plantes, aquesta propietat matemàtica és crucial: garanteix que les fulles superiors mai cobreixin i projectin ombra exacta sobre les fulles inferiors. Aquesta és la fascinant raó evolutiva per la qual la geometria sagrada és tan prevalent i vital en els ecosistemes naturals del nostre planeta."
             },
             'fr': {
                 nav_main: "← HUB PRINCIPAL", nav_math: "← RETOUR",
@@ -562,7 +879,16 @@
                 p_fib: "Étroitement liée à Phi est la suite de Fibonacci (1, 1, 2, 3, 5, 8, 13...). Si vous comptez les spirales d'un tournesol vers la gauche et vers la droite, vous obtiendrez presque toujours deux nombres voisins de cette suite.",
                 h_dl_fib: "Téléchargement", p_dl_fib: "Générez et téléchargez instantanément les 1000 premiers nombres de la suite de Fibonacci pour vos analyses.",
                 btn_dl_fib: "⬇ Télécharger Fibonacci (.txt)",
-                legal: "Mentions Légales", privacy: "Confidentialité", cookies: "Cookies", contact: "Contact", coffee: "Offrez-moi un café", rights: "© 2026 Graphics Labs", ad_text: "AD SPACE"
+                legal: "Mentions Légales", privacy: "Confidentialité", cookies: "Cookies", contact: "Contact", coffee: "Offrez-moi un café", rights: "© 2026 Graphics Labs", ad_text: "AD SPACE",
+                seo_h2_1: "Comment fonctionne l'algorithme de ce simulateur botanique ?",
+                seo_p_1: "Ce laboratoire interactif recrée de manière informatique le modèle de Vogel, une formule mathématique proposée en 1979 pour simuler le modèle de croissance de la fleur de tournesol. Le simulateur dessine les points (représentant des graines ou des primordiums) du centre vers l'extérieur, en calculant la position exacte de chaque nouvelle graine en fonction de coordonnées polaires bidimensionnelles.",
+                seo_p_2: "Le moteur de rendu utilise l'angle de croissance sélectionné dans le panneau de configuration et un facteur de dispersion pour placer des centaines d'éléments en temps réel. En modifiant la variable de l'angle, même par fractions de degré, vous pouvez visualiser visuellement comment les plantes tentent de résoudre le problème d'emballage optimal pour maximiser l'absorption de la lumière du soleil et la collecte de l'eau de pluie.",
+                seo_h3_1: "La formule de Vogel étape par étape",
+                seo_p_3: "La magie géométrique que vous voyez à l'écran est obtenue en appliquant deux équations très simples à chaque index de graine (n), en partant de la graine 0 au centre de la toile :",
+                seo_list_1: "Rayon (r) : Calculé en multipliant une constante de mise à l'échelle par la racine carrée du nombre de la graine (r = c * √n). Cela garantit que la zone de croissance par graine reste constante.",
+                seo_list_2: "Angle (θ) : Obtenu en multipliant le nombre de la graine par l'angle de divergence sélectionné (θ = n * 137.5°).",
+                seo_p_4: "Lorsque l'angle de divergence est défini exactement sur le nombre d'or, le motif résultant forme des ensembles de spirales logarithmiques appelées parastiques, qui tournent dans des directions opposées vers l'extérieur.",
+                seo_p_5: "Le nombre Phi (1.6180339887...) est mathématiquement considéré comme le nombre le plus irrationnel de tous. Cela signifie qu'il est le plus difficile à approximer en utilisant des fractions simples. Pour les plantes, cette propriété mathématique est cruciale : elle garantit que les feuilles supérieures ne recouvrent jamais et ne projettent pas d'ombre exacte sur les feuilles inférieures. C'est la raison évolutive fascinante pour laquelle la géométrie sacrée est si répandue et vitale dans les écosystèmes naturels de notre planète."
             },
             'de': {
                 nav_main: "← HAUPT-HUB", nav_math: "← ZURÜCK",
@@ -578,7 +904,16 @@
                 p_fib: "Eng verwandt mit Phi ist die Fibonacci-Folge (1, 1, 2, 3, 5, 8, 13...). Wenn Sie die Spiralen einer Sonnenblume nach links und rechts zählen, erhalten Sie fast immer zwei benachbarte Zahlen dieser Folge.",
                 h_dl_fib: "Daten-Download", p_dl_fib: "Generieren und laden Sie sofort die ersten 1000 Zahlen der Fibonacci-Folge für Ihre Analysen herunter.",
                 btn_dl_fib: "⬇ Fibonacci herunterladen (.txt)",
-                legal: "Impressum", privacy: "Datenschutz", cookies: "Cookies", contact: "Kontakt", coffee: "Kauf mir einen Kaffee", rights: "© 2026 Graphics Labs", ad_text: "AD SPACE"
+                legal: "Impressum", privacy: "Datenschutz", cookies: "Cookies", contact: "Kontakt", coffee: "Kauf mir einen Kaffee", rights: "© 2026 Graphics Labs", ad_text: "AD SPACE",
+                seo_h2_1: "Wie funktioniert der Algorithmus dieses botanischen Simulators?",
+                seo_p_1: "Dieses interaktive Labor bildet rechnerisch das Vogel-Modell nach, eine 1979 vorgeschlagene mathematische Formel zur Simulation des Wachstumsmusters der Sonnenblumenblüte. Der Simulator zeichnet die Punkte (die Samen oder Primordien darstellen) von der Mitte nach außen und berechnet die genaue Position jedes neuen Samens basierend auf zweidimensionalen Polarkoordinaten.",
+                seo_p_2: "Die Rendering-Engine verwendet den im Bedienfeld ausgewählten Wachstumswinkel und einen Streuungsfaktor, um Hunderte von Elementen in Echtzeit zu platzieren. Indem Sie die Winkelvariable auch nur um Bruchteile eines Grades ändern, können Sie visuell sehen, wie Pflanzen versuchen, das optimale Packungsproblem zu lösen, um die Absorption von Sonnenlicht und das Sammeln von Regenwasser zu maximieren.",
+                seo_h3_1: "Die Vogel-Formel Schritt für Schritt",
+                seo_p_3: "Die geometrische Magie, die Sie auf dem Bildschirm sehen, wird erreicht, indem zwei sehr einfache Gleichungen auf jeden Samenindex (n) angewendet werden, beginnend bei Samen 0 in der Mitte der Leinwand:",
+                seo_list_1: "Radius (r): Wird berechnet, indem eine Skalierungskonstante mit der Quadratwurzel der Samenzahl multipliziert wird (r = c * √n). Dies stellt sicher, dass die Wachstumsfläche pro Samen konstant bleibt.",
+                seo_list_2: "Winkel (θ): Wird ermittelt, indem die Samenzahl mit dem ausgewählten Divergenzwinkel multipliziert wird (θ = n * 137,5°).",
+                seo_p_4: "Wenn der Divergenzwinkel genau auf den Goldenen Schnitt eingestellt ist, bildet das resultierende Muster Gruppen von logarithmischen Spiralen, sogenannte Parastichen, die sich in entgegengesetzte Richtungen nach außen drehen.",
+                seo_p_5: "Die Zahl Phi (1,6180339887...) gilt mathematisch als die irrationalste Zahl von allen. Dies bedeutet, dass sie am schwersten mit einfachen Brüchen anzunähern ist. Für Pflanzen ist diese mathematische Eigenschaft entscheidend: Sie garantiert, dass obere Blätter niemals untere Blätter bedecken und einen genauen Schatten auf sie werfen. Dies ist der faszinierende evolutionäre Grund, warum heilige Geometrie in den natürlichen Ökosystemen unseres Planeten so weit verbreitet und lebenswichtig ist."
             },
             'pt': {
                 nav_main: "← HUB PRINCIPAL", nav_math: "← VOLTAR",
@@ -594,7 +929,16 @@
                 p_fib: "Estreitamente relacionada com Phi está a sequência de Fibonacci (1, 1, 2, 3, 5, 8, 13...). Se você contar as espirais em um girassol para a esquerda e para a direita, quase sempre obterá dois números vizinhos.",
                 h_dl_fib: "Download de Dados", p_dl_fib: "Gere e baixe instantaneamente os primeiros 1000 números da sequência de Fibonacci para suas análises.",
                 btn_dl_fib: "⬇ Baixar Fibonacci (.txt)",
-                legal: "Aviso Legal", privacy: "Privacidade", cookies: "Cookies", contact: "Contato", coffee: "Pagar um café", rights: "© 2026 Graphics Labs", ad_text: "AD SPACE"
+                legal: "Aviso Legal", privacy: "Privacidade", cookies: "Cookies", contact: "Contato", coffee: "Pagar um café", rights: "© 2026 Graphics Labs", ad_text: "AD SPACE",
+                seo_h2_1: "Como funciona o algoritmo deste simulador botânico?",
+                seo_p_1: "Este laboratório interativo recria computacionalmente o modelo de Vogel, uma fórmula matemática proposta em 1979 para simular o padrão de crescimento da flor do girassol. O simulador desenha os pontos (representando sementes ou primórdios) do centro para fora, calculando a posição exata de cada nova semente com base em coordenadas polares bidimensionais.",
+                seo_p_2: "O motor de renderização usa o ângulo de crescimento selecionado no painel de controle e um fator de dispersão para colocar centenas de elementos em tempo real. Ao alterar a variável do ângulo, mesmo por frações de grau, você pode visualizar como as plantas tentam resolver o problema do empacotamento ideal para maximizar a absorção da luz solar e a coleta da água da chuva.",
+                seo_h3_1: "A fórmula de Vogel passo a passo",
+                seo_p_3: "A magia geométrica que você vê na tela é alcançada aplicando duas equações muito simples a cada índice de semente (n), começando da semente 0 no centro da tela:",
+                seo_list_1: "Raio (r): Calculado multiplicando uma constante de escala pela raiz quadrada do número da semente (r = c * √n). Isso garante que a área de crescimento por semente permaneça constante.",
+                seo_list_2: "Ângulo (θ): Obtido multiplicando o número da semente pelo ângulo de divergência selecionado (θ = n * 137.5°).",
+                seo_p_4: "Quando o ângulo de divergência é definido exatamente na proporção áurea, o padrão resultante forma conjuntos de espirais logarítmicas chamadas parásticas, que giram em direções opostas para fora.",
+                seo_p_5: "O número Phi (1.6180339887...) é matematicamente considerado o número mais irracional de todos. Isso significa que é o mais difícil de aproximar usando frações simples. Para as plantas, essa propriedade matemática é crucial: garante que as folhas superiores nunca cubram e projetem sombra exata sobre as folhas inferiores. Essa é a fascinante razão evolutiva pela qual a geometria sagrada é tão prevalente e vital nos ecossistemas naturais do nosso planeta."
             },
             'it': {
                 nav_main: "← HUB PRINCIPALE", nav_math: "← TORNA INDIETRO",
@@ -610,7 +954,16 @@
                 p_fib: "Strettamente legata a Phi è la sequenza di Fibonacci (1, 1, 2, 3, 5, 8, 13...). Se conti le spirali in un girasole verso sinistra e verso destra, otterrai quasi sempre due numeri vicini.",
                 h_dl_fib: "Download Dati", p_dl_fib: "Genera e scarica istantaneamente i primi 1000 numeri della sequenza di Fibonacci per le tue analisi.",
                 btn_dl_fib: "⬇ Scarica Fibonacci (.txt)",
-                legal: "Note Legali", privacy: "Privacy", cookies: "Cookies", contact: "Contatto", coffee: "Offrimi un caffè", rights: "© 2026 Graphics Labs", ad_text: "AD SPACE"
+                legal: "Note Legali", privacy: "Privacy", cookies: "Cookies", contact: "Contatto", coffee: "Offrimi un caffè", rights: "© 2026 Graphics Labs", ad_text: "AD SPACE",
+                seo_h2_1: "Come funziona l'algoritmo di questo simulatore botanico?",
+                seo_p_1: "Questo laboratorio interattivo ricrea computazionalmente il modello di Vogel, una formula matematica proposta nel 1979 per simulare il modello di crescita del fiore di girasole. Il simulatore disegna i punti (che rappresentano semi o primordi) dal centro verso l'esterno, calcolando la posizione esatta di ogni nuovo seme in base a coordinate polari bidimensionali.",
+                seo_p_2: "Il motore di rendering utilizza l'angolo di crescita selezionato nel pannello di controllo e un fattore di dispersione per posizionare centinaia di elementi in tempo reale. Modificando la variabile dell'angolo, anche di frazioni di grado, puoi vedere visivamente come le piante cercano di risolvere il problema dell'imballaggio ottimale per massimizzare l'assorbimento della luce solare e la raccolta dell'acqua piovana.",
+                seo_h3_1: "La formula di Vogel passo dopo passo",
+                seo_p_3: "La magia geometrica che vedi sullo schermo si ottiene applicando due equazioni molto semplici a ciascun indice di seme (n), partendo dal seme 0 al centro della tela:",
+                seo_list_1: "Raggio (r): Calcolato moltiplicando una costante di ridimensionamento per la radice quadrata del numero del seme (r = c * √n). Questo assicura che l'area di crescita per seme rimanga costante.",
+                seo_list_2: "Angolo (θ): Ottenuto moltiplicando il numero del seme per l'angolo di divergenza selezionato (θ = n * 137.5°).",
+                seo_p_4: "Quando l'angolo di divergenza è impostato esattamente sulla sezione aurea, il modello risultante forma insiemi di spirali logaritmiche chiamate parastichi, che ruotano in direzioni opposte verso l'esterno.",
+                seo_p_5: "Il numero Phi (1.6180339887...) è considerato matematicamente il numero più irrazionale di tutti. Ciò significa che è il più difficile da approssimare usando frazioni semplici. Per le piante, questa proprietà matematica è fondamentale: garantisce che le foglie superiori non coprano mai e proiettino un'ombra esatta sulle foglie inferiori. Questo è l'affascinante motivo evolutivo per cui la geometria sacra è così prevalente e vitale negli ecosistemi naturali del nostro pianeta."
             },
             'nl': {
                 nav_main: "← HOOFDHUB", nav_math: "← GA TERUG",
@@ -626,7 +979,16 @@
                 p_fib: "Nauw verwant aan Phi is de Fibonacci-reeks (1, 1, 2, 3, 5, 8, 13...). Als je de spiralen in een zonnebloem naar links en naar rechts telt, krijg je bijna altijd twee naburige getallen.",
                 h_dl_fib: "Gegevens Downloaden", p_dl_fib: "Genereer en download direct de eerste 1000 nummers van de Fibonacci-reeks voor uw analyses.",
                 btn_dl_fib: "⬇ Download Fibonacci (.txt)",
-                legal: "Juridisch", privacy: "Privacy", cookies: "Cookies", contact: "Contact", coffee: "Koop koffie", rights: "© 2026 Graphics Labs", ad_text: "AD SPACE"
+                legal: "Juridisch", privacy: "Privacy", cookies: "Cookies", contact: "Contact", coffee: "Koop koffie", rights: "© 2026 Graphics Labs", ad_text: "AD SPACE",
+                seo_h2_1: "Hoe werkt het algoritme van deze botanische simulator?",
+                seo_p_1: "Dit interactieve laboratorium reconstrueert computationeel het model van Vogel, een wiskundige formule die in 1979 werd voorgesteld om het groeipatroon van een zonnebloem na te bootsen. De simulator tekent de punten (die zaden of primordia vertegenwoordigen) vanuit het midden naar buiten, en berekent de exacte positie van elk nieuw zaadje op basis van tweedimensionale poolcoördinaten.",
+                seo_p_2: "De rendering-engine gebruikt de in het bedieningspaneel geselecteerde groeihoek en een spreidingsfactor om honderden elementen in realtime te plaatsen. Door de hoekvariabele aan te passen, zelfs met fracties van een graad, kunt u visueel zien hoe planten proberen het optimale verpakkingsprobleem op te lossen om de absorptie van zonlicht en de opvang van regenwater te maximaliseren.",
+                seo_h3_1: "De formule van Vogel stap voor stap",
+                seo_p_3: "De geometrische magie die u op het scherm ziet, wordt bereikt door twee zeer eenvoudige vergelijkingen toe te passen op elke zaadindex (n), beginnend bij zaad 0 in het midden van het canvas:",
+                seo_list_1: "Straal (r): Berekend door een schaalconstante te vermenigvuldigen met de vierkantswortel van het zaadnummer (r = c * √n). Dit zorgt ervoor dat het groeigebied per zaad constant blijft.",
+                seo_list_2: "Hoek (θ): Verkregen door het zaadnummer te vermenigvuldigen met de geselecteerde divergentiehoek (θ = n * 137.5°).",
+                seo_p_4: "Wanneer de divergentiehoek precies is ingesteld op de gulden snede, vormt het resulterende patroon reeksen logaritmische spiralen, parastichen genaamd, die in tegengestelde richtingen naar buiten draaien.",
+                seo_p_5: "Het getal Phi (1.6180339887...) wordt wiskundig beschouwd als het meest irrationele getal van allemaal. Dit betekent dat het het moeilijkst te benaderen is met behulp van eenvoudige breuken. Voor planten is deze wiskundige eigenschap cruciaal: het garandeert dat bovenste bladeren nooit onderste bladeren bedekken en er een exacte schaduw op werpen. Dit is de fascinerende evolutionaire reden waarom heilige geometrie zo wijdverbreid en vitaal is in de natuurlijke ecosystemen van onze planeet."
             },
             'ja': {
                 nav_main: "← メインハブ", nav_math: "← 戻る",
@@ -642,60 +1004,95 @@
                 p_fib: "Phiと密接に関連しているのがフィボナッチ数列（1, 1, 2, 3, 5, 8, 13...）です。ヒマワリの螺旋を数えると、ほぼ常にこの数列の隣り合う2つの数字が得られます。",
                 h_dl_fib: "データダウンロード", p_dl_fib: "分析用にフィボナッチ数列の最初の1000個の数字を即座に生成してダウンロードします。",
                 btn_dl_fib: "⬇ フィボナッチをDL (.txt)",
-                legal: "法的通知", privacy: "プライバシー", cookies: "クッキー", contact: "連絡先", coffee: "コーヒーを奢る", rights: "© 2026 Graphics Labs", ad_text: "AD SPACE"
+                legal: "法的通知", privacy: "プライバシー", cookies: "クッキー", contact: "連絡先", coffee: "コーヒーを奢る", rights: "© 2026 Graphics Labs", ad_text: "AD SPACE",
+                seo_h2_1: "この植物シミュレーターのアルゴリズムはどのように機能しますか？",
+                seo_p_1: "このインタラクティブな研究所は、ヒマワリの花の成長パターンをシミュレートするために1979年に提案された数学的公式であるボーゲルモデルを計算的に再現します。シミュレーターは、2次元極座標に基づいて各新しい種子の正確な位置を計算し、中心から外側に向かって点（種子または原基を表す）を描画します。",
+                seo_p_2: "レンダリングエンジンは、コントロールパネルで選択された成長角度と分散係数を使用して、リアルタイムで何百もの要素を配置します。角度変数をわずか1度未満でも変更することで、植物が太陽光の吸収と雨水の収集を最大化するために最適なパッキング問題をどのように解決しようとするかを視覚的に確認できます。",
+                seo_h3_1: "ボーゲルの公式のステップバイステップ",
+                seo_p_3: "画面に表示される幾何学的な魔法は、キャンバスの中心にある種子0から始めて、各種子インデックス（n）に2つの非常に単純な方程式を適用することで実現されます。",
+                seo_list_1: "半径（r）：スケーリング定数に種子番号の平方根を掛けることで計算されます（r = c * √n）。これにより、種子あたりの成長面積が一定に保たれます。",
+                seo_list_2: "角度（θ）：種子番号に選択した発散角を掛けることで得られます（θ = n * 137.5°）。",
+                seo_p_4: "発散角が黄金比に正確に設定されている場合、結果として生じるパターンは、外側に向かって反対方向に回転する斜列と呼ばれる対数螺旋のセットを形成します。",
+                seo_p_5: "Phi（1.6180339887...）という数字は、数学的に最も無理数であると考えられています。これは、単純な分数を使用して近似するのが最も難しいことを意味します。植物にとって、この数学的特性は非常に重要です。上の葉が下の葉を決して覆わず、正確な影を落とさないことを保証します。これが、神聖幾何学が私たちの地球の自然生態系において非常に普及し、不可欠であるという魅力的な進化の理由です。"
             }
         };
 
         const savedLang = localStorage.getItem('gl_lang') || 'es';
-        
+
         function setLang(lang) {
-            localStorage.setItem('gl_lang', lang);
-            const t = translations[lang] || translations['es'];
-            
-            document.getElementById('nav-main').innerText = t.nav_main;
-            document.getElementById('nav-math').innerText = t.nav_math;
-            document.getElementById('txt-title').innerText = t.title;
-            document.getElementById('txt-desc').innerText = t.desc;
-            
-            document.getElementById('lbl-angle').innerText = t.lbl_angle;
-            document.getElementById('lbl-points').innerText = t.lbl_points;
-            document.getElementById('lbl-zoom').innerText = t.lbl_zoom;
-            document.getElementById('btn-golden').innerText = t.btn_golden;
-            document.getElementById('btn-color').innerText = t.btn_color;
-            document.getElementById('btn-gradient').innerText = t.btn_gradient;
-            document.getElementById('btn-save').innerText = t.btn_save;
-            document.getElementById('txt-note').innerText = t.txt_note;
+            const l = lang.toLowerCase();
+            localStorage.setItem('gl_lang', l);
+            const t = translations[l] || translations['es'] || translations['en'];
 
-            document.getElementById('info-h-nature').innerText = t.h_nature;
-            document.getElementById('info-p-nature').innerText = t.p_nature;
-            document.getElementById('info-h-golden').innerText = t.h_golden;
-            document.getElementById('info-p-golden').innerText = t.p_golden;
-            document.getElementById('info-h-fib').innerText = t.h_fib;
-            document.getElementById('info-p-fib').innerText = t.p_fib;
+            if (!t) return;
 
-            document.getElementById('h-dl-fib').innerText = t.h_dl_fib;
-            document.getElementById('p-dl-fib').innerText = t.p_dl_fib;
-            document.getElementById('btn-dl-fib').innerText = t.btn_dl_fib;
+            // 1. Update elements with data-i18n attribute
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) {
+                    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                        el.placeholder = t[key];
+                    } else {
+                        el.innerHTML = t[key];
+                    }
+                }
+            });
 
-            document.getElementById('link-legal').innerText = t.legal || "Aviso Legal";
-            document.getElementById('link-privacy').innerText = t.privacy || "Privacidad";
-            document.getElementById('link-cookies').innerText = t.cookies || "Cookies";
-            document.getElementById('link-contact').innerText = t.contact || "Contacto";
-            document.getElementById('btn-coffee').innerText = t.coffee || "Invítame a un café";
-            document.getElementById('footer-rights').innerText = t.rights;
-            document.querySelector('.ad-placeholder-text').innerText = t.ad_text;
+            // 2. Fallback for ID-based translations
+            Object.keys(t).forEach(key => {
+                const hKey = key.replace(/_/g, '-');
+                const possibleIds = [
+                    key, hKey,
+                    'txt-' + key, 'txt-' + hKey,
+                    'lbl-' + key, 'lbl-' + hKey,
+                    'btn-' + key, 'btn-' + hKey,
+                    'info-' + key, 'info-' + hKey,
+                    'info-h-' + key, 'info-h-' + hKey,
+                    'info-p-' + key, 'info-p-' + hKey,
+                    'link-' + key, 'link-' + hKey,
+                    'footer-' + key, 'footer-' + hKey
+                ];
+                possibleIds.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el && t[key]) {
+                        if (t[key].includes('<')) el.innerHTML = t[key];
+                        else el.innerText = t[key];
+                    }
+                });
+            });
 
-            document.querySelectorAll('.lang-switch button').forEach(b => {
-                b.classList.remove('active');
-                if(b.id === 'btn-' + lang) b.classList.add('active');
+            // 3. Highlight active language buttons
+            document.querySelectorAll('.lang-switch button, .lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.id === 'btn-' + l || btn.innerText.toLowerCase() === l);
             });
         }
+        window.setLang = setLang;
+
+        function switchLangUrl(lang) {
+            const pathParts = window.location.pathname.split('/');
+            const langIndex = pathParts.findIndex(p => ['es', 'ca', 'en', 'fr', 'de', 'pt', 'it', 'nl', 'ja'].includes(p));
+            if (langIndex !== -1) {
+                pathParts[langIndex] = lang.toLowerCase();
+                window.location.href = pathParts.join('/');
+            } else {
+                setLang(lang);
+            }
+        }
+        window.switchLangUrl = switchLangUrl;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const pathParts = window.location.pathname.split('/');
+            const urlLang = pathParts.find(p => ['es', 'ca', 'en', 'fr', 'de', 'pt', 'it', 'nl', 'ja'].includes(p));
+            const lang = urlLang || localStorage.getItem('gl_lang') || 'es';
+            setLang(lang);
+        });
+
 
         /* --- 5. FONDO ANIMADO --- */
         const bgCanvas = document.getElementById('bg-canvas');
         const bgCtx = bgCanvas.getContext('2d');
         let particlesArray = [];
-        
+
         function resizeBg() {
             bgCanvas.width = window.innerWidth;
             bgCanvas.height = window.innerHeight;
@@ -718,7 +1115,7 @@
             }
             draw() {
                 bgCtx.font = this.size + 'px monospace';
-                bgCtx.fillStyle = 'rgba(189, 0, 255, 0.15)'; 
+                bgCtx.fillStyle = 'rgba(189, 0, 255, 0.15)';
                 bgCtx.fillText(this.text, this.x, this.y);
             }
             update() {
@@ -726,7 +1123,7 @@
                 if (mouse.x != null) {
                     let dx = mouse.x - this.x;
                     let dy = mouse.y - this.y;
-                    let distance = Math.sqrt(dx*dx + dy*dy);
+                    let distance = Math.sqrt(dx * dx + dy * dy);
                     if (distance < mouse.radius) {
                         const forceDirectionX = dx / distance;
                         const forceDirectionY = dy / distance;
@@ -746,7 +1143,7 @@
             let n = (bgCanvas.height * bgCanvas.width) / 9000;
             for (let i = 0; i < n; i++) particlesArray.push(new Particle());
         }
-        
+
         function animateParticles() {
             bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
             for (let i = 0; i < particlesArray.length; i++) particlesArray[i].update();
@@ -754,9 +1151,9 @@
         }
         initParticles(); animateParticles();
 
-        setLang(savedLang);
         resetToGolden();
 
     </script>
 </body>
+
 </html>

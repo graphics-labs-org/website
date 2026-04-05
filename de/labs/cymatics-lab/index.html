@@ -1,47 +1,48 @@
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
     <meta charset="UTF-8">
     <script>
-    // --- i18n URL Router ---
-    (function() {
-        window.__GL_LANG = 'de';
-        window.__GL_LANG_UPPER = 'DE';
-        window.__GL_LANGS = ['es', 'ca', 'en', 'fr', 'de', 'pt', 'it', 'nl', 'ja'];
-        
-        // Override localStorage to always use URL-based language
-        localStorage.setItem('gl_lang', 'de');
-        
-        // Language switcher: navigate to the equivalent page in the target language folder
-        window.switchLangUrl = function(targetLang) {
-            var path = window.location.pathname;
-            // Replace current lang segment with target lang
-            var newPath = path.replace(/^\/(es|ca|en|fr|de|pt|it|nl|ja)\//, '/' + targetLang.toLowerCase() + '/');
-            if (newPath === path) {
-                // Fallback: prepend lang
-                newPath = '/' + targetLang.toLowerCase() + '/';
-            }
-            window.location.href = newPath + window.location.hash;
-        };
-        
-        // Auto-call setLang on DOMContentLoaded to apply translations
-        // Some labs use uppercase keys (ES/EN), others lowercase (es/en)
-        document.addEventListener('DOMContentLoaded', function() {
-            if (typeof setLang === 'function') {
-                // Try uppercase first (used by most lab pages with inline translations)
-                try { setLang('DE'); } catch(e) {}
-                // Also try lowercase (used by magic-square style pages)
-                try { setLang('de'); } catch(e) {}
-            }
-        });
-    })();
+        // --- i18n URL Router ---
+        (function () {
+            window.__GL_LANG = 'de';
+            window.__GL_LANG_UPPER = 'DE';
+            window.__GL_LANGS = ['es', 'ca', 'en', 'fr', 'de', 'pt', 'it', 'nl', 'ja'];
+
+            // Override localStorage to always use URL-based language
+            localStorage.setItem('gl_lang', 'de');
+
+            // Language switcher: navigate to the equivalent page in the target language folder
+            window.switchLangUrl = function (targetLang) {
+                var path = window.location.pathname;
+                // Replace current lang segment with target lang
+                var newPath = path.replace(/^\/(es|ca|en|fr|de|pt|it|nl|ja)\//, '/' + targetLang.toLowerCase() + '/');
+                if (newPath === path) {
+                    // Fallback: prepend lang
+                    newPath = '/' + targetLang.toLowerCase() + '/';
+                }
+                window.location.href = newPath + window.location.hash;
+            };
+
+            // Auto-call setLang on DOMContentLoaded to apply translations
+            // Some labs use uppercase keys (ES/EN), others lowercase (es/en)
+            document.addEventListener('DOMContentLoaded', function () {
+                if (typeof setLang === 'function') {
+                    // Try uppercase first (used by most lab pages with inline translations)
+                    try { setLang('CA'); } catch (e) { }
+                    // Also try lowercase (used by magic-square style pages)
+                    try { setLang('ca'); } catch (e) { }
+                }
+            });
+        })();
     </script>
     <title>Cymatics Lab | Graphics Labs</title>
-    <meta name="description" content="Interaktives Cymatics Lab-Labor. Experimentieren Sie mit generativer Kunst und visueller Mathematik bei Graphics Labs.">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3150277567590534"
-     crossorigin="anonymous"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3150277567590534"
+        crossorigin="anonymous"></script>
     <style>
         :root {
             --primary: #00ff41;
@@ -50,112 +51,489 @@
             --nav-height: 60px;
         }
 
-        html, body { 
-            margin: 0; padding: 0; background-color: #000; font-family: 'Segoe UI', sans-serif; color: #ddd; 
-            overflow-x: hidden; scroll-behavior: smooth;
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            font-family: 'Segoe UI', sans-serif;
+            color: #ddd;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
         }
 
         /* 1. SISTEMA DE NAVEGACIÓN SUPERIOR (TOP NAV) */
         .top-nav {
-            position: fixed; top: 0; left: 0; width: 100%; height: var(--nav-height);
-            background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(15px);
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 20px; z-index: 1000; border-bottom: 1px solid #222; box-sizing: border-box;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: var(--nav-height);
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(15px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 1000;
+            border-bottom: 1px solid #222;
+            box-sizing: border-box;
         }
-        .nav-left { display: flex; align-items: center; gap: 15px; }
-        .nav-brand { color: var(--primary); font-weight: 800; letter-spacing: 2px; font-size: 1.1em; text-transform: uppercase; }
-        .nav-btn { 
-            background: var(--glass); border: 1px solid #333; color: #fff; padding: 6px 14px; 
-            border-radius: 4px; cursor: pointer; text-decoration: none; font-size: 0.8em; font-weight: bold;
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .nav-brand {
+            color: var(--primary);
+            font-weight: 800;
+            letter-spacing: 2px;
+            font-size: 1.1em;
+            text-transform: uppercase;
+        }
+
+        .nav-btn {
+            background: var(--glass);
+            border: 1px solid #333;
+            color: #fff;
+            padding: 6px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.8em;
+            font-weight: bold;
             transition: all 0.2s;
         }
-        .nav-btn:hover { background: var(--primary); color: #000; border-color: var(--primary); }
-        
-        .nav-right { display: flex; gap: 4px; }
-        .lang-btn { 
-            width: 34px; height: 34px; border: 1px solid #333; background: #111; color: #888; 
-            font-size: 0.7em; cursor: pointer; font-weight: bold; transition: 0.2s;
+
+        .nav-btn:hover {
+            background: var(--primary);
+            color: #000;
+            border-color: var(--primary);
         }
-        .lang-btn.active { border-color: var(--primary); color: var(--primary); background: rgba(0, 255, 65, 0.1); }
+
+        .nav-right {
+            display: flex;
+            gap: 4px;
+        }
+
+        .lang-btn {
+            width: 34px;
+            height: 34px;
+            border: 1px solid #333;
+            background: #111;
+            color: #888;
+            font-size: 0.7em;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .lang-btn.active {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(0, 255, 65, 0.1);
+        }
 
         /* 2. ESTRUCTURA DE LA APP */
-        #app-wrapper { 
-            display: flex; width: 100%; height: calc(100vh - var(--nav-height)); 
-            margin-top: var(--nav-height); position: relative; overflow: hidden;
+        #app-wrapper {
+            display: flex;
+            width: 100%;
+            height: calc(100vh - var(--nav-height));
+            margin-top: var(--nav-height);
+            position: relative;
+            overflow: hidden;
         }
-        
+
         #canvas-container {
-            flex: 3; position: relative;
+            flex: 3;
+            position: relative;
             background: radial-gradient(circle at center, #001a06 0%, #000 90%);
-            cursor: grab; overflow: hidden; touch-action: none;
+            cursor: grab;
+            overflow: hidden;
+            touch-action: none;
         }
-        canvas { display: block; width: 100%; height: 100%; }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
 
         #controls-container {
-            flex: 1.2; min-width: 340px; background-color: var(--bg-dark); padding: 25px;
-            overflow-y: auto; border-left: 1px solid #222; z-index: 10;
-            box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+            flex: 1.2;
+            min-width: 340px;
+            background-color: var(--bg-dark);
+            padding: 25px;
+            overflow-y: auto;
+            border-left: 1px solid #222;
+            z-index: 10;
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
         }
 
-        h2 { color: var(--primary); margin: 0 0 15px 0; text-align: center; letter-spacing: 2px; text-transform: uppercase; }
-        
-        .btn-group { display: flex; gap: 10px; margin-bottom: 25px; }
+        h2 {
+            color: var(--primary);
+            margin: 0 0 15px 0;
+            text-align: center;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
         .export-btn {
-            flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;
-            transition: 0.2s; font-size: 0.85em;
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.85em;
         }
-        #btnPng { background-color: var(--primary); color: #000; } 
-        #btnJpg { background-color: #fff; color: #000; } 
 
-        .control-group { background: var(--glass); border: 1px solid #222; border-radius: 8px; padding: 15px; margin-bottom: 20px; }
-        .control-row { display: flex; align-items: center; margin-bottom: 12px; font-size: 0.9em; justify-content: space-between; }
-        .control-label { color: #ccc; flex: 1; }
-        
-        input[type=range] { flex: 2; cursor: pointer; accent-color: var(--primary); }
-        input[type=color] { border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; padding: 0; background: none; }
-        .value-display { flex: 0.5; text-align: right; font-family: monospace; color: var(--primary); font-weight: bold; }
+        #btnPng {
+            background-color: var(--primary);
+            color: #000;
+        }
+
+        #btnJpg {
+            background-color: #fff;
+            color: #000;
+        }
+
+        .control-group {
+            background: var(--glass);
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .control-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 0.9em;
+            justify-content: space-between;
+        }
+
+        .control-label {
+            color: #ccc;
+            flex: 1;
+        }
+
+        input[type=range] {
+            flex: 2;
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
+
+        input[type=color] {
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            padding: 0;
+            background: none;
+        }
+
+        .value-display {
+            flex: 0.5;
+            text-align: right;
+            font-family: monospace;
+            color: var(--primary);
+            font-weight: bold;
+        }
 
         .btn-main {
-            width: 100%; padding: 14px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-bottom: 15px;
-            background: var(--primary); color: #000; font-size: 1em; transition: 0.3s; text-transform: uppercase;
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 15px;
+            background: var(--primary);
+            color: #000;
+            font-size: 1em;
+            transition: 0.3s;
+            text-transform: uppercase;
         }
-        .btn-main:hover { filter: brightness(1.1); box-shadow: 0 0 15px rgba(0, 255, 65, 0.3); }
+
+        .btn-main:hover {
+            filter: brightness(1.1);
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
+        }
 
         /* 3. ESTÁNDAR DE CONTENIDO Y ADS */
         .ad-container {
-            width: 100%; min-height: 150px; background: #080808; margin: 50px 0;
-            border: 1px dashed #444; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            width: 100%;
+            min-height: 150px;
+            background: #080808;
+            margin: 50px 0;
+            border: 1px dashed #444;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
-        .ad-label { color: #444; font-size: 11px; margin-bottom: 10px; letter-spacing: 3px; font-weight: bold; }
 
-        .content-section { max-width: 900px; margin: 0 auto; padding: 60px 20px; position: relative; }
-        article h2 { color: var(--primary); border-left: 4px solid var(--primary); padding-left: 20px; margin-top: 70px; font-size: 2.2em; text-transform: none; text-align: left;}
-        article h3 { color: #fff; border-bottom: 1px solid #333; padding-bottom: 12px; margin-top: 50px; font-size: 1.6em; }
-        article p { line-height: 1.9; text-align: justify; color: #bbb; font-size: 1.1em; margin-bottom: 25px; }
-        article ul { padding: 0; list-style: none; }
-        article li { margin-bottom: 20px; border-left: 2px solid var(--primary); padding-left: 20px; color: #aaa; }
-        article strong { color: var(--primary); }
+        .ad-label {
+            color: #444;
+            font-size: 11px;
+            margin-bottom: 10px;
+            letter-spacing: 3px;
+            font-weight: bold;
+        }
+
+        .content-section {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 60px 20px;
+            position: relative;
+        }
+
+        article h2 {
+            color: var(--primary);
+            border-left: 4px solid var(--primary);
+            padding-left: 20px;
+            margin-top: 70px;
+            font-size: 2.2em;
+            text-transform: none;
+            text-align: left;
+        }
+
+        article h3 {
+            color: #fff;
+            border-bottom: 1px solid #333;
+            padding-bottom: 12px;
+            margin-top: 50px;
+            font-size: 1.6em;
+        }
+
+        article p {
+            line-height: 1.9;
+            text-align: justify;
+            color: #bbb;
+            font-size: 1.1em;
+            margin-bottom: 25px;
+        }
+
+        article ul {
+            padding: 0;
+            list-style: none;
+        }
+
+        article li {
+            margin-bottom: 20px;
+            border-left: 2px solid var(--primary);
+            padding-left: 20px;
+            color: #aaa;
+        }
+
+        article strong {
+            color: var(--primary);
+        }
 
         /* 4. FOOTER ESTANDARIZADO */
-        footer { background-color: #020202; padding: 80px 20px; text-align: center; border-top: 1px solid #222; }
-        .paypal-btn {
-            background: #0070BA; color: white; padding: 14px 28px; border-radius: 30px;
-            text-decoration: none; font-weight: bold; display: inline-block; margin-bottom: 40px;
-            transition: transform 0.2s; box-shadow: 0 5px 20px rgba(0, 112, 186, 0.3);
+        footer {
+            background-color: #020202;
+            padding: 80px 20px;
+            text-align: center;
+            border-top: 1px solid #222;
         }
-        .paypal-btn:hover { transform: translateY(-3px); }
-        .footer-links { margin: 25px 0; }
-        .footer-links a { color: #666; text-decoration: none; margin: 0 15px; font-size: 0.9em; transition: color 0.2s; }
-        .footer-links a:hover { color: var(--primary); }
-        .copyright { color: #444; font-size: 0.85em; margin-top: 30px; letter-spacing: 1px; }
+
+        .paypal-btn {
+            background: #0070BA;
+            color: white;
+            padding: 14px 28px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 40px;
+            transition: transform 0.2s;
+            box-shadow: 0 5px 20px rgba(0, 112, 186, 0.3);
+        }
+
+        .paypal-btn:hover {
+            transform: translateY(-3px);
+        }
+
+        .footer-links {
+            margin: 25px 0;
+        }
+
+        .footer-links a {
+            color: #666;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 0.9em;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary);
+        }
+
+        .copyright {
+            color: #444;
+            font-size: 0.85em;
+            margin-top: 30px;
+            letter-spacing: 1px;
+        }
 
         @media (max-width: 900px) {
-            #app-wrapper { display: block; height: auto; }
-            #canvas-container { height: 60vh; border-bottom: 1px solid #222; }
-            #controls-container { width: 100%; box-sizing: border-box; }
+            #app-wrapper {
+                display: block;
+                height: auto;
+            }
+
+            #canvas-container {
+                height: 60vh;
+                border-bottom: 1px solid #222;
+            }
+
+            #controls-container {
+                width: 100%;
+                box-sizing: border-box;
+            }
         }
-    </style>
-    <link rel="canonical" href="https://graphics-labs.org/de/labs/cymatics-lab/" />
+
+        /* ==GL-NAV== */
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 20px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            flex-wrap: wrap;
+            gap: 10px;
+            box-sizing: border-box;
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-bc {
+            font-size: .8rem;
+            font-weight: 900;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+        }
+
+        .nav-bc .gl-hub {
+            color: rgba(255, 255, 255, .45);
+            text-decoration: none;
+            transition: color .2s;
+        }
+
+        .nav-bc .gl-hub:hover {
+            color: rgba(255, 255, 255, .85);
+        }
+
+        .nav-bc .gl-sep {
+            color: rgba(255, 255, 255, .2);
+            margin: 0 7px;
+            font-weight: 400;
+        }
+
+        .nav-bc .gl-sec {
+            color: var(--primary);
+            text-decoration: none;
+            transition: opacity .2s;
+        }
+
+        .nav-bc .gl-sec:hover {
+            opacity: .75;
+        }
+
+        .lang-switch {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .lang-switch button,
+        .lang-selector button,
+        .lang-btn {
+            background: rgba(0, 0, 0, .4);
+            border: 1px solid rgba(255, 255, 255, .1);
+            color: #999;
+            width: 38px;
+            height: 28px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: .7rem;
+            font-weight: 700;
+            transition: .2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lang-switch button:hover,
+        .lang-selector button:hover,
+        .lang-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .lang-switch button.active,
+        .lang-selector button.active,
+        .lang-btn.active {
+            background: var(--primary);
+            color: #000;
+            border-color: var(--primary);
+        }
+
+        @media(max-width:620px) {
+            .top-nav {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 12px 15px;
+            }
+
+            .lang-switch,
+            .lang-selector {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* ==/GL-NAV== */
+    
+        /* Fix SEO H1 Automático */
+        h1[id*="title"], h1[data-i18n*="title"], h1[data-i18n*="app"], h1[data-i18n*="lab"] {
+            font-size: 1.5rem;
+            color: var(--primary, #00ff41);
+            margin-bottom: 20px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+</style>
+    
 
     <link rel="alternate" hreflang="es" href="https://graphics-labs.org/es/labs/cymatics-lab/" />
     <link rel="alternate" hreflang="ca" href="https://graphics-labs.org/ca/labs/cymatics-lab/" />
@@ -167,559 +545,633 @@
     <link rel="alternate" hreflang="nl" href="https://graphics-labs.org/nl/labs/cymatics-lab/" />
     <link rel="alternate" hreflang="ja" href="https://graphics-labs.org/ja/labs/cymatics-lab/" />
     <link rel="alternate" hreflang="x-default" href="https://graphics-labs.org/es/labs/cymatics-lab/" />
+    <meta name="description"
+        content="Interaktives Labor für Cymatics Lab. Experimentieren Sie mit generativer Kunst und visueller Mathematik in Graphics Labs.">
+    <link rel="canonical" href="https://graphics-labs.org/de/labs/cymatics-lab/" />
 </head>
+
 <body>
 
-<nav class="top-nav">
-    <div class="nav-left">
-        <a href="../../index.html" class="nav-btn">HUB</a>
-        <button onclick="window.history.length > 1 ? history.back() : window.location.href='../../index.html'" class="nav-btn">BACK</button>
-        <span class="nav-brand">GRAPHICS LABS</span>
-    </div>
-    <div class="nav-right">
-        <button class="lang-btn active" onclick="switchLangUrl('es')">ES</button>
-        <button class="lang-btn" onclick="switchLangUrl('ca')">CA</button>
-        <button class="lang-btn" onclick="switchLangUrl('en')">EN</button>
-        <button class="lang-btn" onclick="switchLangUrl('fr')">FR</button>
-        <button class="lang-btn" onclick="switchLangUrl('de')">DE</button>
-        <button class="lang-btn" onclick="switchLangUrl('pt')">PT</button>
-        <button class="lang-btn" onclick="switchLangUrl('it')">IT</button>
-        <button class="lang-btn" onclick="switchLangUrl('nl')">NL</button>
-        <button class="lang-btn" onclick="switchLangUrl('ja')">JA</button>
-    </div>
-</nav>
 
-<div id="app-wrapper">
-    <div id="canvas-container">
-        <canvas id="cymaticsCanvas"></canvas>
-    </div>
-
-    <div id="controls-container">
-        <h2 data-i18n="sim_title">Cimática (Interferencia)</h2>
-        
-        <div class="btn-group">
-            <button id="btnPng" class="export-btn" data-i18n="btn_png">💾 Guardar PNG</button>
-            <button id="btnJpg" class="export-btn" data-i18n="btn_jpg">📸 Guardar JPG</button>
-        </div>
-
-        <button id="btnRandom" class="btn-main" data-i18n="btn_random">🎲 Resonancia Aleatoria</button>
-
-        <div class="control-group">
-            <h3 style="margin:0 0 15px 0; color:#fff; font-size:1em; border-bottom:1px solid #333; padding-bottom:5px;" data-i18n="mix_title">Mezcla de Ondas</h3>
-            <div class="control-row">
-                <span class="control-label" data-i18n="freq_a">Frecuencia A (Eje N)</span>
-                <input type="range" id="freqA" min="1" max="15" step="0.1" value="2.0">
-                <span id="freqAVal" class="value-display">2.0</span>
-            </div>
-            <div class="control-row">
-                <span class="control-label" data-i18n="freq_b">Frecuencia B (Eje M)</span>
-                <input type="range" id="freqB" min="1" max="15" step="0.1" value="5.0">
-                <span id="freqBVal" class="value-display">5.0</span>
-            </div>
-            <div class="control-row">
-                <span class="control-label" data-i18n="amplitude">🌊 Intensidad</span>
-                <input type="range" id="amplitude" min="0.1" max="2.0" step="0.1" value="0.8">
-            </div>
-            <div class="control-row">
-                <span class="control-label" data-i18n="damping">⏳ Amortiguación</span>
-                <input type="range" id="damping" min="0.80" max="0.99" step="0.01" value="0.92">
+    <nav class="top-nav">
+        <div class="nav-left">
+            <div class="nav-bc">
+                <a href="../../index.html" class="gl-hub" id="nav-main">GRAPHICS LABS</a>
+                <span class="gl-sep">&gt;</span>
+                <a href="../geometria-sagrada-index.html" class="gl-sec" id="nav-math">GEO-S LABS</a>
             </div>
         </div>
+        <div class="lang-switch">
+            <button onclick="switchLangUrl('es')" id="btn-es" class="lang-btn">ES</button>
+            <button onclick="switchLangUrl('ca')" id="btn-ca" class="lang-btn">CA</button>
+            <button onclick="switchLangUrl('en')" id="btn-en" class="lang-btn">EN</button>
+            <button onclick="switchLangUrl('fr')" id="btn-fr" class="lang-btn">FR</button>
+            <button onclick="switchLangUrl('de')" id="btn-de" class="lang-btn active">DE</button>
+            <button onclick="switchLangUrl('pt')" id="btn-pt" class="lang-btn">PT</button>
+            <button onclick="switchLangUrl('it')" id="btn-it" class="lang-btn">IT</button>
+            <button onclick="switchLangUrl('nl')" id="btn-nl" class="lang-btn">NL</button>
+            <button onclick="switchLangUrl('ja')" id="btn-ja" class="lang-btn">JA</button>
+        </div>
+    </nav>
 
-        <div class="control-group">
-            <h3 style="margin:0 0 15px 0; color:#fff; font-size:1em; border-bottom:1px solid #333; padding-bottom:5px;" data-i18n="matter_title">Materia (Arena)</h3>
-            <div class="control-row">
-                <span class="control-label" data-i18n="particles">Cant. Partículas</span>
-                <input type="range" id="particleCount" min="1000" max="15000" step="1000" value="5000">
-                <span id="countVal" class="value-display">5k</span>
+    <div id="app-wrapper">
+        <div id="canvas-container">
+            <canvas id="cymaticsCanvas"></canvas>
+        </div>
+
+        <div id="controls-container">
+            <h1 data-i18n="sim_title">Cimática (Interferencia)</h1>
+
+            <div class="btn-group">
+                <button id="btnPng" class="export-btn" data-i18n="btn_png">💾 Guardar PNG</button>
+                <button id="btnJpg" class="export-btn" data-i18n="btn_jpg">📸 Guardar JPG</button>
             </div>
-            <div class="control-row">
-                <span class="control-label" data-i18n="color">Color Arena</span>
-                <input type="color" id="sandColor" value="#00ff41"> 
+
+            <button id="btnRandom" class="btn-main" data-i18n="btn_random">🎲 Resonancia Aleatoria</button>
+
+            <div class="control-group">
+                <h2 style="margin:0 0 15px 0; color:#fff; font-size:1em; border-bottom:1px solid #333; padding-bottom:5px;"
+                    data-i18n="mix_title">Mezcla de Ondas</h2>
+                <div class="control-row">
+                    <span class="control-label" data-i18n="freq_a">Frecuencia A (Eje N)</span>
+                    <input type="range" id="freqA" min="1" max="15" step="0.1" value="2.0">
+                    <span id="freqAVal" class="value-display">2.0</span>
+                </div>
+                <div class="control-row">
+                    <span class="control-label" data-i18n="freq_b">Frecuencia B (Eje M)</span>
+                    <input type="range" id="freqB" min="1" max="15" step="0.1" value="5.0">
+                    <span id="freqBVal" class="value-display">5.0</span>
+                </div>
+                <div class="control-row">
+                    <span class="control-label" data-i18n="amplitude">🌊 Intensidad</span>
+                    <input type="range" id="amplitude" min="0.1" max="2.0" step="0.1" value="0.8">
+                </div>
+                <div class="control-row">
+                    <span class="control-label" data-i18n="damping">⏳ Amortiguación</span>
+                    <input type="range" id="damping" min="0.80" max="0.99" step="0.01" value="0.92">
+                </div>
             </div>
-            <div class="control-row">
-                <span class="control-label" data-i18n="sand_size">Tamaño Grano</span>
-                <input type="range" id="sandSize" min="0.5" max="3" step="0.5" value="1.5">
+
+            <div class="control-group">
+                <h2 style="margin:0 0 15px 0; color:#fff; font-size:1em; border-bottom:1px solid #333; padding-bottom:5px;"
+                    data-i18n="matter_title">Materia (Arena)</h2>
+                <div class="control-row">
+                    <span class="control-label" data-i18n="particles">Cant. Partículas</span>
+                    <input type="range" id="particleCount" min="1000" max="15000" step="1000" value="5000">
+                    <span id="countVal" class="value-display">5k</span>
+                </div>
+                <div class="control-row">
+                    <span class="control-label" data-i18n="color">Color Arena</span>
+                    <input type="color" id="sandColor" value="#00ff41">
+                </div>
+                <div class="control-row">
+                    <span class="control-label" data-i18n="sand_size">Tamaño Grano</span>
+                    <input type="range" id="sandSize" min="0.5" max="3" step="0.5" value="1.5">
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<section class="content-section">
-    <div class="ad-container">
-        <span class="ad-label">AD SPACE</span>
-        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3150277567590534" data-ad-slot="1265423708" data-ad-format="auto" data-full-width-responsive="true"></ins>
-        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-    </div>
+    <section class="content-section">
+        <div class="ad-container">
+            <span class="ad-label">AD SPACE</span>
+            <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3150277567590534"
+                data-ad-slot="1265423708" data-ad-format="auto" data-full-width-responsive="true"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
 
-    <article id="main-content">
-        <h2 data-i18n="art_title">Cimática: Cuando el Sonido Crea la Forma</h2>
-        
-        <p><strong data-i18n="art_concept_label">El Concepto:</strong> <em data-i18n="art_concept_quote">"En el principio fue el Verbo (Vibración)".</em></p>
-        <p data-i18n="art_p1">Esta frase ancestral apunta a una verdad que la física moderna ha confirmado: la vibración es el arquitecto fundamental de la realidad. Todo lo que vemos como "materia sólida" es, en realidad, energía vibrando a diferentes frecuencias. La Cimática (del griego "kyma", onda) es la ciencia que hace visible este sonido invisible.</p>
+        <article id="main-content">
+            <h2 data-i18n="art_title">Cimática: Cuando el Sonido Crea la Forma</h2>
 
-        <h3 data-i18n="art_h2">La Herramienta: Placas de Chladni</h3>
-        <p data-i18n="art_p2">Lo que tienes ante ti es una simulación física de alta precisión de una Placa de Chladni. Inventada por el físico Ernst Chladni en el siglo XVIII, el experimento original consistía en una placa metálica espolvoreada con arena fina.</p>
-        <p data-i18n="art_p3">Al hacer vibrar la placa (con un arco de violín o un altavoz), la arena cobra vida. Huye de las zonas de vibración intensa y busca refugio en las "líneas nodales" (zonas donde la vibración se cancela y es cero). El resultado es la formación instantánea de geometrías complejas.</p>
+            <p><strong data-i18n="art_concept_label">El Concepto:</strong> <em data-i18n="art_concept_quote">"En el
+                    principio fue el Verbo (Vibración)".</em></p>
+            <p data-i18n="art_p1">Esta frase ancestral apunta a una verdad que la física moderna ha confirmado: la
+                vibración es el arquitecto fundamental de la realidad. Todo lo que vemos como "materia sólida" es, en
+                realidad, energía vibrando a diferentes frecuencias. La Cimática (del griego "kyma", onda) es la ciencia
+                que hace visible este sonido invisible.</p>
 
-        <h3 data-i18n="art_h3">La Magia: Tú controlas la Creación</h3>
-        <p data-i18n="art_p4">En este laboratorio virtual, hemos sustituido la arena por miles de partículas digitales y el arco de violín por deslizadores matemáticos:</p>
-        <ul>
-            <li data-i18n="art_li1"><strong>Frecuencias A y B:</strong> Aquí reside el secreto. Controlas la vibración en el eje horizontal y vertical independientemente. Al subir el tono, la arena se reorganiza sola formando mandalas geométricos cada vez más complejos.</li>
-            <li data-i18n="art_li2"><strong>Interferencia:</strong> Cuando las frecuencias A y B son armónicas (ej: 2.0 y 4.0), verás patrones estables y simétricos. Cuando son disonantes, verás el caos buscando el orden.</li>
-            <li data-i18n="art_li3"><strong>Intensidad:</strong> Controla la fuerza de la onda. Si la subes mucho, la arena "saltará" con energía; si la bajas, se asentará suavemente.</li>
-        </ul>
+            <h3 data-i18n="art_h2">La Herramienta: Placas de Chladni</h3>
+            <p data-i18n="art_p2">Lo que tienes ante ti es una simulación física de alta precisión de una Placa de
+                Chladni. Inventada por el físico Ernst Chladni en el siglo XVIII, el experimento original consistía en
+                una placa metálica espolvoreada con arena fina.</p>
+            <p data-i18n="art_p3">Al hacer vibrar la placa (con un arco de violín o un altavoz), la arena cobra vida.
+                Huye de las zonas de vibración intensa y busca refugio en las "líneas nodales" (zonas donde la vibración
+                se cancela y es cero). El resultado es la formación instantánea de geometrías complejas.</p>
 
-        <h3 data-i18n="art_h4">¿Por qué es Geometría Sagrada?</h3>
-        <p data-i18n="art_p5">Los patrones que emergen en esta placa no son aleatorios. Son los mismos patrones recurrentes que encontramos en la naturaleza: el caparazón de una tortuga, las manchas de un leopardo, la estructura de un copo de nieve o la disposición de los átomos en un cristal. La Cimática nos demuestra visualmente que la materia es simplemente sonido densificado y organizado por geometría.</p>
-    </article>
+            <h3 data-i18n="art_h3">La Magia: Tú controlas la Creación</h3>
+            <p data-i18n="art_p4">En este laboratorio virtual, hemos sustituido la arena por miles de partículas
+                digitales y el arco de violín por deslizadores matemáticos:</p>
+            <ul>
+                <li data-i18n="art_li1"><strong>Frecuencias A y B:</strong> Aquí reside el secreto. Controlas la
+                    vibración en el eje horizontal y vertical independientemente. Al subir el tono, la arena se
+                    reorganiza sola formando mandalas geométricos cada vez más complejos.</li>
+                <li data-i18n="art_li2"><strong>Interferencia:</strong> Cuando las frecuencias A y B son armónicas (ej:
+                    2.0 y 4.0), verás patrones estables y simétricos. Cuando son disonantes, verás el caos buscando el
+                    orden.</li>
+                <li data-i18n="art_li3"><strong>Intensidad:</strong> Controla la fuerza de la onda. Si la subes mucho,
+                    la arena "saltará" con energía; si la bajas, se asentará suavemente.</li>
+            </ul>
 
-    <div class="ad-container">
-        <span class="ad-label">AD SPACE</span>
-        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3150277567590534" data-ad-slot="1265423708" data-ad-format="auto" data-full-width-responsive="true"></ins>
-        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-    </div>
-</section>
+            <h3 data-i18n="art_h4">¿Por qué es Geometría Sagrada?</h3>
+            <p data-i18n="art_p5">Los patrones que emergen en esta placa no son aleatorios. Son los mismos patrones
+                recurrentes que encontramos en la naturaleza: el caparazón de una tortuga, las manchas de un leopardo,
+                la estructura de un copo de nieve o la disposición de los átomos en un cristal. La Cimática nos
+                demuestra visualmente que la materia es simplemente sonido densificado y organizado por geometría.</p>
+        </article>
 
-<footer>
-    <a href="https://www.paypal.com/paypalme/pbazan" target="_blank" class="paypal-btn" data-i18n="footer_coffee">☕ Invítame a un café</a>
-    <div class="footer-links">
-        <a href="../legal.html#aviso" data-i18n="legal_aviso">Aviso Legal</a>
-        <a href="../legal.html#privacidad" data-i18n="legal_privacidad">Privacidad</a>
-        <a href="../legal.html#cookies" data-i18n="legal_cookies">Cookies</a>
-        <a href="mailto:pbazan@gmail.com">Contacto</a>
-    </div>
-    <p class="copyright">Copyright © 2026 Graphics Labs. Todos los derechos reservados.</p>
-</footer>
+        <div class="ad-container">
+            <span class="ad-label">AD SPACE</span>
+            <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3150277567590534"
+                data-ad-slot="1265423708" data-ad-format="auto" data-full-width-responsive="true"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+    </section>
 
-<script>
-    // --- SISTEMA I18N (9 IDIOMAS, TEXTOS ÍNTEGROS) ---
- const translations = {
-    ES: {
-        sim_title: "Cimática (Interferencia)",
-        btn_png: "💾 Guardar PNG",
-        btn_jpg: "📸 Guardar JPG",
-        btn_random: "🎲 Resonancia Aleatoria",
-        mix_title: "Mezcla de Ondas",
-        freq_a: "Frecuencia A (Eje N)",
-        freq_b: "Frecuencia B (Eje M)",
-        amplitude: "🌊 Intensidad",
-        damping: "⏳ Amortiguación",
-        matter_title: "Materia (Arena)",
-        particles: "Cant. Partículas",
-        color: "Color Arena",
-        sand_size: "Tamaño Grano",
-        art_title: "Cimática: Cuando el Sonido Crea la Forma",
-        art_concept_label: "El Concepto:",
-        art_concept_quote: '"En el principio fue el Verbo (Vibración)".',
-        art_p1: "Esta frase ancestral apunta a una verdad que la física moderna ha confirmado: la vibración es el arquitecto fundamental de la realidad. Todo lo que vemos como \"materia sólida\" es, en realidad, energía vibrando a diferentes frecuencias. La Cimática (del griego \"kyma\", onda) es la ciencia que hace visible este sonido invisible.",
-        art_h2: "La Herramienta: Placas de Chladni",
-        art_p2: "Lo que tienes ante ti es una simulación física de alta precisión de una Placa de Chladni. Inventada por el físico Ernst Chladni en el siglo XVIII, el experimento original consistía en una placa metálica espolvoreada con arena fina.",
-        art_p3: "Al hacer vibrar la placa (con un arco de violín o un altavoz), la arena cobra vida. Huye de las zonas de vibración intensa y busca refugio en las \"líneas nodales\" (zonas donde la vibración se cancela y es cero). El resultado es la formación instantánea de geometrías complejas.",
-        art_h3: "La Magia: Tú controlas la Creación",
-        art_p4: "En este laboratorio virtual, hemos sustituido la arena por miles de partículas digitales y el arco de violín por deslizadores matemáticos:",
-        art_li1: "<strong>Frecuencias A y B:</strong> Aquí reside el secreto. Controlas la vibración en el eje horizontal y vertical independientemente. Al subir el tono, la arena se reorganiza sola formando mandalas geométricos cada vez más complejos.",
-        art_li2: "<strong>Interferencia:</strong> Cuando las frecuencias A y B son armónicas (ej: 2.0 y 4.0), verás patrones estables y simétricos. Cuando son disonantes, verás el caos buscando el orden.",
-        art_li3: "<strong>Intensidad:</strong> Controla la fuerza de la onda. Si la subes mucho, la arena \"saltará\" con energía; si la bajas, se asentará suavemente.",
-        art_h4: "¿Por qué es Geometría Sagrada?",
-        art_p5: "Los patrones que emergen en esta placa no son aleatorios. Son los mismos patrones recurrentes que encontramos en la naturaleza: el caparazón de una tortuga, las manchas de un leopardo, la estructura de un copo de nieve o la disposición de los átomos en un cristal. La Cimática nos demuestra visualmente que la materia es simplemente sonido densificado y organizado por geometría.",
-        footer_coffee: "☕ Invítame a un café",
-        legal_aviso: "Aviso Legal",
-        legal_privacidad: "Privacidad",
-        legal_cookies: "Cookies"
-    },
-    CA: {
-        sim_title: "Cimàtica (Interferència)",
-        btn_png: "💾 Desa PNG",
-        btn_jpg: "📸 Desa JPG",
-        btn_random: "🎲 Ressonància Aleatòria",
-        mix_title: "Mescla d'Ones",
-        freq_a: "Freqüència A (Eix N)",
-        freq_b: "Freqüència B (Eix M)",
-        amplitude: "🌊 Intensitat",
-        damping: "⏳ Amortiment",
-        matter_title: "Matèria (Sorra)",
-        particles: "Cant. Partícules",
-        color: "Color Sorra",
-        sand_size: "Mida del Gra",
-        art_title: "Cimàtica: Quan el So Crea la Forma",
-        art_concept_label: "El Concepte:",
-        art_concept_quote: '"En el principi fou el Verb (Vibració)".',
-        art_p1: "Aquesta frase ancestral apunta a una veritat que la física moderna ha confirmat: la vibració és l'arquitecte fonamental de la realitat. Tot el que veiem com a \"matèria sòlida\" és, en realitat, energia vibrant a diferents freqüències. La Cimàtica (del grec \"kyma\", ona) és la ciència que fa visible aquest so invisible.",
-        art_h2: "L'Eina: Plaques de Chladni",
-        art_p2: "El que tens davant teu és una simulació física d'alta precisió d'una Placa de Chladni. Inventada pel físic Ernst Chladni al segle XVIII, l'experiment original consistia en una placa metàl·lica empolsada amb sorra fina.",
-        art_p3: "En fer vibrar la placa (amb un arc de violí o un altaveu), la sorra cobra vida. Fuig de les zones de vibració intensa i busca refugi a les \"línies nodals\" (zones on la vibració es cancel·la i és zero). El resultat és la formació instantània de geometries complexes.",
-        art_h3: "La Màgia: Tu controles la Creació",
-        art_p4: "En aquest laboratori virtual, hem substituït la sorra per milers de partícules digitals i l'arc de violí per lliscadors matemàtics:",
-        art_li1: "<strong>Freqüències A i B:</strong> Aquí resideix el secret. Controles la vibració en l'eix horitzontal i vertical independentment. En pujar el to, la sorra es reorganitza sola formant mandales geomètrics cada cop més complexos.",
-        art_li2: "<strong>Interferència:</strong> Quan les freqüències A i B són harmòniques (ex: 2.0 i 4.0), veuràs patrons estables i simètrics. Quan són dissonants, veuràs el caos buscant l'ordre.",
-        art_li3: "<strong>Intensitat:</strong> Controla la força de l'ona. Si la puges molt, la sorra \"saltarà\" amb energia; si la baixes, s'assentarà suavemente.",
-        art_h4: "Per què és Geometria Sagrada?",
-        art_p5: "Els patrons que emergeixen en aquesta placa no són aleatoris. Són els mateixos patrons recurrents que trobem a la natura: la closca d'una tortuga, les taques d'un lleopard, l'estructura d'un floc de neu o la disposició dels àtoms en un cristall. La Cimàtica ens demostra visualment que la matèria és simplement so densificat i organitzat per geometria.",
-        footer_coffee: "☕ Convida'm a un cafè",
-        legal_aviso: "Avís Legal",
-        legal_privacidad: "Privadesa",
-        legal_cookies: "Cookies"
-    },
-    EN: {
-        sim_title: "Cymatics (Interference)",
-        btn_png: "💾 Save PNG",
-        btn_jpg: "📸 Save JPG",
-        btn_random: "🎲 Random Resonance",
-        mix_title: "Wave Mixing",
-        freq_a: "Frequency A (N Axis)",
-        freq_b: "Frequency B (M Axis)",
-        amplitude: "🌊 Intensity",
-        damping: "⏳ Damping",
-        matter_title: "Matter (Sand)",
-        particles: "Particle Count",
-        color: "Sand Color",
-        sand_size: "Grain Size",
-        art_title: "Cymatics: When Sound Creates Form",
-        art_concept_label: "The Concept:",
-        art_concept_quote: '"In the beginning was the Word (Vibration)".',
-        art_p1: "This ancestral phrase points to a truth that modern physics has confirmed: vibration is the fundamental architect of reality. Everything we see as \"solid matter\" is, in reality, energy vibrating at different frequencies. Cymatics (from the Greek \"kyma\", wave) is the science that makes this invisible sound visible.",
-        art_h2: "The Tool: Chladni Plates",
-        art_p2: "What you see is a high-precision physical simulation of a Chladni Plate. Invented by physicist Ernst Chladni in the 18th century, the original experiment consisted of a metal plate sprinkled with fine sand.",
-        art_p3: "When the plate is vibrated (with a violin bow or a speaker), the sand comes to life. It flees from areas of intense vibration and seeks refuge in \"nodal lines\" (areas where the vibration cancels out and is zero). The result is the instantaneous formation of complex geometries.",
-        art_h3: "The Magic: You control Creation",
-        art_p4: "In this virtual lab, we have replaced the sand with thousands of digital particles and the violin bow with mathematical sliders:",
-        art_li1: "<strong>Frequencies A and B:</strong> Here lies the secret. You control the vibration on the horizontal and vertical axis independently. As the pitch rises, the sand reorganizes itself forming increasingly complex geometric mandalas.",
-        art_li2: "<strong>Interference:</strong> When frequencies A and B are harmonic (e.g. 2.0 and 4.0), you will see stable and symmetrical patterns. When they are dissonant, you will see chaos seeking order.",
-        art_li3: "<strong>Intensity:</strong> Control the force of the wave. If you turn it up a lot, the sand will \"jump\" with energy; if you lower it, it will settle gently.",
-        art_h4: "Why is it Sacred Geometry?",
-        art_p5: "The patterns that emerge on this plate are not random. They are the same recurring patterns we find in nature: the shell of a turtle, the spots of a leopard, the structure of a snowflake or the arrangement of atoms in a crystal. Cymatics visually demonstrates that matter is simply densified sound organized by geometry.",
-        footer_coffee: "☕ Buy me a coffee",
-        legal_aviso: "Legal Notice",
-        legal_privacidad: "Privacy",
-        legal_cookies: "Cookies"
-    },
-    FR: {
-        sim_title: "Cymatique (Interférence)",
-        btn_png: "💾 Sauvegarder PNG",
-        btn_jpg: "📸 Sauvegarder JPG",
-        btn_random: "🎲 Résonance Aléatoire",
-        mix_title: "Mélange d'Ondes",
-        freq_a: "Fréquence A (Axe N)",
-        freq_b: "Fréquence B (Axe M)",
-        amplitude: "🌊 Intensité",
-        damping: "⏳ Amortissement",
-        matter_title: "Matière (Sable)",
-        particles: "Nb Particules",
-        color: "Couleur Sable",
-        sand_size: "Taille du Grain",
-        art_title: "Cymatique : Quand le Son Crée la Forme",
-        art_concept_label: "Le Concept :",
-        art_concept_quote: '"Au commencement était le Verbe (Vibration)".',
-        art_p1: "Cette phrase ancestrale pointe vers une vérité que la physique moderne a confirmée : la vibration est l'architecte fondamental de la réalité. Tout ce que nous voyons comme de la \"matière solide\" est, en réalité, de l'énergie vibrant à différentes fréquences. La Cymatique (du grec \"kyma\", onde) est la science qui rend ce son invisible visible.",
-        art_h2: "L'Outil : Plaques de Chladni",
-        art_p2: "Ce que vous avez devant vous est une simulation physique de haute précision d'une plaque de Chladni. Inventée par le physicien Ernst Chladni au XVIIIe siècle, l'expérience originale consistait en une plaque métallique saupoudrée de sable fin.",
-        art_p3: "En faisant vibrer la plaque (avec un archet de violon ou un haut-parleur), le sable prend vie. Il fuit les zones de vibration intense et cherche refuge dans les \"lignes nodales\" (zones où la vibration s'annule et est nulle). Le résultat est la formation instantanée de géométries complexes.",
-        art_h3: "La Magie : Vous contrôlez la Création",
-        art_p4: "Dans ce laboratoire virtuel, nous avons remplacé le sable par des milliers de particules numériques et l'archet par des curseurs mathématiques :",
-        art_li1: "<strong>Fréquences A et B :</strong> C'est là que réside le secret. Vous contrôlez la vibration sur l'axe horizontal et vertical indépendamment. En augmentant le ton, le sable se réorganise de lui-même en formant des mandalas géométriques de plus en plus complexes.",
-        art_li2: "<strong>Interférence :</strong> Lorsque les fréquences A et B sont harmoniques (ex: 2.0 et 4.0), vous verrez des motifs stables et symétriques. Lorsqu'elles sont dissonantes, vous verrez le chaos chercher l'ordre.",
-        art_li3: "<strong>Intensité :</strong> Contrôle la force de l'onde. Si vous l'augmentez beaucoup, le sable \"sautera\" avec énergie ; si vous la baissez, il se déposera doucement.",
-        art_h4: "Pourquoi est-ce de la Géométrie Sacrée ?",
-        art_p5: "Les motifs qui émergent sur cette plaque ne sont pas aléatoires. Ce sont les mêmes motifs récurrents que l'on retrouve dans la nature : la carapace d'une tortue, les taches d'un léopard, la structure d'un flocon de neige ou la disposition des atomes dans un cristal. La Cymatique nous démontre visuellement que la matière est simplement du son densifié et organisé par la géométrie.",
-        footer_coffee: "☕ Offrez-moi un café",
-        legal_aviso: "Mentions Légales",
-        legal_privacidad: "Confidentialité",
-        legal_cookies: "Cookies"
-    },
-    DE: {
-        sim_title: "Kymatik (Interferenz)",
-        btn_png: "💾 PNG Speichern",
-        btn_jpg: "📸 JPG Speichern",
-        btn_random: "🎲 Zufällige Resonanz",
-        mix_title: "Wellenmischung",
-        freq_a: "Frequenz A (N-Achse)",
-        freq_b: "Frequenz B (M-Achse)",
-        amplitude: "🌊 Intensität",
-        damping: "⏳ Dämpfung",
-        matter_title: "Materie (Sand)",
-        particles: "Partikelanzahl",
-        color: "Sandfarbe",
-        sand_size: "Korngröße",
-        art_title: "Kymatik: Wenn Klang Form Erzeugt",
-        art_concept_label: "Das Konzept:",
-        art_concept_quote: '"Am Anfang war das Wort (Vibration)".',
-        art_p1: "Dieser uralte Satz deutet auf eine Wahrheit hin, die die moderne Physik bestätigt hat: Schwingung ist der grundlegende Architekt der Realität. Alles, was wir als \"feste Materie\" sehen, ist in Wirklichkeit Energie, die mit unterschiedlichen Frequenzen schwingt. Die Kymatik (vom griechischen \"kyma\", Welle) ist die Wissenschaft, die diesen unsichtbaren Klang sichtbar macht.",
-        art_h2: "Das Werkzeug: Chladni-Platten",
-        art_p2: "Was Sie hier sehen, ist eine hochpräzise physikalische Simulation einer Chladni-Platte. Das ursprüngliche Experiment wurde im 18. Jahrhundert vom Physiker Ernst Chladni erfunden und bestand aus einer Metallplatte, die mit feinem Sand bestreut war.",
-        art_p3: "Wenn die Platte in Schwingung versetzt wird (mit einem Geigenbogen oder einem Lautsprecher), wird der Sand lebendig. Er flieht aus den Bereichen intensiver Schwingung und sucht Zuflucht in den \"Knotenlinien\" (Bereiche, in denen sich die Schwingung aufhebt und Null ist). Das Ergebnis ist die sofortige Bildung komplexer Geometrien.",
-        art_h3: "Die Magie: Sie kontrollieren die Schöpfung",
-        art_p4: "In diesem virtuellen Labor haben wir den Sand durch Tausende digitaler Partikel und den Geigenbogen durch mathematische Schieberegler ersetzt:",
-        art_li1: "<strong>Frequenzen A und B:</strong> Hier liegt das Geheimnis. Sie steuern die Schwingung auf der horizontalen und vertikalen Achse unabhängig voneinander. Wenn der Ton steigt, reorganisiert sich der Sand von selbst und bildet immer komplexere geometrische Mandalas.",
-        art_li2: "<strong>Interferenz:</strong> Wenn die Frequenzen A und B harmonisch sind (z. B. 2,0 und 4,0), sehen Sie stabile und symmetrische Muster. Wenn sie dissonant sind, sehen Sie das Chaos auf der Suche nach Ordnung.",
-        art_li3: "<strong>Intensität:</strong> Steuert die Kraft der Welle. Wenn Sie sie stark erhöhen, \"springt\" der Sand vor Energie; wenn Sie sie senken, setzt er sich sanft ab.",
-        art_h4: "Warum ist es Heilige Geometrie?",
-        art_p5: "Die Muster, die auf dieser Platte entstehen, sind nicht zufällig. Es sind dieselben wiederkehrenden Muster, die wir in der Natur finden: der Panzer einer Schildkröte, die Flecken eines Leoparden, die Struktur einer Schneeflocke oder die Anordnung der Atome in einem Kristall. Die Kymatik zeigt uns visuell, dass Materie einfach verdichteter Klang ist, der durch Geometrie organisiert wird.",
-        footer_coffee: "☕ Spendier mir einen Kaffee",
-        legal_aviso: "Impressum",
-        legal_privacidad: "Datenschutz",
-        legal_cookies: "Cookies"
-    },
-    PT: {
-        sim_title: "Cimática (Interferência)",
-        btn_png: "💾 Salvar PNG",
-        btn_jpg: "📸 Salvar JPG",
-        btn_random: "🎲 Ressonância Aleatória",
-        mix_title: "Mistura de Ondas",
-        freq_a: "Frequência A (Eixo N)",
-        freq_b: "Frequência B (Eixo M)",
-        amplitude: "🌊 Intensidade",
-        damping: "⏳ Amortecimento",
-        matter_title: "Matéria (Areia)",
-        particles: "Qtd. Partículas",
-        color: "Cor da Areia",
-        sand_size: "Tamanho do Grão",
-        art_title: "Cimática: Quando o Som Cria a Forma",
-        art_concept_label: "O Conceito:",
-        art_concept_quote: '"No princípio era o Verbo (Vibração)".',
-        art_p1: "Esta frase ancestral aponta para uma verdade que a física moderna confirmou: a vibração é o arquiteto fundamental da realidade. Tudo o que vemos como \"matéria sólida\" é, na realidade, energia vibrando a diferentes frequências. A Cimática (do grego \"kyma\", onda) é a ciência que torna visível este som invisível.",
-        art_h2: "A Ferramenta: Placas de Chladni",
-        art_p2: "O que você tem diante de si é uma simulação física de alta precisão de uma Placa de Chladni. Inventada pelo físico Ernst Chladni no século XVIII, o experimento original consistia numa placa metálica polvilhada com areia fina.",
-        art_p3: "Ao fazer vibrar a placa (com um arco de violino ou um alto-falante), a areia ganha vida. Foge das zonas de vibração intensa e procura refúgio nas \"linhas nodais\" (zonas onde a vibração se cancela e é zero). O resultado é a formação instantânea de geometrias complexas.",
-        art_h3: "A Magia: Você controla a Criação",
-        art_p4: "Neste laboratório virtual, substituímos a areia por milhares de partículas digitais e o arco de violino por seletores matemáticos:",
-        art_li1: "<strong>Frequências A e B:</strong> Aqui reside o segredo. Você controla a vibração nos eixos horizontal e vertical independentemente. Ao subir o tom, a areia reorganiza-se sozinha formando mandalas geométricas cada vez mais complexas.",
-        art_li2: "<strong>Interferência:</strong> Quando as frequências A e B são harmónicas (ex: 2.0 e 4.0), verá padrões estáveis e simétricos. Quando são dissonantes, verá o caos procurando a ordem.",
-        art_li3: "<strong>Intensidade:</strong> Controla a força da onda. Se a subir muito, a areia \"saltará\" com energia; se a baixar, assentará suavemente.",
-        art_h4: "Por que é Geometria Sagrada?",
-        art_p5: "Os padrões que emergem nesta placa no são aleatórios. São os mesmos padrões recorrentes que encontramos na natureza: a carapaça de uma tartaruga, as manchas de um leopardo, a estrutura de um floco de neve ou a disposição dos átomos num cristal. A Cimática demonstra-nos visualmente que a matéria é simplesmente som densificado e organizado por geometria.",
-        footer_coffee: "☕ Convide-me para um café",
-        legal_aviso: "Aviso Legal",
-        legal_privacidad: "Privacidade",
-        legal_cookies: "Cookies"
-    },
-    IT: {
-        sim_title: "Cimatica (Interferenza)",
-        btn_png: "💾 Salva PNG",
-        btn_jpg: "📸 Salva JPG",
-        btn_random: "🎲 Risonanza Casuale",
-        mix_title: "Miscela di Onde",
-        freq_a: "Frequenza A (Asse N)",
-        freq_b: "Frequenza B (Asse M)",
-        amplitude: "🌊 Intensità",
-        damping: "⏳ Smorzamento",
-        matter_title: "Materia (Sabbia)",
-        particles: "Cant. Particelle",
-        color: "Colore Sabbia",
-        sand_size: "Dimensione Grano",
-        art_title: "Cimatica: Quando il Suono Crea la Forma",
-        art_concept_label: "Il Concetto:",
-        art_concept_quote: '"In principio era il Verbo (Vibrazione)".',
-        art_p1: "Questa frase ancestrale punta a una verità che la fisica moderna ha confermato: la vibrazione è l'architetto fondamentale della realtà. Tutto ciò che vediamo come \"materia solida\" è, in realtà, energia che vibra a diverse frequenze. La Cimatica (dal greco \"kyma\", onda) è la scienza che rende visibile questo suono invisibile.",
-        art_h2: "Lo Strumento: Lastre di Chladni",
-        art_p2: "Quella che hai di fronte è una simulazione fisica di alta precisione di una Lastra di Chladni. Inventata dal fisico Ernst Chladni nel XVIII secolo, l'esperimento originale consisteva in una lastra di metallo cosparsa di sabbia fine.",
-        art_p3: "Facendo vibrare la lastra (con un archetto di violino o un altoparlante), la sabbia prende vita. Fugge dalle zone di vibrazione intensa e cerca rifugio nelle \"linee nodali\" (zone dove la vibrazione si annulla ed è zero). Il risultato è la formazione istantanea di geometrie complesse.",
-        art_h3: "La Magia: Tu controlli la Creazione",
-        art_p4: "In questo laboratorio virtuale, abbiamo sostituito la sabbia con migliaia di particelle digitali e l'archetto con cursori matematici:",
-        art_li1: "<strong>Frequenze A e B:</strong> Qui risiede il segreto. Controlli la vibrazione sull'asse orizzontale e verticale in modo indipendente. Aumentando il tono, la sabbia si riorganizza da sola formando mandala geometrici sempre più complessi.",
-        art_li2: "<strong>Interferenza:</strong> Quando le frequenze A e B sono armoniche (es: 2.0 e 4.0), vedrai schemi stabili e simmetrici. Quando sono dissonanti, vedrai il caos cercare l'ordine.",
-        art_li3: "<strong>Intensità:</strong> Controlla la forza dell'onda. Se la alzi molto, la sabbia \"salterà\" con energia; se la abbassi, si depositerà dolcemente.",
-        art_h4: "Perché è Geometria Sacra?",
-        art_p5: "Gli schemi che emergono su questa lastra non sono casuali. Sono gli stessi schemi ricorrenti che troviamo in natura: il guscio di una tartaruga, le macchie di un leopardo, la struttura di un fiocco di neve o la disposizione degli atomi in un cristallo. La Cimatica ci dimostra visivamente che la materia è semplicemente suono densificato e organizzato dalla geometria.",
-        footer_coffee: "☕ Offrimi un caffè",
-        legal_aviso: "Note Legali",
-        legal_privacidad: "Privacy",
-        legal_cookies: "Cookies"
-    },
-    NL: {
-        sim_title: "Cymatics (Interferentie)",
-        btn_png: "💾 PNG Opslaan",
-        btn_jpg: "📸 JPG Opslaan",
-        btn_random: "🎲 Willekeurige Resonantie",
-        mix_title: "Golfmenging",
-        freq_a: "Frequentie A (N-as)",
-        freq_b: "Frequentie B (M-as)",
-        amplitude: "🌊 Intensiteit",
-        damping: "⏳ Demping",
-        matter_title: "Materie (Zand)",
-        particles: "Aantal Deeltjes",
-        color: "Zandkleur",
-        sand_size: "Korrelgrootte",
-        art_title: "Cymatics: Wanneer Geluid Vorm Creëert",
-        art_concept_label: "Het Concept:",
-        art_concept_quote: '"In den beginne was het Woord (Trilling)".',
-        art_p1: "Deze eeuwenoude zin wijst op een waarheid die de moderne natuurkunde heeft bevestigd: trilling is de fundamentele architect van de realiteit. Alles wat we zien als \"vaste materie\" is in werkelijkheid energie die op verschillende frequenties trilt. Cymatics (van het Griekse \"kyma\", golf) is de wetenschap die dit onzichtbare geluid zichtbaar maakt.",
-        art_h2: "Het Gereedschap: Chladni-platen",
-        art_p2: "Wat je voor je ziet is een uiterst nauwkeurige fysieke simulatie van een Chladni-plaat. Uitgevonden door de natuurkundige Ernst Chladni in de 18e eeuw, bestond het oorspronkelijke experiment uit een metalen plaat bestrooid met fijn zand.",
-        art_p3: "Door de plaat te laten trillen (met een vioolstrijkstok of een luidspreker), komt het zand tot leven. Het ontvlucht gebieden met intense trillingen en zoekt onderdak in de \"knooplijnen\" (gebieden waar de trilling wordt opgeheven en nul is). Het resultaat is de onmiddellijke vorming van complexe geometrieën.",
-        art_h3: "De Magie: Jij beheerst de Creatie",
-        art_p4: "In dit virtuele laboratorium hebben we het zand vervangen door duizenden digitale deeltjes en de strijkstok door wiskundige schuifregelaars:",
-        art_li1: "<strong>Frequenties A en B:</strong> Hier ligt het geheim. Je regelt de trilling op de horizontale en verticale as onafhankelijk van elkaar. Naarmate de toon stijgt, reorganiseert het zand zich vanzelf en vormt steeds complexere geometrische mandala's.",
-        art_li2: "<strong>Interferentie:</strong> Wanneer de frequenties A en B harmonisch zijn (bijv. 2.0 en 4.0), zie je stabiele en symmetrische patronen. Wanneer ze dissonant zijn, zie je chaos die op zoek is naar orde.",
-        art_li3: "<strong>Intensiteit:</strong> Regelt de kracht van de golf. Als je deze hoog zet, zal het zand met energie \"springen\"; als je deze verlaagt, zal het zachtjes neerdalen.",
-        art_h4: "Waarom is het Heilige Geometrie?",
-        art_p5: "De patronen die op deze plaat ontstaan zijn niet willekeurig. Het zijn dezelfde terugkerende patronen die we in de natuur vinden: het schild van een schildpad, de vlekken van een luipaard, de structuur van een sneeuwvlok of de rangschikking van atomen in een kristal. Cymatics laat ons visueel zien dat materie simpelweg verdicht geluid is dat door geometrie is georganiseerd.",
-        footer_coffee: "☕ Trakteer me op een koffie",
-        legal_aviso: "Juridische Kennisgeving",
-        legal_privacidad: "Privacy",
-        legal_cookies: "Cookies"
-    },
-    JA: {
-        sim_title: "サイマティクス (干渉)",
-        btn_png: "💾 PNGを保存",
-        btn_jpg: "📸 JPGを保存",
-        btn_random: "🎲 ランダム共鳴",
-        mix_title: "波の混合",
-        freq_a: "周波数 A (N軸)",
-        freq_b: "周波数 B (M軸)",
-        amplitude: "🌊 強度",
-        damping: "⏳ 減衰",
-        matter_title: "物質 (砂)",
-        particles: "粒子数",
-        color: "砂の色",
-        sand_size: "粒の大きさ",
-        art_title: "サイマティクス：音が形を作るとき",
-        art_concept_label: "コンセプト:",
-        art_concept_quote: '"はじめに言葉（振動）があった"。',
-        art_p1: "この古来の言葉は、現代物理学が確認した真実を指し示しています。振動は現実の根本的な設計図です。私たちが「固体物質」として見ているものはすべて、実際には異なる周波数で振動しているエネルギーです。サイマティクス（ギリシャ語の「kyma（波）」に由来）は、この目に見えない音を可視化する科学です。",
-        art_h2: "ツール：クラドニ図形",
-        art_p2: "目の前にあるのは、クラドニプレートの高精度な物理シミュレーションです。18世紀に物理学者エルンスト・クラドニによって発明された本来の実験は、細かい砂をまいた金属板で構成されていました。",
-        art_p3: "バイオリンの弓やスピーカーでプレートを振動させると、砂が動き出します。砂は激しい振動の領域から逃れ、「節線」（振動が打ち消し合ってゼロになる領域）に集まります。その結果、複雑な幾何学模様が瞬時に形成されます。",
-        art_h3: "魔法：あなたが創造をコントロールする",
-        art_p4: "この仮想ラボでは、砂を数千のデジタル粒子に、バイオリンの弓を数学的なスライダーに置き換えました：",
-        art_li1: "<strong>周波数 A と B:</strong> ここに秘密があります。水平軸と垂直軸の振動を独立して制御します。音を上げると、砂は自ら再編成され、ますます複雑な幾何学的曼荼羅を形成します。",
-        art_li2: "<strong>干渉:</strong> 周波数 A と B が調和している場合（例：2.0 と 4.0）、安定した対称的なパターンが見られます。不協和な場合は、秩序を求める混沌が見られます。",
-        art_li3: "<strong>強度:</strong> 波の力を制御します。強度を上げると砂はエネルギーで「跳ね」ます。下げると、砂は静かに落ち着きます。",
-        art_h4: "なぜ神聖幾何学なのか？",
-        art_p5: "このプレートに現れるパターンはランダムではありません。それらは自然界に見られるものと同じ繰り返しのパターンです。亀の甲羅、ヒョウの斑点、雪の結晶の構造、あるいは結晶内の原子の配置などです。サイマティクスは、物質が単に幾何学によって組織化され、凝縮された音であることを視覚的に証明しています。",
-        footer_coffee: "☕ コーヒーを一杯おごる",
-        legal_aviso: "法的通知",
-        legal_privacidad: "プライバシー",
-        legal_cookies: "クッキー"
-    }
-};
+    <footer>
+        <a href="https://www.paypal.com/paypalme/pbazan" target="_blank" class="paypal-btn" data-i18n="footer_coffee">☕
+            Invítame a un café</a>
+        <div class="footer-links">
+            <a href="../legal.html#aviso" data-i18n="legal_aviso">Aviso Legal</a>
+            <a href="../legal.html#privacidad" data-i18n="legal_privacidad">Privacidad</a>
+            <a href="../legal.html#cookies" data-i18n="legal_cookies">Cookies</a>
+            <a href="mailto:pbazan@gmail.com">Contacto</a>
+        </div>
+        <p class="copyright">Copyright © 2026 Graphics Labs. Todos los derechos reservados.</p>
+    </footer>
 
-    function setLang(lang) {
-        const trans = translations[lang] || translations['EN'];
-        document.querySelectorAll('[data-i18n]').forEach(el => {
-            const key = el.getAttribute('data-i18n');
-            if (trans[key]) el.innerHTML = trans[key];
+    <script>
+        // --- SISTEMA I18N (9 IDIOMAS, TEXTOS ÍNTEGROS) ---
+        const translations = {
+            es: {
+                sim_title: "Cimática (Interferencia)",
+                btn_png: "💾 Guardar PNG",
+                btn_jpg: "📸 Guardar JPG",
+                btn_random: "🎲 Resonancia Aleatoria",
+                mix_title: "Mezcla de Ondas",
+                freq_a: "Frecuencia A (Eje N)",
+                freq_b: "Frecuencia B (Eje M)",
+                amplitude: "🌊 Intensidad",
+                damping: "⏳ Amortiguación",
+                matter_title: "Materia (Arena)",
+                particles: "Cant. Partículas",
+                color: "Color Arena",
+                sand_size: "Tamaño Grano",
+                art_title: "Cimática: Cuando el Sonido Crea la Forma",
+                art_concept_label: "El Concepto:",
+                art_concept_quote: '"En el principio fue el Verbo (Vibración)".',
+                art_p1: "Esta frase ancestral apunta a una verdad que la física moderna ha confirmado: la vibración es el arquitecto fundamental de la realidad. Todo lo que vemos como \"materia sólida\" es, en realidad, energía vibrando a diferentes frecuencias. La Cimática (del griego \"kyma\", onda) es la ciencia que hace visible este sonido invisible.",
+                art_h2: "La Herramienta: Placas de Chladni",
+                art_p2: "Lo que tienes ante ti es una simulación física de alta precisión de una Placa de Chladni. Inventada por el físico Ernst Chladni en el siglo XVIII, el experimento original consistía en una placa metálica espolvoreada con arena fina.",
+                art_p3: "Al hacer vibrar la placa (con un arco de violín o un altavoz), la arena cobra vida. Huye de las zonas de vibración intensa y busca refugio en las \"líneas nodales\" (zonas donde la vibración se cancela y es cero). El resultado es la formación instantánea de geometrías complejas.",
+                art_h3: "La Magia: Tú controlas la Creación",
+                art_p4: "En este laboratorio virtual, hemos sustituido la arena por miles de partículas digitales y el arco de violín por deslizadores matemáticos:",
+                art_li1: "<strong>Frecuencias A y B:</strong> Aquí reside el secreto. Controlas la vibración en el eje horizontal y vertical independientemente. Al subir el tono, la arena se reorganiza sola formando mandalas geométricos cada vez más complejos.",
+                art_li2: "<strong>Interferencia:</strong> Cuando las frecuencias A y B son armónicas (ej: 2.0 y 4.0), verás patrones estables y simétricos. Cuando son disonantes, verás el caos buscando el orden.",
+                art_li3: "<strong>Intensidad:</strong> Controla la fuerza de la onda. Si la subes mucho, la arena \"saltará\" con energía; si la bajas, se asentará suavemente.",
+                art_h4: "¿Por qué es Geometría Sagrada?",
+                art_p5: "Los patrones que emergen en esta placa no son aleatorios. Son los mismos patrones recurrentes que encontramos en la naturaleza: el caparazón de una tortuga, las manchas de un leopardo, la estructura de un copo de nieve o la disposición de los átomos en un cristal. La Cimática nos demuestra visualmente que la materia es simplemente sonido densificado y organizado por geometría.",
+                footer_coffee: "☕ Invítame a un café",
+                legal_aviso: "Aviso Legal",
+                legal_privacidad: "Privacidad",
+                legal_cookies: "Cookies"
+            },
+            ca: {
+                sim_title: "Cimàtica (Interferència)",
+                btn_png: "💾 Desa PNG",
+                btn_jpg: "📸 Desa JPG",
+                btn_random: "🎲 Ressonància Aleatòria",
+                mix_title: "Mescla d'Ones",
+                freq_a: "Freqüència A (Eix N)",
+                freq_b: "Freqüència B (Eix M)",
+                amplitude: "🌊 Intensitat",
+                damping: "⏳ Amortiment",
+                matter_title: "Matèria (Sorra)",
+                particles: "Cant. Partícules",
+                color: "Color Sorra",
+                sand_size: "Mida del Gra",
+                art_title: "Cimàtica: Quan el So Crea la Forma",
+                art_concept_label: "El Concepte:",
+                art_concept_quote: '"En el principi fou el Verb (Vibració)".',
+                art_p1: "Aquesta frase ancestral apunta a una veritat que la física moderna ha confirmat: la vibració és l'arquitecte fonamental de la realitat. Tot el que veiem com a \"matèria sòlida\" és, en realitat, energia vibrant a diferents freqüències. La Cimàtica (del grec \"kyma\", ona) és la ciència que fa visible aquest so invisible.",
+                art_h2: "L'Eina: Plaques de Chladni",
+                art_p2: "El que tens davant teu és una simulació física d'alta precisió d'una Placa de Chladni. Inventada pel físic Ernst Chladni al segle XVIII, l'experiment original consistia en una placa metàl·lica empolsada amb sorra fina.",
+                art_p3: "En fer vibrar la placa (amb un arc de violí o un altaveu), la sorra cobra vida. Fuig de les zones de vibració intensa i busca refugi a les \"línies nodals\" (zones on la vibració es cancel·la i és zero). El resultat és la formació instantània de geometries complexes.",
+                art_h3: "La Màgia: Tu controles la Creació",
+                art_p4: "En aquest laboratori virtual, hem substituït la sorra per milers de partícules digitals i l'arc de violí per lliscadors matemàtics:",
+                art_li1: "<strong>Freqüències A i B:</strong> Aquí resideix el secret. Controles la vibració en l'eix horitzontal i vertical independentment. En pujar el to, la sorra es reorganitza sola formant mandales geomètrics cada cop més complexos.",
+                art_li2: "<strong>Interferència:</strong> Quan les freqüències A i B són harmòniques (ex: 2.0 i 4.0), veuràs patrons estables i simètrics. Quan són dissonants, veuràs el caos buscant l'ordre.",
+                art_li3: "<strong>Intensitat:</strong> Controla la força de l'ona. Si la puges molt, la sorra \"saltarà\" amb energia; si la baixes, s'assentarà suavemente.",
+                art_h4: "Per què és Geometria Sagrada?",
+                art_p5: "Els patrons que emergeixen en aquesta placa no són aleatoris. Són els mateixos patrons recurrents que trobem a la natura: la closca d'una tortuga, les taques d'un lleopard, l'estructura d'un floc de neu o la disposició dels àtoms en un cristall. La Cimàtica ens demostra visualment que la matèria és simplement so densificat i organitzat per geometria.",
+                footer_coffee: "☕ Convida'm a un cafè",
+                legal_aviso: "Avís Legal",
+                legal_privacidad: "Privadesa",
+                legal_cookies: "Cookies"
+            },
+            en: {
+                sim_title: "Cymatics (Interference)",
+                btn_png: "💾 Save PNG",
+                btn_jpg: "📸 Save JPG",
+                btn_random: "🎲 Random Resonance",
+                mix_title: "Wave Mixing",
+                freq_a: "Frequency A (N Axis)",
+                freq_b: "Frequency B (M Axis)",
+                amplitude: "🌊 Intensity",
+                damping: "⏳ Damping",
+                matter_title: "Matter (Sand)",
+                particles: "Particle Count",
+                color: "Sand Color",
+                sand_size: "Grain Size",
+                art_title: "Cymatics: When Sound Creates Form",
+                art_concept_label: "The Concept:",
+                art_concept_quote: '"In the beginning was the Word (Vibration)".',
+                art_p1: "This ancestral phrase points to a truth that modern physics has confirmed: vibration is the fundamental architect of reality. Everything we see as \"solid matter\" is, in reality, energy vibrating at different frequencies. Cymatics (from the Greek \"kyma\", wave) is the science that makes this invisible sound visible.",
+                art_h2: "The Tool: Chladni Plates",
+                art_p2: "What you see is a high-precision physical simulation of a Chladni Plate. Invented by physicist Ernst Chladni in the 18th century, the original experiment consisted of a metal plate sprinkled with fine sand.",
+                art_p3: "When the plate is vibrated (with a violin bow or a speaker), the sand comes to life. It flees from areas of intense vibration and seeks refuge in \"nodal lines\" (areas where the vibration cancels out and is zero). The result is the instantaneous formation of complex geometries.",
+                art_h3: "The Magic: You control Creation",
+                art_p4: "In this virtual lab, we have replaced the sand with thousands of digital particles and the violin bow with mathematical sliders:",
+                art_li1: "<strong>Frequencies A and B:</strong> Here lies the secret. You control the vibration on the horizontal and vertical axis independently. As the pitch rises, the sand reorganizes itself forming increasingly complex geometric mandalas.",
+                art_li2: "<strong>Interference:</strong> When frequencies A and B are harmonic (e.g. 2.0 and 4.0), you will see stable and symmetrical patterns. When they are dissonant, you will see chaos seeking order.",
+                art_li3: "<strong>Intensity:</strong> Control the force of the wave. If you turn it up a lot, the sand will \"jump\" with energy; if you lower it, it will settle gently.",
+                art_h4: "Why is it Sacred Geometry?",
+                art_p5: "The patterns that emerge on this plate are not random. They are the same recurring patterns we find in nature: the shell of a turtle, the spots of a leopard, the structure of a snowflake or the arrangement of atoms in a crystal. Cymatics visually demonstrates that matter is simply densified sound organized by geometry.",
+                footer_coffee: "☕ Buy me a coffee",
+                legal_aviso: "Legal Notice",
+                legal_privacidad: "Privacy",
+                legal_cookies: "Cookies"
+            },
+            fr: {
+                sim_title: "Cymatique (Interférence)",
+                btn_png: "💾 Sauvegarder PNG",
+                btn_jpg: "📸 Sauvegarder JPG",
+                btn_random: "🎲 Résonance Aléatoire",
+                mix_title: "Mélange d'Ondes",
+                freq_a: "Fréquence A (Axe N)",
+                freq_b: "Fréquence B (Axe M)",
+                amplitude: "🌊 Intensité",
+                damping: "⏳ Amortissement",
+                matter_title: "Matière (Sable)",
+                particles: "Nb Particules",
+                color: "Couleur Sable",
+                sand_size: "Taille du Grain",
+                art_title: "Cymatique : Quand le Son Crée la Forme",
+                art_concept_label: "Le Concept :",
+                art_concept_quote: '"Au commencement était le Verbe (Vibration)".',
+                art_p1: "Cette phrase ancestrale pointe vers une vérité que la physique moderne a confirmée : la vibration est l'architecte fondamental de la réalité. Tout ce que nous voyons comme de la \"matière solide\" est, en réalité, de l'énergie vibrant à différentes fréquences. La Cymatique (du grec \"kyma\", onde) est la science qui rend ce son invisible visible.",
+                art_h2: "L'Outil : Plaques de Chladni",
+                art_p2: "Ce que vous avez devant vous est une simulation physique de haute précision d'une plaque de Chladni. Inventée par le physicien Ernst Chladni au XVIIIe siècle, l'expérience originale consistait en une plaque métallique saupoudrée de sable fin.",
+                art_p3: "En faisant vibrer la plaque (avec un archet de violon ou un haut-parleur), le sable prend vie. Il fuit les zones de vibration intense et cherche refuge dans les \"lignes nodales\" (zones où la vibration s'annule et est nulle). Le résultat est la formation instantanée de géométries complexes.",
+                art_h3: "La Magie : Vous contrôlez la Création",
+                art_p4: "Dans ce laboratoire virtuel, nous avons remplacé le sable par des milliers de particules numériques et l'archet par des curseurs mathématiques :",
+                art_li1: "<strong>Fréquences A et B :</strong> C'est là que réside le secret. Vous contrôlez la vibration sur l'axe horizontal et vertical indépendamment. En augmentant le ton, le sable se réorganise de lui-même en formant des mandalas géométriques de plus en plus complexes.",
+                art_li2: "<strong>Interférence :</strong> Lorsque les fréquences A et B sont harmoniques (ex: 2.0 et 4.0), vous verrez des motifs stables et symétriques. Lorsqu'elles sont dissonantes, vous verrez le chaos chercher l'ordre.",
+                art_li3: "<strong>Intensité :</strong> Contrôle la force de l'onde. Si vous l'augmentez beaucoup, le sable \"sautera\" avec énergie ; si vous la baissez, il se déposera doucement.",
+                art_h4: "Pourquoi est-ce de la Géométrie Sacrée ?",
+                art_p5: "Les motifs qui émergent sur cette plaque ne sont pas aléatoires. Ce sont les mêmes motifs récurrents que l'on retrouve dans la nature : la carapace d'une tortue, les taches d'un léopard, la structure d'un flocon de neige ou la disposition des atomes dans un cristal. La Cymatique nous démontre visuellement que la matière est simplement du son densifié et organisé par la géométrie.",
+                footer_coffee: "☕ Offrez-moi un café",
+                legal_aviso: "Mentions Légales",
+                legal_privacidad: "Confidentialité",
+                legal_cookies: "Cookies"
+            },
+            de: {
+                sim_title: "Kymatik (Interferenz)",
+                btn_png: "💾 PNG Speichern",
+                btn_jpg: "📸 JPG Speichern",
+                btn_random: "🎲 Zufällige Resonanz",
+                mix_title: "Wellenmischung",
+                freq_a: "Frequenz A (N-Achse)",
+                freq_b: "Frequenz B (M-Achse)",
+                amplitude: "🌊 Intensität",
+                damping: "⏳ Dämpfung",
+                matter_title: "Materie (Sand)",
+                particles: "Partikelanzahl",
+                color: "Sandfarbe",
+                sand_size: "Korngröße",
+                art_title: "Kymatik: Wenn Klang Form Erzeugt",
+                art_concept_label: "Das Konzept:",
+                art_concept_quote: '"Am Anfang war das Wort (Vibration)".',
+                art_p1: "Dieser uralte Satz deutet auf eine Wahrheit hin, die die moderne Physik bestätigt hat: Schwingung ist der grundlegende Architekt der Realität. Alles, was wir als \"feste Materie\" sehen, ist in Wirklichkeit Energie, die mit unterschiedlichen Frequenzen schwingt. Die Kymatik (vom griechischen \"kyma\", Welle) ist die Wissenschaft, die diesen unsichtbaren Klang sichtbar macht.",
+                art_h2: "Das Werkzeug: Chladni-Platten",
+                art_p2: "Was Sie hier sehen, ist eine hochpräzise physikalische Simulation einer Chladni-Platte. Das ursprüngliche Experiment wurde im 18. Jahrhundert vom Physiker Ernst Chladni erfunden und bestand aus einer Metallplatte, die mit feinem Sand bestreut war.",
+                art_p3: "Wenn die Platte in Schwingung versetzt wird (mit einem Geigenbogen oder einem Lautsprecher), wird der Sand lebendig. Er flieht aus den Bereichen intensiver Schwingung und sucht Zuflucht in den \"Knotenlinien\" (Bereiche, in denen sich die Schwingung aufhebt und Null ist). Das Ergebnis ist die sofortige Bildung komplexer Geometrien.",
+                art_h3: "Die Magie: Sie kontrollieren die Schöpfung",
+                art_p4: "In diesem virtuellen Labor haben wir den Sand durch Tausende digitaler Partikel und den Geigenbogen durch mathematische Schieberegler ersetzt:",
+                art_li1: "<strong>Frequenzen A und B:</strong> Hier liegt das Geheimnis. Sie steuern die Schwingung auf der horizontalen und vertikalen Achse unabhängig voneinander. Wenn der Ton steigt, reorganisiert sich der Sand von selbst und bildet immer komplexere geometrische Mandalas.",
+                art_li2: "<strong>Interferenz:</strong> Wenn die Frequenzen A und B harmonisch sind (z. B. 2,0 und 4,0), sehen Sie stabile und symmetrische Muster. Wenn sie dissonant sind, sehen Sie das Chaos auf der Suche nach Ordnung.",
+                art_li3: "<strong>Intensität:</strong> Steuert die Kraft der Welle. Wenn Sie sie stark erhöhen, \"springt\" der Sand vor Energie; wenn Sie sie senken, setzt er sich sanft ab.",
+                art_h4: "Warum ist es Heilige Geometrie?",
+                art_p5: "Die Muster, die auf dieser Platte entstehen, sind nicht zufällig. Es sind dieselben wiederkehrenden Muster, die wir in der Natur finden: der Panzer einer Schildkröte, die Flecken eines Leoparden, die Struktur einer Schneeflocke oder die Anordnung der Atome in einem Kristall. Die Kymatik zeigt uns visuell, dass Materie einfach verdichteter Klang ist, der durch Geometrie organisiert wird.",
+                footer_coffee: "☕ Spendier mir einen Kaffee",
+                legal_aviso: "Impressum",
+                legal_privacidad: "Datenschutz",
+                legal_cookies: "Cookies"
+            },
+            pt: {
+                sim_title: "Cimática (Interferência)",
+                btn_png: "💾 Salvar PNG",
+                btn_jpg: "📸 Salvar JPG",
+                btn_random: "🎲 Ressonância Aleatória",
+                mix_title: "Mistura de Ondas",
+                freq_a: "Frequência A (Eixo N)",
+                freq_b: "Frequência B (Eixo M)",
+                amplitude: "🌊 Intensidade",
+                damping: "⏳ Amortecimento",
+                matter_title: "Matéria (Areia)",
+                particles: "Qtd. Partículas",
+                color: "Cor da Areia",
+                sand_size: "Tamanho do Grão",
+                art_title: "Cimática: Quando o Som Cria a Forma",
+                art_concept_label: "O Conceito:",
+                art_concept_quote: '"No princípio era o Verbo (Vibração)".',
+                art_p1: "Esta frase ancestral aponta para uma verdade que a física moderna confirmou: a vibração é o arquiteto fundamental da realidade. Tudo o que vemos como \"matéria sólida\" é, na realidade, energia vibrando a diferentes frequências. A Cimática (do grego \"kyma\", onda) é a ciência que torna visível este som invisível.",
+                art_h2: "A Ferramenta: Placas de Chladni",
+                art_p2: "O que você tem diante de si é uma simulação física de alta precisão de uma Placa de Chladni. Inventada pelo físico Ernst Chladni no século XVIII, o experimento original consistia numa placa metálica polvilhada com areia fina.",
+                art_p3: "Ao fazer vibrar a placa (com um arco de violino ou um alto-falante), a areia ganha vida. Foge das zonas de vibração intensa e procura refúgio nas \"linhas nodais\" (zonas onde a vibração se cancela e é zero). O resultado é a formação instantânea de geometrias complexas.",
+                art_h3: "A Magia: Você controla a Criação",
+                art_p4: "Neste laboratório virtual, substituímos a areia por milhares de partículas digitais e o arco de violino por seletores matemáticos:",
+                art_li1: "<strong>Frequências A e B:</strong> Aqui reside o segredo. Você controla a vibração nos eixos horizontal e vertical independentemente. Ao subir o tom, a areia reorganiza-se sozinha formando mandalas geométricas cada vez mais complexas.",
+                art_li2: "<strong>Interferência:</strong> Quando as frequências A e B são harmónicas (ex: 2.0 e 4.0), verá padrões estáveis e simétricos. Quando são dissonantes, verá o caos procurando a ordem.",
+                art_li3: "<strong>Intensidade:</strong> Controla a força da onda. Se a subir muito, a areia \"saltará\" com energia; se a baixar, assentará suavemente.",
+                art_h4: "Por que é Geometria Sagrada?",
+                art_p5: "Os padrões que emergem nesta placa no são aleatórios. São os mesmos padrões recorrentes que encontramos na natureza: a carapaça de uma tartaruga, as manchas de um leopardo, a estrutura de um floco de neve ou a disposição dos átomos num cristal. A Cimática demonstra-nos visualmente que a matéria é simplesmente som densificado e organizado por geometria.",
+                footer_coffee: "☕ Convide-me para um café",
+                legal_aviso: "Aviso Legal",
+                legal_privacidad: "Privacidade",
+                legal_cookies: "Cookies"
+            },
+            it: {
+                sim_title: "Cimatica (Interferenza)",
+                btn_png: "💾 Salva PNG",
+                btn_jpg: "📸 Salva JPG",
+                btn_random: "🎲 Risonanza Casuale",
+                mix_title: "Miscela di Onde",
+                freq_a: "Frequenza A (Asse N)",
+                freq_b: "Frequenza B (Asse M)",
+                amplitude: "🌊 Intensità",
+                damping: "⏳ Smorzamento",
+                matter_title: "Materia (Sabbia)",
+                particles: "Cant. Particelle",
+                color: "Colore Sabbia",
+                sand_size: "Dimensione Grano",
+                art_title: "Cimatica: Quando il Suono Crea la Forma",
+                art_concept_label: "Il Concetto:",
+                art_concept_quote: '"In principio era il Verbo (Vibrazione)".',
+                art_p1: "Questa frase ancestrale punta a una verità che la fisica moderna ha confermato: la vibrazione è l'architetto fondamentale della realtà. Tutto ciò che vediamo come \"materia solida\" è, in realtà, energia che vibra a diverse frequenze. La Cimatica (dal greco \"kyma\", onda) è la scienza che rende visibile questo suono invisibile.",
+                art_h2: "Lo Strumento: Lastre di Chladni",
+                art_p2: "Quella che hai di fronte è una simulazione fisica di alta precisione di una Lastra di Chladni. Inventata dal fisico Ernst Chladni nel XVIII secolo, l'esperimento originale consisteva in una lastra di metallo cosparsa di sabbia fine.",
+                art_p3: "Facendo vibrare la lastra (con un archetto di violino o un altoparlante), la sabbia prende vita. Fugge dalle zone di vibrazione intensa e cerca rifugio nelle \"linee nodali\" (zone dove la vibrazione si annulla ed è zero). Il risultato è la formazione istantanea di geometrie complesse.",
+                art_h3: "La Magia: Tu controlli la Creazione",
+                art_p4: "In questo laboratorio virtuale, abbiamo sostituito la sabbia con migliaia di particelle digitali e l'archetto con cursori matematici:",
+                art_li1: "<strong>Frequenze A e B:</strong> Qui risiede il segreto. Controlli la vibrazione sull'asse orizzontale e verticale in modo indipendente. Aumentando il tono, la sabbia si riorganizza da sola formando mandala geometrici sempre più complessi.",
+                art_li2: "<strong>Interferenza:</strong> Quando le frequenze A e B sono armoniche (es: 2.0 e 4.0), vedrai schemi stabili e simmetrici. Quando sono dissonanti, vedrai il caos cercare l'ordine.",
+                art_li3: "<strong>Intensità:</strong> Controlla la forza dell'onda. Se la alzi molto, la sabbia \"salterà\" con energia; se la abbassi, si depositerà dolcemente.",
+                art_h4: "Perché è Geometria Sacra?",
+                art_p5: "Gli schemi che emergono su questa lastra non sono casuali. Sono gli stessi schemi ricorrenti che troviamo in natura: il guscio di una tartaruga, le macchie di un leopardo, la struttura di un fiocco di neve o la disposizione degli atomi in un cristallo. La Cimatica ci dimostra visivamente che la materia è semplicemente suono densificato e organizzato dalla geometria.",
+                footer_coffee: "☕ Offrimi un caffè",
+                legal_aviso: "Note Legali",
+                legal_privacidad: "Privacy",
+                legal_cookies: "Cookies"
+            },
+            nl: {
+                sim_title: "Cymatics (Interferentie)",
+                btn_png: "💾 PNG Opslaan",
+                btn_jpg: "📸 JPG Opslaan",
+                btn_random: "🎲 Willekeurige Resonantie",
+                mix_title: "Golfmenging",
+                freq_a: "Frequentie A (N-as)",
+                freq_b: "Frequentie B (M-as)",
+                amplitude: "🌊 Intensiteit",
+                damping: "⏳ Demping",
+                matter_title: "Materie (Zand)",
+                particles: "Aantal Deeltjes",
+                color: "Zandkleur",
+                sand_size: "Korrelgrootte",
+                art_title: "Cymatics: Wanneer Geluid Vorm Creëert",
+                art_concept_label: "Het Concept:",
+                art_concept_quote: '"In den beginne was het Woord (Trilling)".',
+                art_p1: "Deze eeuwenoude zin wijst op een waarheid die de moderne natuurkunde heeft bevestigd: trilling is de fundamentele architect van de realiteit. Alles wat we zien als \"vaste materie\" is in werkelijkheid energie die op verschillende frequenties trilt. Cymatics (van het Griekse \"kyma\", golf) is de wetenschap die dit onzichtbare geluid zichtbaar maakt.",
+                art_h2: "Het Gereedschap: Chladni-platen",
+                art_p2: "Wat je voor je ziet is een uiterst nauwkeurige fysieke simulatie van een Chladni-plaat. Uitgevonden door de natuurkundige Ernst Chladni in de 18e eeuw, bestond het oorspronkelijke experiment uit een metalen plaat bestrooid met fijn zand.",
+                art_p3: "Door de plaat te laten trillen (met een vioolstrijkstok of een luidspreker), komt het zand tot leven. Het ontvlucht gebieden met intense trillingen en zoekt onderdak in de \"knooplijnen\" (gebieden waar de trilling wordt opgeheven en nul is). Het resultaat is de onmiddellijke vorming van complexe geometrieën.",
+                art_h3: "De Magie: Jij beheerst de Creatie",
+                art_p4: "In dit virtuele laboratorium hebben we het zand vervangen door duizenden digitale deeltjes en de strijkstok door wiskundige schuifregelaars:",
+                art_li1: "<strong>Frequenties A en B:</strong> Hier ligt het geheim. Je regelt de trilling op de horizontale en verticale as onafhankelijk van elkaar. Naarmate de toon stijgt, reorganiseert het zand zich vanzelf en vormt steeds complexere geometrische mandala's.",
+                art_li2: "<strong>Interferentie:</strong> Wanneer de frequenties A en B harmonisch zijn (bijv. 2.0 en 4.0), zie je stabiele en symmetrische patronen. Wanneer ze dissonant zijn, zie je chaos die op zoek is naar orde.",
+                art_li3: "<strong>Intensiteit:</strong> Regelt de kracht van de golf. Als je deze hoog zet, zal het zand met energie \"springen\"; als je deze verlaagt, zal het zachtjes neerdalen.",
+                art_h4: "Waarom is het Heilige Geometrie?",
+                art_p5: "De patronen die op deze plaat ontstaan zijn niet willekeurig. Het zijn dezelfde terugkerende patronen die we in de natuur vinden: het schild van een schildpad, de vlekken van een luipaard, de structuur van een sneeuwvlok of de rangschikking van atomen in een kristal. Cymatics laat ons visueel zien dat materie simpelweg verdicht geluid is dat door geometrie is georganiseerd.",
+                footer_coffee: "☕ Trakteer me op een koffie",
+                legal_aviso: "Juridische Kennisgeving",
+                legal_privacidad: "Privacy",
+                legal_cookies: "Cookies"
+            },
+            ja: {
+                sim_title: "サイマティクス (干渉)",
+                btn_png: "💾 PNGを保存",
+                btn_jpg: "📸 JPGを保存",
+                btn_random: "🎲 ランダム共鳴",
+                mix_title: "波の混合",
+                freq_a: "周波数 A (N軸)",
+                freq_b: "周波数 B (M軸)",
+                amplitude: "🌊 強度",
+                damping: "⏳ 減衰",
+                matter_title: "物質 (砂)",
+                particles: "粒子数",
+                color: "砂の色",
+                sand_size: "粒の大きさ",
+                art_title: "サイマティクス：音が形を作るとき",
+                art_concept_label: "コンセプト:",
+                art_concept_quote: '"はじめに言葉（振動）があった"。',
+                art_p1: "この古来の言葉は、現代物理学が確認した真実を指し示しています。振動は現実の根本的な設計図です。私たちが「固体物質」として見ているものはすべて、実際には異なる周波数で振動しているエネルギーです。サイマティクス（ギリシャ語の「kyma（波）」に由来）は、この目に見えない音を可視化する科学です。",
+                art_h2: "ツール：クラドニ図形",
+                art_p2: "目の前にあるのは、クラドニプレートの高精度な物理シミュレーションです。18世紀に物理学者エルンスト・クラドニによって発明された本来の実験は、細かい砂をまいた金属板で構成されていました。",
+                art_p3: "バイオリンの弓やスピーカーでプレートを振動させると、砂が動き出します。砂は激しい振動の領域から逃れ、「節線」（振動が打ち消し合ってゼロになる領域）に集まります。その結果、複雑な幾何学模様が瞬時に形成されます。",
+                art_h3: "魔法：あなたが創造をコントロールする",
+                art_p4: "この仮想ラボでは、砂を数千のデジタル粒子に、バイオリンの弓を数学的なスライダーに置き換えました：",
+                art_li1: "<strong>周波数 A と B:</strong> ここに秘密があります。水平軸と垂直軸の振動を独立して制御します。音を上げると、砂は自ら再編成され、ますます複雑な幾何学的曼荼羅を形成します。",
+                art_li2: "<strong>干渉:</strong> 周波数 A と B が調和している場合（例：2.0 と 4.0）、安定した対称的なパターンが見られます。不協和な場合は、秩序を求める混沌が見られます。",
+                art_li3: "<strong>強度:</strong> 波の力を制御します。強度を上げると砂はエネルギーで「跳ね」ます。下げると、砂は静かに落ち着きます。",
+                art_h4: "なぜ神聖幾何学なのか？",
+                art_p5: "このプレートに現れるパターンはランダムではありません。それらは自然界に見られるものと同じ繰り返しのパターンです。亀の甲羅、ヒョウの斑点、雪の結晶の構造、あるいは結晶内の原子の配置などです。サイマティクスは、物質が単に幾何学によって組織化され、凝縮された音であることを視覚的に証明しています。",
+                footer_coffee: "☕ コーヒーを一杯おごる",
+                legal_aviso: "法的通知",
+                legal_privacidad: "プライバシー",
+                legal_cookies: "クッキー"
+            }
+        };
+
+
+        function setLang(lang) {
+            const l = lang.toLowerCase();
+            localStorage.setItem('gl_lang', l);
+            const t = translations[l] || translations['es'] || translations['en'];
+
+            if (!t) return;
+
+            // 1. Update elements with data-i18n attribute
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) {
+                    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                        el.placeholder = t[key];
+                    } else {
+                        el.innerHTML = t[key];
+                    }
+                }
+            });
+
+            // 2. Update elements by ID (fallback for older structure)
+            Object.keys(t).forEach(key => {
+                const el = document.getElementById(key) || document.getElementById('txt-' + key);
+                if (el) {
+                    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.placeholder = t[key];
+                    else el.innerHTML = t[key];
+                }
+            });
+
+            // 3. Highlight active language buttons
+            document.querySelectorAll('.lang-switch button, .lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.id === 'btn-' + l || btn.innerText.toLowerCase() === l);
+            });
+        }
+
+        function switchLangUrl(lang) {
+            const pathParts = window.location.pathname.split('/');
+            const langIndex = pathParts.findIndex(p => ['es', 'ca', 'en', 'fr', 'de', 'pt', 'it', 'nl', 'ja'].includes(p));
+            if (langIndex !== -1) {
+                pathParts[langIndex] = lang.toLowerCase();
+                window.location.href = pathParts.join('/');
+            } else {
+                setLang(lang);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const pathParts = window.location.pathname.split('/');
+            const urlLang = pathParts.find(p => ['es', 'ca', 'en', 'fr', 'de', 'pt', 'it', 'nl', 'ja'].includes(p));
+            const lang = urlLang || localStorage.getItem('gl_lang') || 'es';
+            setLang(lang);
         });
-        document.querySelectorAll('.lang-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.innerText === lang);
-        });
-    }
 
-    // --- LÓGICA DEL SIMULADOR (ORIGINAL E INTACTA) ---
-    const canvas = document.getElementById('cymaticsCanvas');
-    const ctx = canvas.getContext('2d');
-    const state = {
-        freqA: 2.0, freqB: 5.0, amplitude: 0.8, damping: 0.92,
-        count: 5000, sandColor: '#00ff41', sandSize: 1.5,
-    };
-    let particles = [];
-    let width, height;
-    
-    function init() {
-        resize();
-        window.addEventListener('resize', resize);
-        setupControls();
-        initParticles();
-        animate();
-    }
 
-    function resize() {
-        const parent = canvas.parentElement;
-        canvas.width = parent.clientWidth;
-        canvas.height = parent.clientHeight;
-        width = canvas.width;
-        height = canvas.height;
-        initParticles(); 
-    }
+        // --- LÓGICA DEL SIMULADOR (ORIGINAL E INTACTA) ---
+        const canvas = document.getElementById('cymaticsCanvas');
+        const ctx = canvas.getContext('2d');
+        const state = {
+            freqA: 2.0, freqB: 5.0, amplitude: 0.8, damping: 0.92,
+            count: 5000, sandColor: '#00ff41', sandSize: 1.5,
+        };
+        let particles = [];
+        let width, height;
 
-    class Particle {
-        constructor() { this.reset(); }
-        reset() {
-            this.x = Math.random() * width;
-            this.y = Math.random() * height;
-            this.vx = (Math.random() - 0.5) * 2;
-            this.vy = (Math.random() - 0.5) * 2;
+        function init() {
+            resize();
+            window.addEventListener('resize', resize);
+            setupControls();
+            initParticles();
+            animate();
         }
-        update() {
-            const scale = Math.min(width, height) * 0.45; 
-            const nx = (this.x - width / 2) / scale;
-            const ny = (this.y - height / 2) / scale;
-            const pi = Math.PI;
-            const n = state.freqA;
-            const m = state.freqB;
-            const vibration = Math.cos(n * pi * nx) * Math.cos(m * pi * ny) - 
-                              Math.cos(m * pi * nx) * Math.cos(n * pi * ny);
-            const stochasticForce = Math.abs(vibration) * state.amplitude * 2;
-            this.vx += (Math.random() - 0.5) * stochasticForce;
-            this.vy += (Math.random() - 0.5) * stochasticForce;
-            this.x += this.vx; this.y += this.vy;
-            this.vx *= state.damping; this.vy *= state.damping;
-            if (this.x < 0) this.x = width; if (this.x > width) this.x = 0;
-            if (this.y < 0) this.y = height; if (this.y > height) this.y = 0;
+
+        function resize() {
+            const parent = canvas.parentElement;
+            canvas.width = parent.clientWidth;
+            canvas.height = parent.clientHeight;
+            width = canvas.width;
+            height = canvas.height;
+            initParticles();
         }
-    }
 
-    function initParticles() {
-        particles = [];
-        for(let i=0; i<state.count; i++) particles.push(new Particle());
-    }
-
-    function animate() {
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.4)'; 
-        ctx.fillRect(0, 0, width, height);
-        ctx.fillStyle = state.sandColor;
-        for(let p of particles) {
-            p.update();
-            ctx.fillRect(p.x, p.y, state.sandSize, state.sandSize);
+        class Particle {
+            constructor() { this.reset(); }
+            reset() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.vx = (Math.random() - 0.5) * 2;
+                this.vy = (Math.random() - 0.5) * 2;
+            }
+            update() {
+                const scale = Math.min(width, height) * 0.45;
+                const nx = (this.x - width / 2) / scale;
+                const ny = (this.y - height / 2) / scale;
+                const pi = Math.PI;
+                const n = state.freqA;
+                const m = state.freqB;
+                const vibration = Math.cos(n * pi * nx) * Math.cos(m * pi * ny) -
+                    Math.cos(m * pi * nx) * Math.cos(n * pi * ny);
+                const stochasticForce = Math.abs(vibration) * state.amplitude * 2;
+                this.vx += (Math.random() - 0.5) * stochasticForce;
+                this.vy += (Math.random() - 0.5) * stochasticForce;
+                this.x += this.vx; this.y += this.vy;
+                this.vx *= state.damping; this.vy *= state.damping;
+                if (this.x < 0) this.x = width; if (this.x > width) this.x = 0;
+                if (this.y < 0) this.y = height; if (this.y > height) this.y = 0;
+            }
         }
-        requestAnimationFrame(animate);
-    }
 
-    function setupControls() {
-        document.getElementById('freqA').oninput = (e) => {
-            state.freqA = parseFloat(e.target.value);
-            document.getElementById('freqAVal').innerText = state.freqA.toFixed(1);
-            wakeUpParticles();
-        };
-        document.getElementById('freqB').oninput = (e) => {
-            state.freqB = parseFloat(e.target.value);
-            document.getElementById('freqBVal').innerText = state.freqB.toFixed(1);
-            wakeUpParticles();
-        };
-        document.getElementById('amplitude').oninput = (e) => { state.amplitude = parseFloat(e.target.value); wakeUpParticles(); };
-        document.getElementById('damping').oninput = (e) => { state.damping = parseFloat(e.target.value); };
-        document.getElementById('particleCount').oninput = (e) => {
-            state.count = parseInt(e.target.value);
-            document.getElementById('countVal').innerText = (state.count / 1000).toFixed(1) + 'k';
-            initParticles(); 
-        };
-        document.getElementById('sandColor').oninput = (e) => { state.sandColor = e.target.value; };
-        document.getElementById('sandSize').oninput = (e) => { state.sandSize = parseFloat(e.target.value); };
-        
-        document.getElementById('btnRandom').onclick = () => {
-            const rA = Math.floor(Math.random() * 10) + 1;
-            const rB = Math.floor(Math.random() * 10) + 1;
-            state.freqA = rA; state.freqB = rB;
-            document.getElementById('freqA').value = rA;
-            document.getElementById('freqB').value = rB;
-            document.getElementById('freqAVal').innerText = rA.toFixed(1);
-            document.getElementById('freqBVal').innerText = rB.toFixed(1);
-            wakeUpParticles();
-        };
-        document.getElementById('btnPng').onclick = () => saveImage('png');
-        document.getElementById('btnJpg').onclick = () => saveImage('jpeg');
-    }
+        function initParticles() {
+            particles = [];
+            for (let i = 0; i < state.count; i++) particles.push(new Particle());
+        }
 
-    function wakeUpParticles() { for(let p of particles) { p.vx += (Math.random()-0.5) * 5; p.vy += (Math.random()-0.5) * 5; } }
+        function animate() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+            ctx.fillRect(0, 0, width, height);
+            ctx.fillStyle = state.sandColor;
+            for (let p of particles) {
+                p.update();
+                ctx.fillRect(p.x, p.y, state.sandSize, state.sandSize);
+            }
+            requestAnimationFrame(animate);
+        }
 
-    function saveImage(format) {
-        const link = document.createElement('a');
-        link.download = `graphics_lab_cymatics_${Date.now()}.${format}`;
-        link.href = canvas.toDataURL(`image/${format}`);
-        link.click();
-    }
+        function setupControls() {
+            document.getElementById('freqA').oninput = (e) => {
+                state.freqA = parseFloat(e.target.value);
+                document.getElementById('freqAVal').innerText = state.freqA.toFixed(1);
+                wakeUpParticles();
+            };
+            document.getElementById('freqB').oninput = (e) => {
+                state.freqB = parseFloat(e.target.value);
+                document.getElementById('freqBVal').innerText = state.freqB.toFixed(1);
+                wakeUpParticles();
+            };
+            document.getElementById('amplitude').oninput = (e) => { state.amplitude = parseFloat(e.target.value); wakeUpParticles(); };
+            document.getElementById('damping').oninput = (e) => { state.damping = parseFloat(e.target.value); };
+            document.getElementById('particleCount').oninput = (e) => {
+                state.count = parseInt(e.target.value);
+                document.getElementById('countVal').innerText = (state.count / 1000).toFixed(1) + 'k';
+                initParticles();
+            };
+            document.getElementById('sandColor').oninput = (e) => { state.sandColor = e.target.value; };
+            document.getElementById('sandSize').oninput = (e) => { state.sandSize = parseFloat(e.target.value); };
 
-    init();
-</script>
+            document.getElementById('btnRandom').onclick = () => {
+                const rA = Math.floor(Math.random() * 10) + 1;
+                const rB = Math.floor(Math.random() * 10) + 1;
+                state.freqA = rA; state.freqB = rB;
+                document.getElementById('freqA').value = rA;
+                document.getElementById('freqB').value = rB;
+                document.getElementById('freqAVal').innerText = rA.toFixed(1);
+                document.getElementById('freqBVal').innerText = rB.toFixed(1);
+                wakeUpParticles();
+            };
+            document.getElementById('btnPng').onclick = () => saveImage('png');
+            document.getElementById('btnJpg').onclick = () => saveImage('jpeg');
+        }
+
+        function wakeUpParticles() { for (let p of particles) { p.vx += (Math.random() - 0.5) * 5; p.vy += (Math.random() - 0.5) * 5; } }
+
+        function saveImage(format) {
+            const link = document.createElement('a');
+            link.download = `graphics_lab_cymatics_${Date.now()}.${format}`;
+            link.href = canvas.toDataURL(`image/${format}`);
+            link.click();
+        }
+
+        init();
+    setLang('de');
+    </script>
 </body>
+
 </html>

@@ -28,10 +28,7 @@
         // Some labs use uppercase keys (ES/EN), others lowercase (es/en)
         document.addEventListener('DOMContentLoaded', function() {
             if (typeof setLang === 'function') {
-                // Try uppercase first (used by most lab pages with inline translations)
-                try { setLang('ES'); } catch(e) {}
-                // Also try lowercase (used by magic-square style pages)
-                try { setLang('es'); } catch(e) {}
+                setLang('es');
             }
         });
     })();
@@ -41,7 +38,7 @@
      crossorigin="anonymous"></script>
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Laboratorio interactivo de Toroide Vortex. Experimenta con arte generativo y matemáticas visuales en Graphics Labs.">
+    
     
     <script>
         document.addEventListener('contextmenu', event => event.preventDefault());
@@ -62,29 +59,26 @@
 
         body { margin: 0; background-color: #000; font-family: 'Segoe UI', sans-serif; color: #ddd; overflow-x: hidden; display: flex; flex-direction: column; }
         
-        /* --- SISTEMA DE NAVEGACIÓN SUPERIOR --- */
+        
+        /* --- SISTEMA DE NAVEGACIÓN SUPERIOR (ESTANDARIZADO) --- */
         .top-nav {
-            position: fixed; top: 0; left: 0; width: 100%; height: 65px;
+            position: fixed; top: 0; left: 0; width: 100%; min-height: 65px;
             background: var(--nav-bg); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
             display: flex; justify-content: space-between; align-items: center;
             padding: 0 20px; box-sizing: border-box; z-index: 1000;
-            border-bottom: 1px solid var(--glass);
+            border-bottom: 1px solid var(--glass); flex-wrap: wrap;
         }
         .nav-left { display: flex; align-items: center; gap: 15px; }
-        .nav-brand { color: var(--primary); font-weight: 900; letter-spacing: 2px; font-size: 1.2em; text-decoration: none; }
-        .nav-btn { 
-            background: var(--glass); border: 1px solid #333; color: #fff; padding: 6px 12px; 
-            border-radius: 4px; text-decoration: none; font-size: 0.8em; font-weight: bold; transition: 0.3s;
-        }
-        .nav-btn:hover { background: var(--primary); color: #000; border-color: var(--primary); }
+        .nav-brand-container { font-size: 0.9em; letter-spacing: 1px; font-weight: bold; }
+        .gl-breadcrumb-main { opacity: 0.6; text-decoration: none; color: inherit; }
+        .gl-category { color: var(--primary); margin-left: 10px; font-weight: 900; }
 
-        .lang-selector { display: flex; gap: 5px; }
-        .lang-btn { 
-            background: transparent; border: 1px solid #444; color: #888; padding: 4px 8px; 
-            border-radius: 3px; cursor: pointer; font-size: 0.7em; transition: 0.3s;
+        @media (max-width: 800px) {
+            .top-nav { flex-direction: column; height: auto; padding: 15px; gap: 12px; }
+            .lang-selector { display: flex !important; justify-content: center; flex-wrap: wrap; gap: 5px; }
+            #app-wrapper { padding-top: 130px; } 
         }
-        .lang-btn.active { border-color: var(--primary); color: var(--primary); background: rgba(0, 255, 65, 0.1); }
-
+    
         /* --- LAYOUT APP --- */
         #app-wrapper { display: flex; width: 100%; height: 100vh; padding-top: 65px; box-sizing: border-box; border-bottom: 2px solid #222; }
         
@@ -154,8 +148,35 @@
             #controls-container { min-width: 100%; }
             .lang-selector { display: none; }
         }
-    </style>
-    <link rel="canonical" href="https://graphics-labs.org/es/labs/toroide-vortex/" />
+    
+        /* ==GL-NAV== */
+        .top-nav{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;background:rgba(0,0,0,0.8);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,0.08);position:sticky;top:0;z-index:1000;flex-wrap:wrap;gap:10px;box-sizing:border-box;}
+        .nav-left{display:flex;align-items:center;}
+        .nav-bc{font-size:.8rem;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;display:flex;align-items:center;white-space:nowrap;}
+        .nav-bc .gl-hub{color:rgba(255,255,255,.45);text-decoration:none;transition:color .2s;}
+        .nav-bc .gl-hub:hover{color:rgba(255,255,255,.85);}
+        .nav-bc .gl-sep{color:rgba(255,255,255,.2);margin:0 7px;font-weight:400;}
+        .nav-bc .gl-sec{color:var(--primary);text-decoration:none;transition:opacity .2s;}
+        .nav-bc .gl-sec:hover{opacity:.75;}
+        .lang-switch{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;}
+        .lang-switch button,.lang-selector button,.lang-btn{background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.1);color:#999;width:38px;height:28px;cursor:pointer;border-radius:4px;font-size:.7rem;font-weight:700;transition:.2s;display:flex;align-items:center;justify-content:center;}
+        .lang-switch button:hover,.lang-selector button:hover,.lang-btn:hover{border-color:var(--primary);color:var(--primary);}
+        .lang-switch button.active,.lang-selector button.active,.lang-btn.active{background:var(--primary);color:#000;border-color:var(--primary);}
+        @media(max-width:620px){.top-nav{flex-direction:column;align-items:flex-start;padding:12px 15px;}.lang-switch,.lang-selector{width:100%;justify-content:center;}}
+        /* ==/GL-NAV== */
+        
+        /* Fix SEO H1 Automático */
+        h1[id*="title"], h1[data-i18n*="title"], h1[data-i18n*="app"], h1[data-i18n*="lab"] {
+            font-size: 1.5rem;
+            color: var(--primary, #00ff41);
+            margin-bottom: 20px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+</style>
+    
 
     <link rel="alternate" hreflang="es" href="https://graphics-labs.org/es/labs/toroide-vortex/" />
     <link rel="alternate" hreflang="ca" href="https://graphics-labs.org/ca/labs/toroide-vortex/" />
@@ -167,25 +188,31 @@
     <link rel="alternate" hreflang="nl" href="https://graphics-labs.org/nl/labs/toroide-vortex/" />
     <link rel="alternate" hreflang="ja" href="https://graphics-labs.org/ja/labs/toroide-vortex/" />
     <link rel="alternate" hreflang="x-default" href="https://graphics-labs.org/es/labs/toroide-vortex/" />
+    
+    <link rel="canonical" href="https://graphics-labs.org/es/labs/toroide-vortex/" />
+    <meta name="description" content="Laboratorio interactivo de Toroide Vortex. Experimenta con arte generativo y matemáticas visuales en Graphics Labs.">
 </head>
 <body>
 
+
 <nav class="top-nav">
     <div class="nav-left">
-        <a href="../../index.html" class="nav-btn" data-i18n="nav_hub">HUB</a>
-        <a href="javascript:history.back()" class="nav-btn" data-i18n="nav_back">BACK</a>
-        <span class="nav-brand">GRAPHICS LABS</span>
+        <div class="nav-bc">
+            <a href="../../index.html" class="gl-hub" id="nav-main">GRAPHICS LABS</a>
+            <span class="gl-sep">&gt;</span>
+            <a href="../geometria-sagrada-index.html" class="gl-sec" id="nav-math">GEO-S LABS</a>
+        </div>
     </div>
-    <div class="lang-selector">
-        <button class="lang-btn active" onclick="changeLanguage('es')">ES</button>
-        <button class="lang-btn" onclick="changeLanguage('ca')">CA</button>
-        <button class="lang-btn" onclick="changeLanguage('en')">EN</button>
-        <button class="lang-btn" onclick="changeLanguage('fr')">FR</button>
-        <button class="lang-btn" onclick="changeLanguage('de')">DE</button>
-        <button class="lang-btn" onclick="changeLanguage('pt')">PT</button>
-        <button class="lang-btn" onclick="changeLanguage('it')">IT</button>
-        <button class="lang-btn" onclick="changeLanguage('nl')">NL</button>
-        <button class="lang-btn" onclick="changeLanguage('ja')">JA</button>
+    <div class="lang-switch">
+        <button onclick="switchLangUrl('es')" id="btn-es" class="lang-btn active">ES</button>
+        <button onclick="switchLangUrl('ca')" id="btn-ca" class="lang-btn">CA</button>
+        <button onclick="switchLangUrl('en')" id="btn-en" class="lang-btn">EN</button>
+        <button onclick="switchLangUrl('fr')" id="btn-fr" class="lang-btn">FR</button>
+        <button onclick="switchLangUrl('de')" id="btn-de" class="lang-btn">DE</button>
+        <button onclick="switchLangUrl('pt')" id="btn-pt" class="lang-btn">PT</button>
+        <button onclick="switchLangUrl('it')" id="btn-it" class="lang-btn">IT</button>
+        <button onclick="switchLangUrl('nl')" id="btn-nl" class="lang-btn">NL</button>
+        <button onclick="switchLangUrl('ja')" id="btn-ja" class="lang-btn">JA</button>
     </div>
 </nav>
 
@@ -195,7 +222,7 @@
     </div>
 
     <div id="controls-container">
-        <h2 data-i18n="sim_title">TOROIDE VÓRTEX</h2>
+        <h1 data-i18n="sim_title">TOROIDE VÓRTEX</h1>
         
         <div class="btn-group">
             <button id="btnPng" class="export-btn">💾 PNG</button>
@@ -491,18 +518,38 @@
         }
     };
 
-    function changeLanguage(lang) {
-        document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
-        // Buscar el botón correcto por el texto
-        const btns = document.querySelectorAll('.lang-btn');
-        btns.forEach(btn => { if(btn.innerText.toLowerCase() === lang) btn.classList.add('active'); });
+    
+        function setLang(lang) {
+            const l = lang.toLowerCase();
+            localStorage.setItem('gl_lang', l);
+            const t = translations[l] || translations['es'];
+            
+            const safeSet = (id, text, isHTML = false) => {
+                const el = document.getElementById(id);
+                if (el && text) {
+                    if (isHTML || id.includes('rule-')) el.innerHTML = text;
+                    else el.innerText = text;
+                }
+            };
 
-        const texts = translations[lang] || translations['en'];
-        document.querySelectorAll('[data-i18n]').forEach(el => {
-            const key = el.getAttribute('data-i18n');
-            if (texts[key]) el.innerHTML = texts[key];
-        });
-    }
+            // Mapeo automático basado en las claves de la traducción
+            Object.keys(t).forEach(key => {
+                const possibleIds = [key, 'txt-' + key, 'info-h-' + key, 'info-p-' + key, key.replace('_', '-')];
+                possibleIds.forEach(id => safeSet(id, t[key]));
+                // Por data-i18n
+                document.querySelectorAll('[data-i18n="' + key + '"]').forEach(function(el) {
+                    if (t[key].includes('<')) el.innerHTML = t[key];
+                    else el.innerText = t[key];
+                });
+            });
+
+            // Resaltado de botones
+            document.querySelectorAll('.lang-switch button, .lang-btn').forEach(b => {
+                b.classList.remove('active');
+                if(b.id === 'btn-' + l || b.innerText.toLowerCase() === l) b.classList.add('active');
+            });
+        }
+    window.changeLanguage = setLang;
 
     // --- LÓGICA DEL SIMULADOR (INALTERADA) ---
     const canvas = document.getElementById('torusCanvas');
@@ -645,6 +692,7 @@
 
     window.addEventListener('resize', () => setTimeout(resizeCanvas, 100));
     init();
+    setLang('es');
 </script>
 </body>
 </html>

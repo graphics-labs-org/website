@@ -1,48 +1,46 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <script>
-    // --- i18n URL Router ---
-    (function() {
-        window.__GL_LANG = 'fr';
-        window.__GL_LANG_UPPER = 'FR';
-        window.__GL_LANGS = ['es', 'ca', 'en', 'fr', 'de', 'pt', 'it', 'nl', 'ja'];
-        
-        // Override localStorage to always use URL-based language
-        localStorage.setItem('gl_lang', 'fr');
-        
-        // Language switcher: navigate to the equivalent page in the target language folder
-        window.switchLangUrl = function(targetLang) {
-            var path = window.location.pathname;
-            // Replace current lang segment with target lang
-            var newPath = path.replace(/^\/(es|ca|en|fr|de|pt|it|nl|ja)\//, '/' + targetLang.toLowerCase() + '/');
-            if (newPath === path) {
-                // Fallback: prepend lang
-                newPath = '/' + targetLang.toLowerCase() + '/';
-            }
-            window.location.href = newPath + window.location.hash;
-        };
-        
-        // Auto-call setLang on DOMContentLoaded to apply translations
-        // Some labs use uppercase keys (ES/EN), others lowercase (es/en)
-        document.addEventListener('DOMContentLoaded', function() {
-            if (typeof setLang === 'function') {
-                // Try uppercase first (used by most lab pages with inline translations)
-                try { setLang('FR'); } catch(e) {}
-                // Also try lowercase (used by magic-square style pages)
-                try { setLang('fr'); } catch(e) {}
-            }
-        });
-    })();
+        // --- i18n URL Router ---
+        (function () {
+            window.__GL_LANG = 'fr';
+            window.__GL_LANG_UPPER = 'FR';
+            window.__GL_LANGS = ['es', 'ca', 'en', 'fr', 'de', 'pt', 'it', 'nl', 'ja'];
+
+            // Override localStorage to always use URL-based language
+            localStorage.setItem('gl_lang', 'fr');
+
+            // Language switcher: navigate to the equivalent page in the target language folder
+            window.switchLangUrl = function (targetLang) {
+                var path = window.location.pathname;
+                // Replace current lang segment with target lang
+                var newPath = path.replace(/^\/(es|ca|en|fr|de|pt|it|nl|ja)\//, '/' + targetLang.toLowerCase() + '/');
+                if (newPath === path) {
+                    // Fallback: prepend lang
+                    newPath = '/' + targetLang.toLowerCase() + '/';
+                }
+                window.location.href = newPath + window.location.hash;
+            };
+
+            // Auto-call setLang on DOMContentLoaded to apply translations
+            // Some labs use uppercase keys (ES/EN), others lowercase (es/en)
+            document.addEventListener('DOMContentLoaded', function () {
+                if (typeof setLang === 'function') {
+                    setLang('fr');
+                }
+            });
+        })();
     </script>
     <title>Solidos Platonicos | Graphics Labs</title>
-    
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3150277567590534"
-     crossorigin="anonymous"></script>
+
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3150277567590534"
+        crossorigin="anonymous"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="description" content="Laboratoire interactif de Solidos Platonicos. Expérimentez avec l'art génératif et les mathématiques visuelles sur Graphics Labs.">
     
+
     <style>
         :root {
             --primary: #00ff41;
@@ -50,120 +48,547 @@
             --nav-bg: rgba(0, 0, 0, 0.85);
         }
 
-        html, body { 
-            margin: 0; padding: 0; background-color: #000; font-family: 'Segoe UI', sans-serif; color: #ddd; height: 100%; 
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            font-family: 'Segoe UI', sans-serif;
+            color: #ddd;
+            height: 100%;
         }
 
         /* --- SISTEMA DE NAVEGACIÓN SUPERIOR --- */
         .top-nav {
-            position: fixed; top: 0; left: 0; width: 100%; height: 65px;
-            background: var(--nav-bg); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 0 20px; box-sizing: border-box; z-index: 1000;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 65px;
+            background: var(--nav-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            box-sizing: border-box;
+            z-index: 1000;
             border-bottom: 1px solid var(--glass);
         }
-        .nav-left { display: flex; align-items: center; gap: 15px; }
-        .nav-brand { color: var(--primary); font-weight: 900; letter-spacing: 2px; font-size: 1.2em; text-decoration: none; }
-        .nav-btn { 
-            background: var(--glass); border: 1px solid #333; color: #fff; padding: 6px 12px; 
-            border-radius: 4px; text-decoration: none; font-size: 0.8em; font-weight: bold; transition: 0.3s;
-        }
-        .nav-btn:hover { background: var(--primary); color: #000; border-color: var(--primary); }
 
-        .lang-selector { display: flex; gap: 5px; }
-        .lang-btn { 
-            background: transparent; border: 1px solid #444; color: #888; padding: 4px 8px; 
-            border-radius: 3px; cursor: pointer; font-size: 0.7em; transition: 0.3s;
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
-        .lang-btn.active { border-color: var(--primary); color: var(--primary); background: rgba(0, 255, 65, 0.1); }
-        
-        #app-wrapper { display: flex; width: 100%; height: 100vh; overflow: hidden; padding-top: 65px; box-sizing: border-box; }
-        
+
+        .nav-brand {
+            color: var(--primary);
+            font-weight: 900;
+            letter-spacing: 2px;
+            font-size: 1.2em;
+            text-decoration: none;
+        }
+
+        .nav-btn {
+            background: var(--glass);
+            border: 1px solid #333;
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 0.8em;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .nav-btn:hover {
+            background: var(--primary);
+            color: #000;
+            border-color: var(--primary);
+        }
+
+        .lang-selector {
+            display: flex;
+            gap: 5px;
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 1px solid #444;
+            color: #888;
+            padding: 4px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.7em;
+            transition: 0.3s;
+        }
+
+        .lang-btn.active {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(0, 255, 65, 0.1);
+        }
+
+        #app-wrapper {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+            padding-top: 65px;
+            box-sizing: border-box;
+        }
+
         #canvas-container {
-            flex: 3; position: relative;
+            flex: 3;
+            position: relative;
             background: radial-gradient(circle at center, #0a1a0a 0%, #000 100%);
-            outline: none; cursor: grab; overflow: hidden; touch-action: none; 
+            outline: none;
+            cursor: grab;
+            overflow: hidden;
+            touch-action: none;
         }
-        #canvas-container:active { cursor: grabbing; }
-        canvas { display: block; width: 100% !important; height: 100% !important; outline: none; }
-        
+
+        #canvas-container:active {
+            cursor: grabbing;
+        }
+
+        canvas {
+            display: block;
+            width: 100% !important;
+            height: 100% !important;
+            outline: none;
+        }
+
         #controls-container {
-            flex: 2; min-width: 340px; background-color: #050505; padding: 20px;
-            overflow-y: auto; box-shadow: -5px 0 30px rgba(0,0,0,0.8); border-left: 1px solid #222; z-index: 10;
+            flex: 2;
+            min-width: 340px;
+            background-color: #050505;
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: -5px 0 30px rgba(0, 0, 0, 0.8);
+            border-left: 1px solid #222;
+            z-index: 10;
         }
 
-        h2 { color: var(--primary); margin-bottom: 20px; text-align: center; letter-spacing: 3px; text-transform: uppercase; text-shadow: 0 0 10px rgba(0,255,65,0.5); }
-        
-        .btn-group { display: flex; gap: 10px; margin-bottom: 25px; }
+        h2 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            text-align: center;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
         .export-btn {
-            flex: 1; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;
-            transition: 0.2s; font-size: 0.8em;
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.8em;
         }
-        #btnPng { background-color: var(--primary); color: #000; } 
-        #btnJpg { background-color: #fff; color: #000; } 
 
-        .solid-selector { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 30px; }
+        #btnPng {
+            background-color: var(--primary);
+            color: #000;
+        }
+
+        #btnJpg {
+            background-color: #fff;
+            color: #000;
+        }
+
+        .solid-selector {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin-bottom: 30px;
+        }
+
         .solid-btn {
-            background: #111; border: 1px solid #333; color: #666; padding: 10px 5px; border-radius: 8px; cursor: pointer; transition: 0.3s;
-            display:flex; flex-direction: column; justify-content:center; align-items:center;
+            background: #111;
+            border: 1px solid #333;
+            color: #666;
+            padding: 10px 5px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
-        .solid-btn svg { width: 30px; height: 30px; fill: none; stroke: #555; stroke-width: 2; }
-        .solid-btn span { font-size: 0.7em; margin-top: 5px; text-transform: uppercase; }
-        .solid-btn.active { background: rgba(0, 255, 65, 0.1); color: var(--primary); border-color: var(--primary); box-shadow: 0 0 15px rgba(0,255,65,0.3);}
-        .solid-btn.active svg { stroke: var(--primary); }
 
-        .control-group { background: var(--glass); border: 1px solid #333; border-radius: 8px; padding: 15px; margin-bottom: 18px; }
-        .control-row { display: flex; align-items: center; margin-bottom: 12px; font-size: 0.9em; }
-        .control-label { flex: 1; color: #ccc; }
-        
-        input[type=range] { flex-grow: 2; cursor: pointer; accent-color: var(--primary); }
-        input[type=color] { border: none; width: 40px; height: 30px; border-radius: 4px; cursor: pointer; padding: 0; }
-        .value-display { width: 40px; text-align: center; font-family: monospace; font-weight: bold; color: var(--primary); }
+        .solid-btn svg {
+            width: 30px;
+            height: 30px;
+            fill: none;
+            stroke: #555;
+            stroke-width: 2;
+        }
+
+        .solid-btn span {
+            font-size: 0.7em;
+            margin-top: 5px;
+            text-transform: uppercase;
+        }
+
+        .solid-btn.active {
+            background: rgba(0, 255, 65, 0.1);
+            color: var(--primary);
+            border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
+        }
+
+        .solid-btn.active svg {
+            stroke: var(--primary);
+        }
+
+        .control-group {
+            background: var(--glass);
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 18px;
+        }
+
+        .control-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 0.9em;
+        }
+
+        .control-label {
+            flex: 1;
+            color: #ccc;
+        }
+
+        input[type=range] {
+            flex-grow: 2;
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
+
+        input[type=color] {
+            border: none;
+            width: 40px;
+            height: 30px;
+            border-radius: 4px;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .value-display {
+            width: 40px;
+            text-align: center;
+            font-family: monospace;
+            font-weight: bold;
+            color: var(--primary);
+        }
 
         /* --- ADS & CONTENT --- */
         .ad-container {
-            border: 1px dashed #444; background: #0a0a0a; color: #555;
-            padding: 20px; margin: 40px auto; max-width: 900px; text-align: center;
-            font-family: 'Courier New', monospace; font-size: 0.8em; letter-spacing: 2px;
+            border: 1px dashed #444;
+            background: #0a0a0a;
+            color: #555;
+            padding: 20px;
+            margin: 40px auto;
+            max-width: 900px;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8em;
+            letter-spacing: 2px;
         }
 
-        .content-section { max-width: 900px; margin: 0 auto; padding: 60px 20px; }
-        article h2 { color: var(--primary); border-left: 4px solid var(--primary); padding-left: 15px; margin-top: 60px; font-size: 2em; letter-spacing: 1px;}
-        article h3 { color: #fff; margin-top: 40px; font-size: 1.5em; border-bottom: 1px solid #333; padding-bottom: 10px; }
-        article p { margin-bottom: 20px; font-size: 1.1em; color: #ccc; line-height: 1.8; text-align: justify; }
-        article ul { list-style: none; padding: 0; margin-bottom: 30px; }
-        article li { margin-bottom: 15px; padding-left: 20px; border-left: 2px solid var(--primary); color: #aaa; line-height: 1.6; }
-        article strong { color: #fff; }
+        .content-section {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 60px 20px;
+        }
 
-        table { width:100%; border-collapse: collapse; margin-top:30px; margin-bottom:40px; background: #0a0a0a; border-radius: 8px; overflow: hidden; }
-        th { text-align:left; padding:15px; color:var(--primary); background: #111; border-bottom:2px solid var(--primary); text-transform: uppercase; font-size: 0.9em;}
-        td { padding:15px; border-bottom:1px solid #222; color: #bbb; }
-        
-        .icon-cell { display: flex; align-items: center; gap: 10px; color: #fff; font-weight: bold; }
-        .table-svg { width: 24px; height: 24px; stroke: var(--primary); fill: none; stroke-width: 2; }
+        article h2 {
+            color: var(--primary);
+            border-left: 4px solid var(--primary);
+            padding-left: 15px;
+            margin-top: 60px;
+            font-size: 2em;
+            letter-spacing: 1px;
+        }
 
-        footer { background-color: #050505; padding: 60px 20px; text-align: center; border-top: 1px solid #222; font-size: 0.9em; color: #666; }
+        article h3 {
+            color: #fff;
+            margin-top: 40px;
+            font-size: 1.5em;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+        }
+
+        article p {
+            margin-bottom: 20px;
+            font-size: 1.1em;
+            color: #ccc;
+            line-height: 1.8;
+            text-align: justify;
+        }
+
+        article ul {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 30px;
+        }
+
+        article li {
+            margin-bottom: 15px;
+            padding-left: 20px;
+            border-left: 2px solid var(--primary);
+            color: #aaa;
+            line-height: 1.6;
+        }
+
+        article strong {
+            color: #fff;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+            margin-bottom: 40px;
+            background: #0a0a0a;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th {
+            text-align: left;
+            padding: 15px;
+            color: var(--primary);
+            background: #111;
+            border-bottom: 2px solid var(--primary);
+            text-transform: uppercase;
+            font-size: 0.9em;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #222;
+            color: #bbb;
+        }
+
+        .icon-cell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .table-svg {
+            width: 24px;
+            height: 24px;
+            stroke: var(--primary);
+            fill: none;
+            stroke-width: 2;
+        }
+
+        footer {
+            background-color: #050505;
+            padding: 60px 20px;
+            text-align: center;
+            border-top: 1px solid #222;
+            font-size: 0.9em;
+            color: #666;
+        }
+
         .paypal-btn {
-            display: inline-block; background: #0070ba; color: #fff; padding: 12px 25px; 
-            border-radius: 50px; text-decoration: none; font-weight: bold; margin-bottom: 30px;
-            transition: 0.3s; box-shadow: 0 4px 15px rgba(0, 112, 186, 0.3);
+            display: inline-block;
+            background: #0070ba;
+            color: #fff;
+            padding: 12px 25px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-bottom: 30px;
+            transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 112, 186, 0.3);
         }
-        .footer-links { margin: 20px 0; }
-        .footer-links a { color: #888; text-decoration: none; margin: 0 10px; }
-        .footer-links a:hover { color: var(--primary); }
+
+        .footer-links {
+            margin: 20px 0;
+        }
+
+        .footer-links a {
+            color: #888;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary);
+        }
 
         @media (max-width: 800px) {
-            #app-wrapper { display: block; height: auto; }
-            #canvas-container { height: 50vh; border-bottom: 2px solid var(--primary); }
-            #controls-container { min-width: 100%; }
-            .lang-selector { display: none; }
+            #app-wrapper {
+                display: block;
+                height: auto;
+            }
+
+            #canvas-container {
+                height: 50vh;
+                border-bottom: 2px solid var(--primary);
+            }
+
+            #controls-container {
+                min-width: 100%;
+            }
+
+            .lang-selector {
+                display: none;
+            }
         }
-    </style>
+
+        /* ==GL-NAV== */
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 20px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            flex-wrap: wrap;
+            gap: 10px;
+            box-sizing: border-box;
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-bc {
+            font-size: .8rem;
+            font-weight: 900;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+        }
+
+        .nav-bc .gl-hub {
+            color: rgba(255, 255, 255, .45);
+            text-decoration: none;
+            transition: color .2s;
+        }
+
+        .nav-bc .gl-hub:hover {
+            color: rgba(255, 255, 255, .85);
+        }
+
+        .nav-bc .gl-sep {
+            color: rgba(255, 255, 255, .2);
+            margin: 0 7px;
+            font-weight: 400;
+        }
+
+        .nav-bc .gl-sec {
+            color: var(--primary);
+            text-decoration: none;
+            transition: opacity .2s;
+        }
+
+        .nav-bc .gl-sec:hover {
+            opacity: .75;
+        }
+
+        .lang-switch {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .lang-switch button,
+        .lang-selector button,
+        .lang-btn {
+            background: rgba(0, 0, 0, .4);
+            border: 1px solid rgba(255, 255, 255, .1);
+            color: #999;
+            width: 38px;
+            height: 28px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: .7rem;
+            font-weight: 700;
+            transition: .2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lang-switch button:hover,
+        .lang-selector button:hover,
+        .lang-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .lang-switch button.active,
+        .lang-selector button.active,
+        .lang-btn.active {
+            background: var(--primary);
+            color: #000;
+            border-color: var(--primary);
+        }
+
+        @media(max-width:620px) {
+            .top-nav {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 12px 15px;
+            }
+
+            .lang-switch,
+            .lang-selector {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* ==/GL-NAV== */
     
+        /* Fix SEO H1 Automático */
+        h1[id*="title"], h1[data-i18n*="title"], h1[data-i18n*="app"], h1[data-i18n*="lab"] {
+            font-size: 1.5rem;
+            color: var(--primary, #00ff41);
+            margin-bottom: 20px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+</style>
+
     <script type="importmap">
-        { "imports": { "three": "./libs/three.module.js" } }
+        { "imports": { "three": "../../../assets/libs/three.module.js" } }
     </script>
-    <link rel="canonical" href="https://graphics-labs.org/fr/labs/solidos-platonicos/" />
+    
 
     <link rel="alternate" hreflang="es" href="https://graphics-labs.org/es/labs/solidos-platonicos/" />
     <link rel="alternate" hreflang="ca" href="https://graphics-labs.org/ca/labs/solidos-platonicos/" />
@@ -175,656 +600,753 @@
     <link rel="alternate" hreflang="nl" href="https://graphics-labs.org/nl/labs/solidos-platonicos/" />
     <link rel="alternate" hreflang="ja" href="https://graphics-labs.org/ja/labs/solidos-platonicos/" />
     <link rel="alternate" hreflang="x-default" href="https://graphics-labs.org/es/labs/solidos-platonicos/" />
+    <meta name="description"
+        content="Laboratoire interactif de Solidos Platonicos. Expérimentez avec l'art génératif et les mathématiques visuelles sur Graphics Labs.">
+    <link rel="canonical" href="https://graphics-labs.org/fr/labs/solidos-platonicos/" />
 </head>
+
 <body>
 
-<nav class="top-nav">
-    <div class="nav-left">
-        <a href="../../index.html" class="nav-btn" data-i18n="nav_hub">HUB</a>
-        <a href="javascript:history.back()" class="nav-btn" data-i18n="nav_back">BACK</a>
-        <span class="nav-brand">GRAPHICS LABS</span>
+
+    <nav class="top-nav">
+        <div class="nav-left">
+            <div class="nav-bc">
+                <a href="../../index.html" class="gl-hub" id="nav-main">GRAPHICS LABS</a>
+                <span class="gl-sep">&gt;</span>
+                <a href="../geometria-sagrada-index.html" class="gl-sec" id="nav-math">GEO-S LABS</a>
+            </div>
+        </div>
+        <div class="lang-switch">
+            <button onclick="switchLangUrl('es')" id="btn-es" class="lang-btn">ES</button>
+            <button onclick="switchLangUrl('ca')" id="btn-ca" class="lang-btn">CA</button>
+            <button onclick="switchLangUrl('en')" id="btn-en" class="lang-btn">EN</button>
+            <button onclick="switchLangUrl('fr')" id="btn-fr" class="lang-btn active">FR</button>
+            <button onclick="switchLangUrl('de')" id="btn-de" class="lang-btn">DE</button>
+            <button onclick="switchLangUrl('pt')" id="btn-pt" class="lang-btn">PT</button>
+            <button onclick="switchLangUrl('it')" id="btn-it" class="lang-btn">IT</button>
+            <button onclick="switchLangUrl('nl')" id="btn-nl" class="lang-btn">NL</button>
+            <button onclick="switchLangUrl('ja')" id="btn-ja" class="lang-btn">JA</button>
+        </div>
+    </nav>
+
+    <div id="app-wrapper">
+        <div id="canvas-container"></div>
+
+        <div id="controls-container">
+            <h1 data-i18n="sim_title">Sólidos Platónicos</h1>
+
+            <div class="solid-selector">
+                <button class="solid-btn active" id="btn-0">
+                    <svg viewBox="0 0 100 100">
+                        <polygon points="50,10 90,80 10,80" />
+                        <line x1="50" y1="10" x2="50" y2="50" />
+                        <line x1="10" y1="80" x2="50" y2="50" />
+                        <line x1="90" y1="80" x2="50" y2="50" />
+                    </svg>
+                    <span data-i18n="s_tetra">Tetra</span>
+                </button>
+                <button class="solid-btn" id="btn-1">
+                    <svg viewBox="0 0 100 100">
+                        <rect x="25" y="25" width="50" height="50" />
+                        <rect x="35" y="15" width="50" height="50" style="opacity:0.5" />
+                        <line x1="25" y1="25" x2="35" y2="15" />
+                        <line x1="75" y1="25" x2="85" y2="15" />
+                        <line x1="25" y1="75" x2="35" y2="65" />
+                        <line x1="75" y1="75" x2="85" y2="65" />
+                    </svg>
+                    <span data-i18n="s_cube">Cubo</span>
+                </button>
+                <button class="solid-btn" id="btn-2">
+                    <svg viewBox="0 0 100 100">
+                        <polygon points="50,5 95,50 50,95 5,50" />
+                        <line x1="50" y1="5" x2="50" y2="95" />
+                        <line x1="5" y1="50" x2="95" y2="50" />
+                        <line x1="50" y1="50" x2="25" y2="25" style="opacity:0.5" />
+                    </svg>
+                    <span data-i18n="s_octa">Octa</span>
+                </button>
+                <button class="solid-btn" id="btn-3">
+                    <svg viewBox="0 0 100 100">
+                        <polygon points="50,5 85,25 85,75 50,95 15,75 15,25" />
+                        <line x1="50" y1="5" x2="50" y2="95" />
+                        <line x1="15" y1="25" x2="85" y2="75" />
+                        <line x1="85" y1="25" x2="15" y2="75" />
+                        <line x1="15" y1="25" x2="50" y2="50" />
+                        <line x1="85" y1="25" x2="50" y2="50" />
+                    </svg>
+                    <span data-i18n="s_icosa">Icosa</span>
+                </button>
+                <button class="solid-btn" id="btn-4">
+                    <svg viewBox="0 0 100 100">
+                        <polygon points="50,5 90,35 75,85 25,85 10,35" />
+                        <line x1="50" y1="5" x2="50" y2="45" />
+                        <line x1="90" y1="35" x2="65" y2="55" />
+                        <line x1="75" y1="85" x2="50" y2="65" />
+                        <line x1="25" y1="85" x2="35" y2="55" />
+                        <line x1="10" y1="35" x2="50" y2="45" />
+                        <polygon points="50,45 65,55 50,65 35,55" style="opacity:0.7" />
+                    </svg>
+                    <span data-i18n="s_dodeca">Dodeca</span>
+                </button>
+            </div>
+
+            <div class="btn-group">
+                <button id="btnPng" class="export-btn" data-i18n="btn_png">💾 PNG</button>
+                <button id="btnJpg" class="export-btn" data-i18n="btn_jpg">📸 JPG</button>
+            </div>
+
+            <div class="control-group">
+                <h3 style="margin-top:0; color:#eee; font-size:1em; border-bottom:1px solid #444; padding-bottom:5px;"
+                    data-i18n="group_dual">Dualidad (Geometría Oculta)</h3>
+                <div class="control-row">
+                    <span class="control-label" style="color:var(--primary)" data-i18n="label_dual">Revelar Dual:</span>
+                    <input type="range" id="dualOpacityRange" min="0" max="100" value="0">
+                    <span id="dualVal" class="value-display">0%</span>
+                </div>
+                <p style="font-size:0.8em; color:#888; margin:0;" data-i18n="dual_desc">Muestra la figura complementaria
+                    interna.</p>
+            </div>
+
+            <div class="control-group">
+                <h2 style="margin-top:0; color:#eee; font-size:1em; border-bottom:1px solid #444; padding-bottom:5px;"
+                    data-i18n="group_app">Apariencia</h2>
+                <div class="control-row">
+                    <span class="control-label" data-i18n="label_color">Color Sólido:</span>
+                    <input type="color" id="mainColor" value="#00bfff">
+                </div>
+                <div class="control-row">
+                    <span class="control-label" data-i18n="label_alpha">Transparencia:</span>
+                    <input type="range" id="alphaRange" min="0" max="90" value="15">
+                    <span id="alphaVal" class="value-display">15%</span>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3 style="margin-top:0; color:#eee; font-size:1em; border-bottom:1px solid #444; padding-bottom:5px;"
+                    data-i18n="group_rot">Rotación</h3>
+                <div class="control-row">
+                    <span class="control-label" data-i18n="label_speed">Velocidad Auto:</span>
+                    <input type="range" id="speedRange" min="0" max="50" value="10">
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="lang-selector">
-        <button class="lang-btn active" onclick="changeLanguage('es')">ES</button>
-        <button class="lang-btn" onclick="changeLanguage('ca')">CA</button>
-        <button class="lang-btn" onclick="changeLanguage('en')">EN</button>
-        <button class="lang-btn" onclick="changeLanguage('fr')">FR</button>
-        <button class="lang-btn" onclick="changeLanguage('de')">DE</button>
-        <button class="lang-btn" onclick="changeLanguage('pt')">PT</button>
-        <button class="lang-btn" onclick="changeLanguage('it')">IT</button>
-        <button class="lang-btn" onclick="changeLanguage('nl')">NL</button>
-        <button class="lang-btn" onclick="changeLanguage('ja')">JA</button>
-    </div>
-</nav>
 
-<div id="app-wrapper">
-    <div id="canvas-container"></div>
-
-    <div id="controls-container">
-        <h2 data-i18n="sim_title">Sólidos Platónicos</h2>
-        
-        <div class="solid-selector">
-            <button class="solid-btn active" id="btn-0">
-                <svg viewBox="0 0 100 100"><polygon points="50,10 90,80 10,80"/><line x1="50" y1="10" x2="50" y2="50"/><line x1="10" y1="80" x2="50" y2="50"/><line x1="90" y1="80" x2="50" y2="50"/></svg>
-                <span data-i18n="s_tetra">Tetra</span>
-            </button>
-            <button class="solid-btn" id="btn-1">
-                <svg viewBox="0 0 100 100"><rect x="25" y="25" width="50" height="50"/><rect x="35" y="15" width="50" height="50" style="opacity:0.5"/><line x1="25" y1="25" x2="35" y2="15"/><line x1="75" y1="25" x2="85" y2="15"/><line x1="25" y1="75" x2="35" y2="65"/><line x1="75" y1="75" x2="85" y2="65"/></svg>
-                <span data-i18n="s_cube">Cubo</span>
-            </button>
-            <button class="solid-btn" id="btn-2">
-                <svg viewBox="0 0 100 100"><polygon points="50,5 95,50 50,95 5,50"/><line x1="50" y1="5" x2="50" y2="95"/><line x1="5" y1="50" x2="95" y2="50"/><line x1="50" y1="50" x2="25" y2="25" style="opacity:0.5"/></svg>
-                <span data-i18n="s_octa">Octa</span>
-            </button>
-            <button class="solid-btn" id="btn-3">
-                <svg viewBox="0 0 100 100"><polygon points="50,5 85,25 85,75 50,95 15,75 15,25"/><line x1="50" y1="5" x2="50" y2="95"/><line x1="15" y1="25" x2="85" y2="75"/><line x1="85" y1="25" x2="15" y2="75"/><line x1="15" y1="25" x2="50" y2="50"/><line x1="85" y1="25" x2="50" y2="50"/></svg>
-                <span data-i18n="s_icosa">Icosa</span>
-            </button>
-            <button class="solid-btn" id="btn-4">
-                <svg viewBox="0 0 100 100"><polygon points="50,5 90,35 75,85 25,85 10,35"/><line x1="50" y1="5" x2="50" y2="45"/><line x1="90" y1="35" x2="65" y2="55"/><line x1="75" y1="85" x2="50" y2="65"/><line x1="25" y1="85" x2="35" y2="55"/><line x1="10" y1="35" x2="50" y2="45"/><polygon points="50,45 65,55 50,65 35,55" style="opacity:0.7"/></svg>
-                <span data-i18n="s_dodeca">Dodeca</span>
-            </button>
-        </div>
-
-        <div class="btn-group">
-            <button id="btnPng" class="export-btn" data-i18n="btn_png">💾 PNG</button>
-            <button id="btnJpg" class="export-btn" data-i18n="btn_jpg">📸 JPG</button>
-        </div>
-
-        <div class="control-group">
-            <h3 style="margin-top:0; color:#eee; font-size:1em; border-bottom:1px solid #444; padding-bottom:5px;" data-i18n="group_dual">Dualidad (Geometría Oculta)</h3>
-            <div class="control-row">
-                <span class="control-label" style="color:var(--primary)" data-i18n="label_dual">Revelar Dual:</span>
-                <input type="range" id="dualOpacityRange" min="0" max="100" value="0">
-                <span id="dualVal" class="value-display">0%</span>
-            </div>
-            <p style="font-size:0.8em; color:#888; margin:0;" data-i18n="dual_desc">Muestra la figura complementaria interna.</p>
-        </div>
-
-        <div class="control-group">
-            <h3 style="margin-top:0; color:#eee; font-size:1em; border-bottom:1px solid #444; padding-bottom:5px;" data-i18n="group_app">Apariencia</h3>
-            <div class="control-row">
-                <span class="control-label" data-i18n="label_color">Color Sólido:</span>
-                <input type="color" id="mainColor" value="#00bfff">
-            </div>
-            <div class="control-row">
-                <span class="control-label" data-i18n="label_alpha">Transparencia:</span>
-                <input type="range" id="alphaRange" min="0" max="90" value="15">
-                <span id="alphaVal" class="value-display">15%</span>
-            </div>
-        </div>
-
-        <div class="control-group">
-            <h3 style="margin-top:0; color:#eee; font-size:1em; border-bottom:1px solid #444; padding-bottom:5px;" data-i18n="group_rot">Rotación</h3>
-            <div class="control-row">
-                <span class="control-label" data-i18n="label_speed">Velocidad Auto:</span>
-                <input type="range" id="speedRange" min="0" max="50" value="10">
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="ad-container">
-        <ins class="adsbygoogle"
-             style="display:block"
-             data-ad-client="ca-pub-3150277567590534"
-             data-ad-format="auto"
-             data-full-width-responsive="true"></ins>
+    <div class="ad-container">
+        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3150277567590534" data-ad-format="auto"
+            data-full-width-responsive="true"></ins>
         <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-        </div>
-
-<section class="content-section">
-    <article>
-        <h2 data-i18n="art_title">Los Ladrillos de la Realidad</h2>
-        <p data-i18n="art_p1">Bienvenido a la <strong>Fragua de los Sólidos Platónicos</strong>. Estás interactuando con las cinco únicas formas en todo el universo que son matemáticamente perfectas en tres dimensiones. Son los "átomos" de la geometría sagrada, el plano sobre el cual se construye la materia física y etérica.</p>
-
-        <h3 data-i18n="art_sub1">¿Por qué son "Perfectos"?</h3>
-        <p data-i18n="art_p2">Para que un poliedro sea considerado "Platónico", debe cumplir tres reglas estrictas e inquebrantables, lo que explica por qué solo existen cinco:</p>
-        <ul>
-            <li data-i18n="art_li1"><strong>Caras Idénticas:</strong> Todas sus caras deben ser el mismo polígono regular (ej: en el Cubo, todas son cuadrados perfectos).</li>
-            <li data-i18n="art_li2"><strong>Aristas Iguales:</strong> Todas las líneas que conectan los vértices tienen exactamente la misma longitud.</li>
-            <li data-i18n="art_li3"><strong>Vértices Uniformes:</strong> En cada esquina (vértice) debe converger el mismo número de caras.</li>
-        </ul>
-
-        <h3 data-i18n="art_sub2">Correspondencias y Significado Profundo</h3>
-        <p data-i18n="art_p_freq">Cada sólido vibra con una frecuencia específica y se asocia con un elemento alquímico. Aquí tienes la guía completa:</p>
-        <table>
-    <tr>
-        <th data-i18n="th_solid">Sólido</th>
-        <th data-i18n="th_geo">Geometría</th>
-        <th data-i18n="th_elem">Elemento</th>
-        <th data-i18n="th_qual">Cualidad / Chakra</th>
-    </tr>
-    <tr>
-        <td><div class="icon-cell"><svg viewBox="0 0 100 100" class="table-svg"><polygon points="50,10 90,80 10,80"/><line x1="50" y1="10" x2="50" y2="50"/><line x1="10" y1="80" x2="50" y2="50"/><line x1="90" y1="80" x2="50" y2="50"/></svg><span data-i18n="sol_tetra">Tetraedro</span></div></td>
-        <td data-i18n="geo_tetra">4 Triángulos</td>
-        <td data-i18n="elem_fire">Fuego</td>
-        <td data-i18n="td_fire">Voluntad, Transformación. Chakra Plexo Solar.</td>
-    </tr>
-    <tr>
-        <td><div class="icon-cell"><svg viewBox="0 0 100 100" class="table-svg"><rect x="25" y="25" width="50" height="50"/><rect x="35" y="15" width="50" height="50" style="opacity:0.5"/><line x1="25" y1="25" x2="35" y2="15"/><line x1="75" y1="25" x2="85" y2="15"/><line x1="25" y1="75" x2="35" y2="65"/><line x1="75" y1="75" x2="85" y2="65"/></svg><span data-i18n="sol_cube">Cubo</span></div></td>
-        <td data-i18n="geo_cube">6 Cuadrados</td>
-        <td data-i18n="elem_earth">Tierra</td>
-        <td data-i18n="td_earth">Estabilidad, Materia. Chakra Raíz.</td>
-    </tr>
-    <tr>
-        <td><div class="icon-cell"><svg viewBox="0 0 100 100" class="table-svg"><polygon points="50,5 95,50 50,95 5,50"/><line x1="50" y1="5" x2="50" y2="95"/><line x1="5" y1="50" x2="95" y2="50"/><line x1="50" y1="50" x2="25" y2="25" style="opacity:0.5"/></svg><span data-i18n="sol_octa">Octaedro</span></div></td>
-        <td data-i18n="geo_octa">8 Triángulos</td>
-        <td data-i18n="elem_air">Aire</td>
-        <td data-i18n="td_air">Intelecto, Equilibrio. Chakra Corazón.</td>
-    </tr>
-    <tr>
-        <td><div class="icon-cell"><svg viewBox="0 0 100 100" class="table-svg"><polygon points="50,5 85,25 85,75 50,95 15,75 15,25"/><line x1="50" y1="5" x2="50" y2="95"/><line x1="15" y1="25" x2="85" y2="75"/><line x1="85" y1="25" x2="15" y2="75"/><line x1="15" y1="25" x2="50" y2="50"/><line x1="85" y1="25" x2="50" y2="50"/></svg><span data-i18n="sol_icosa">Icosaedro</span></div></td>
-        <td data-i18n="geo_icosa">20 Triángulos</td>
-        <td data-i18n="elem_water">Agua</td>
-        <td data-i18n="td_water">Emoción, Fluidez. Chakra Sacro.</td>
-    </tr>
-    <tr>
-        <td><div class="icon-cell"><svg viewBox="0 0 100 100" class="table-svg"><polygon points="50,5 90,35 75,85 25,85 10,35"/><line x1="50" y1="5" x2="50" y2="45"/><line x1="90" y1="35" x2="65" y2="55"/><line x1="75" y1="85" x2="50" y2="65"/><line x1="25" y1="85" x2="35" y2="55"/><line x1="10" y1="35" x2="50" y2="45"/><polygon points="50,45 65,55 50,65 35,55" style="opacity:0.7"/></svg><span data-i18n="sol_dodeca">Dodecaedro</span></div></td>
-        <td data-i18n="geo_dodeca">12 Pentágonos</td>
-        <td data-i18n="elem_ether">Éter</td>
-        <td data-i18n="td_spirit">Espíritu, Conciencia. Chakra Corona.</td>
-    </tr>
-</table>
-
-        <h3 data-i18n="art_sub3">El Secreto de la Dualidad (La Magia Oculta)</h3>
-        <p data-i18n="art_p3">Una de las propiedades más fascinantes de estas formas es que son <strong>Duales</strong> entre sí. Esto significa que si tomas el punto central de cada cara de un sólido y los unes, obtienes otro sólido perfecto anidado en su interior.</p>
-        <p data-i18n="art_dual_intro">Usa el deslizador "Revelar Dual" en nuestro laboratorio para visualizar este misterio:</p>
-        <ul>
-            <li data-i18n="art_dual_li1">El <strong>Cubo</strong> (Tierra) contiene al <strong>Octaedro</strong> (Aire) en su corazón. Materia y Mente están conectadas.</li>
-            <li data-i18n="art_dual_li2">El <strong>Dodecaedro</strong> (Espíritu) contiene al <strong>Icosaedro</strong> (Agua). La conciencia divina sostiene la emoción.</li>
-            <li data-i18n="art_dual_li3">El <strong>Tetraedro</strong> (Fuego) es dual consigo mismo, formando la <strong>Merkaba</strong> o Estrella Tetraédrica, el vehículo de luz interdimensional.</li>
-        </ul>
-    </article>
-</section>
-
-<div class="ad-container">
-        <ins class="adsbygoogle"
-             style="display:block"
-             data-ad-client="ca-pub-3150277567590534"
-             data-ad-format="auto"
-             data-full-width-responsive="true"></ins>
-        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-        </div>
-
-<footer>
-    <a href="https://www.paypal.com/paypalme/pbazan" target="_blank" class="paypal-btn" data-i18n="footer_coffee">☕ Invítame a un café</a>
-    <div class="footer-links">
-        <a href="../../legal.html#aviso" data-i18n="footer_legal">Aviso Legal</a>
-        <a href="../../legal.html#privacidad" data-i18n="footer_privacy">Privacidad</a>
-        <a href="../../legal.html#cookies" data-i18n="footer_cookies">Cookies</a>
-        <a href="mailto:pbazan@gmail.com" data-i18n="footer_contact">Contacto</a>
     </div>
-    <p>Copyright © 2026 Graphics Labs. <span data-i18n="footer_rights">Todos los derechos reservados.</span></p>
-</footer>
 
-<script type="module">
-    import * as THREE from 'three';
-    import { OrbitControls } from './libs/OrbitControls.js';
+    <section class="content-section">
+        <article>
+            <h2 data-i18n="art_title">Los Ladrillos de la Realidad</h2>
+            <p data-i18n="art_p1">Bienvenido a la <strong>Fragua de los Sólidos Platónicos</strong>. Estás interactuando
+                con las cinco únicas formas en todo el universo que son matemáticamente perfectas en tres dimensiones.
+                Son los "átomos" de la geometría sagrada, el plano sobre el cual se construye la materia física y
+                etérica.</p>
 
-    let scene, camera, renderer, controls;
-    let mainMesh, dualMesh, mainEdges, dualEdges;
-    let mainGroup, dualGroup;
-    
-    const state = {
-        currentType: 0, 
-        dualOpacity: 0,
-        color: 0x00bfff,
-        alpha: 0.15,
-        speed: 0.005
-    };
+            <h3 data-i18n="art_sub1">¿Por qué son "Perfectos"?</h3>
+            <p data-i18n="art_p2">Para que un poliedro sea considerado "Platónico", debe cumplir tres reglas estrictas e
+                inquebrantables, lo que explica por qué solo existen cinco:</p>
+            <ul>
+                <li data-i18n="art_li1"><strong>Caras Idénticas:</strong> Todas sus caras deben ser el mismo polígono
+                    regular (ej: en el Cubo, todas son cuadrados perfectos).</li>
+                <li data-i18n="art_li2"><strong>Aristas Iguales:</strong> Todas las líneas que conectan los vértices
+                    tienen exactamente la misma longitud.</li>
+                <li data-i18n="art_li3"><strong>Vértices Uniformes:</strong> En cada esquina (vértice) debe converger el
+                    mismo número de caras.</li>
+            </ul>
 
- const translations = {
-    es: {
-        nav_hub: "HUB", nav_back: "VOLVER", sim_title: "Sólidos Platónicos",
-        s_tetra: "Tetra", s_cube: "Cubo", s_octa: "Octa", s_icosa: "Icosa", s_dodeca: "Dodeca",
-        btn_png: "💾 PNG", btn_jpg: "📸 JPG", group_dual: "Dualidad (Geometría Oculta)",
-        label_dual: "Revelar Dual:", dual_desc: "Muestra la figura complementaria interna.",
-        group_app: "Apariencia", label_color: "Color Sólido:", label_alpha: "Transparencia:",
-        group_rot: "Rotación", label_speed: "Velocidad Auto:",
-        art_title: "Los Ladrillos de la Realidad",
-        art_p1: "Bienvenido a la Fragua de los Sólidos Platónicos. Estás interactuando con las cinco únicas formas en todo el universo que son matemáticamente perfectas en tres dimensiones. Son los \"átomos\" de la geometría sagrada, el plano sobre el cual se construye la materia física y etérica.",
-        art_sub1: "¿Por qué son \"Perfectos\"?",
-        art_p2: "Para que un poliedro sea considerado \"Platónico\", debe cumplir tres reglas estrictas e inquebrantables, lo que explica por qué solo existen cinco:",
-        art_li1: "Caras Idénticas: Todas sus caras deben ser el mismo polígono regular (ej: en el Cubo, todas son cuadrados perfectos).",
-        art_li2: "Aristas Iguales: Todas las líneas que conectan los vértices tienen exactamente la misma longitud.",
-        art_li3: "Vértices Uniformes: En cada esquina (vértice) debe converger el mismo número de caras.",
-        art_sub2: "Correspondencias y Significado Profundo",
-        art_p_freq: "Cada sólido vibra con una frecuencia específica y se asocia con un elemento alquímico. Aquí tienes la guía completa:",
-        th_solid: "Sólido", th_geo: "Geometría", th_elem: "Elemento", th_qual: "Cualidad / Chakra",
-        sol_tetra: "Tetraedro", geo_tetra: "4 Triángulos", elem_fire: "Fuego", td_fire: "Voluntad, Transformación. Chakra Plexo Solar.", 
-        sol_cube: "Cubo", geo_cube: "6 Cuadrados", elem_earth: "Tierra", td_earth: "Estabilidad, Materia. Chakra Raíz.",
-        sol_octa: "Octaedro", geo_octa: "8 Triángulos", elem_air: "Aire", td_air: "Intelecto, Equilibrio. Chakra Corazón.", 
-        sol_icosa: "Icosaedro", geo_icosa: "20 Triángulos", elem_water: "Agua", td_water: "Emoción, Fluidez. Chakra Sacro.", 
-        sol_dodeca: "Dodecaedro", geo_dodeca: "12 Pentágonos", elem_ether: "Éter", td_spirit: "Espíritu, Conciencia. Chakra Corona.",
-        art_sub3: "El Secreto de la Dualidad (La Magia Oculta)",
-        art_p3: "Una de las propiedades más fascinantes de estas formas es que son Duales entre sí. Esto significa que si tomas el punto central de cada cara de un sólido y los unes, obtienes otro sólido perfecto anidado en su interior.",
-        art_dual_intro: "Usa el deslizador \"Revelar Dual\" en nuestro laboratorio para visualizar este misterio:",
-        art_dual_li1: "El Cubo (Tierra) contiene al Octaedro (Aire) en su corazón. Materia y Mente están conectadas.",
-        art_dual_li2: "El Dodecaedro (Espíritu) contiene al Icosaedro (Agua). La conciencia divina sostiene la emoción.",
-        art_dual_li3: "El Tetraedro (Fuego) es dual consigo mismo, formando la Merkaba o Estrella Tetraédrica, el vehículo de luz interdimensional.",
-        footer_coffee: "☕ Invítame a un café", footer_legal: "Aviso Legal", footer_privacy: "Privacidad",
-        footer_cookies: "Cookies", footer_contact: "Contacto", footer_rights: "Todos los derechos reservados."
-    },
-    ca: {
-        nav_hub: "HUB", nav_back: "TORNAR", sim_title: "Sòlids Platònics",
-        s_tetra: "Tetra", s_cube: "Cub", s_octa: "Octa", s_icosa: "Icosa", s_dodeca: "Dodeca",
-        btn_png: "💾 PNG", btn_jpg: "📸 JPG", group_dual: "Dualitat (Geometria Oculta)",
-        label_dual: "Revelar Dual:", dual_desc: "Mostra la figura complementària interna.",
-        group_app: "Apariència", label_color: "Color Sòlid:", label_alpha: "Transparència:",
-        group_rot: "Rotació", label_speed: "Velocitat Auto:",
-        art_title: "Els Maons de la Realitat",
-        art_p1: "Benvingut a la Fragua dels Sòlids Platònics. Estàs interactuant amb les cinc úniques formes en tot l'univers que són matemàticament perfectes en tres dimensions. Són els \"àtoms\" de la geometria sagrada, el pla sobre el qual es construeix la matèria física i etèrica.",
-        art_sub1: "Per què són \"Perfectes\"?",
-        art_p2: "Perquè un poliedre sigui considerat \"Platònic\", ha de complir tres regles estrictes i inquebrantables, la qual cosa explica per què només en existeixen cinc:",
-        art_li1: "Cares Idèntiques: Totes les seves cares han de ser el mateix polígon regular (ex: en el Cub, totes són quadrats perfectes).",
-        art_li2: "Aristes Iguals: Totes les línies que connecten els vèrtexs tenen exactament la mateixa longitud.",
-        art_li3: "Vèrtexs Uniformes: A cada cantonada (vèrtex) ha de convergir el mateix nombre de cares.",
-        art_sub2: "Correspondències i Significat Profund",
-        art_p_freq: "Cada sòlid vibra amb una freqüència específica i s'associa amb un element alquímic. Aquí tens la guia completa:",
-        th_solid: "Sòlid", th_geo: "Geometria", th_elem: "Element", th_qual: "Qualitat / Chakra",
-        sol_tetra: "Tetraedre", geo_tetra: "4 Triangles", elem_fire: "Foc", td_fire: "Voluntat, Transformació. Chakra Plexe Solar.",
-        sol_cube: "Cub", geo_cube: "6 Quadrats", elem_earth: "Terra", td_earth: "Estabilitat, Matèria. Chakra Arrel.",
-        sol_octa: "Octaedre", geo_octa: "8 Triangles", elem_air: "Aire", td_air: "Intel·lecte, Equilibri. Chakra Cor.",
-        sol_icosa: "Icosaedre", geo_icosa: "20 Triangles", elem_water: "Aigua", td_water: "Emoció, Fluïdesa. Chakra Sacre.",
-        sol_dodeca: "Dodecaedre", geo_dodeca: "12 Pentàgons", elem_ether: "Èter", td_spirit: "Esperit, Consciència. Chakra Corona.",
-        art_sub3: "El Secret de la Dualitat (La Màgia Oculta)",
-        art_p3: "Una de les propietats més fascinants d'aquestes formes és que són Duals entre si. Això significa que si prens el punt central de cada cara d'un sòlid i els uneixes, obtens un altre sòlid perfecte niat al seu interior.",
-        art_dual_intro: "Usa el lliscador \"Revelar Dual\" al nostre laboratori per visualitzar aquest misteri:",
-        art_dual_li1: "El Cub (Terra) conté l'Octaedre (Aire) al seu cor. Matèria i Ment estan connectades.",
-        art_dual_li2: "El Dodecaedre (Esperit) conté l'Icosaedre (Aigua). La consciència divina sosté l'emoció.",
-        art_dual_li3: "El Tetraedre (Foc) és dual amb si mateix, formant la Merkaba o Estrella Tetraèdrica, el vehicle de llum interdimensional.",
-        footer_coffee: "☕ Convida'm a un cafè", footer_legal: "Avís Legal", footer_privacy: "Privadesa",
-        footer_cookies: "Cookies", footer_contact: "Contacte", footer_rights: "Tots els drets reservats."
-    },
-    en: {
-        nav_hub: "HUB", nav_back: "BACK", sim_title: "Platonic Solids",
-        s_tetra: "Tetra", s_cube: "Cube", s_octa: "Octa", s_icosa: "Icosa", s_dodeca: "Dodeca",
-        btn_png: "💾 PNG", btn_jpg: "📸 JPG", group_dual: "Duality (Hidden Geometry)",
-        label_dual: "Reveal Dual:", dual_desc: "Shows the internal complementary figure.",
-        group_app: "Appearance", label_color: "Solid Color:", label_alpha: "Transparency:",
-        group_rot: "Rotation", label_speed: "Auto Speed:",
-        art_title: "The Bricks of Reality",
-        art_p1: "Welcome to the Forge of Platonic Solids. You are interacting with the only five shapes in the entire universe that are mathematically perfect in three dimensions. They are the \"atoms\" of sacred geometry, the blueprint upon which physical and etheric matter is built.",
-        art_sub1: "Why are they \"Perfect\"?",
-        art_p2: "For a polyhedron to be considered \"Platonic,\" it must meet three strict and unbreakable rules, which explains why only five exist:",
-        art_li1: "Identical Faces: All faces must be the same regular polygon (e.g., in the Cube, all are perfect squares).",
-        art_li2: "Equal Edges: All lines connecting the vertices have exactly the same length.",
-        art_li3: "Uniform Vertices: At each corner (vertex), the same number of faces must converge.",
-        art_sub2: "Correspondences and Deep Meaning",
-        art_p_freq: "Each solid vibrates with a specific frequency and is associated with an alchemical element. Here is the complete guide:",
-        th_solid: "Solid", th_geo: "Geometry", th_elem: "Element", th_qual: "Quality / Chakra",
-        sol_tetra: "Tetrahedron", geo_tetra: "4 Triangles", elem_fire: "Fire", td_fire: "Will, Transformation. Solar Plexus Chakra.",
-        sol_cube: "Cube", geo_cube: "6 Squares", elem_earth: "Earth", td_earth: "Stability, Matter. Root Chakra.",
-        sol_octa: "Octahedron", geo_octa: "8 Triangles", elem_air: "Air", td_air: "Intellect, Balance. Heart Chakra.",
-        sol_icosa: "Icosahedron", geo_icosa: "20 Triangles", elem_water: "Water", td_water: "Emotion, Fluidity. Sacral Chakra.",
-        sol_dodeca: "Dodecahedron", geo_dodeca: "12 Pentagons", elem_ether: "Ether", td_spirit: "Spirit, Consciousness. Crown Chakra.",
-        art_sub3: "The Secret of Duality (The Hidden Magic)",
-        art_p3: "One of the most fascinating properties of these shapes is that they are Dual to each other. This means if you take the center point of each face of a solid and join them, you get another perfect solid nested inside.",
-        art_dual_intro: "Use the \"Reveal Dual\" slider in our lab to visualize this mystery:",
-        art_dual_li1: "The Cube (Earth) contains the Octahedron (Air) at its heart. Matter and Mind are connected.",
-        art_dual_li2: "The Dodecahedron (Spirit) contains the Icosahedron (Water). Divine consciousness sustains emotion.",
-        art_dual_li3: "The Tetrahedron (Fire) is dual with itself, forming the Merkaba or Star Tetrahedron, the interdimensional light vehicle.",
-        footer_coffee: "☕ Buy me a coffee", footer_legal: "Legal Notice", footer_privacy: "Privacy",
-        footer_cookies: "Cookies", footer_contact: "Contact", footer_rights: "All rights reserved."
-    },
-    fr: {
-        nav_hub: "HUB", nav_back: "RETOUR", sim_title: "Solides de Platon",
-        s_tetra: "Tétra", s_cube: "Cube", s_octa: "Octa", s_icosa: "Icosa", s_dodeca: "Dodéca",
-        btn_png: "💾 PNG", btn_jpg: "📸 JPG", group_dual: "Dualité (Géométrie Cachée)",
-        label_dual: "Révéler Dual :", dual_desc: "Affiche la figure complémentaire interne.",
-        group_app: "Apparence", label_color: "Couleur Solide :", label_alpha: "Transparence :",
-        group_rot: "Rotation", label_speed: "Vitesse Auto :",
-        art_title: "Les Briques de la Réalité",
-        art_p1: "Bienvenue à la Forge des Solides de Platon. Vous interagissez avec les cinq seules formes de tout l'univers qui sont mathématiquement parfaites en trois dimensions. Ce sont les \"atomes\" de la géométrie sacrée, le plan sur lequel se construit la matière physique et éthérique.",
-        art_sub1: "Pourquoi sont-ils \"Parfaits\" ?",
-        art_p2: "Pour qu'un polyèdre soit considéré comme \"Platonique\", il doit respecter trois règles strictes et immuables, ce qui explique pourquoi il n'en existe que cinq :",
-        art_li1: "Faces Identiques : Toutes ses faces doivent être le même polygone régulier (ex : dans le Cube, toutes sont des carrés parfaits).",
-        art_li2: "Arêtes Égales : Toutes les lignes reliant les sommets ont exactement la même longueur.",
-        art_li3: "Sommets Uniformes : À chaque coin (sommet) doit converger le même nombre de faces.",
-        art_sub2: "Correspondances et Signification Profonde",
-        art_p_freq: "Chaque solide vibre à une fréquence spécifique et est associé à un élément alchimique. Voici le guide complet :",
-        th_solid: "Solide", th_geo: "Géométrie", th_elem: "Élément", th_qual: "Qualité / Chakra",
-        sol_tetra: "Tétraèdre", geo_tetra: "4 Triangles", elem_fire: "Feu", td_fire: "Volonté, Transformation. Chakra du Plexus Solaire.",
-        sol_cube: "Cube", geo_cube: "6 Carrés", elem_earth: "Terre", td_earth: "Stabilité, Matière. Chakra Racine.",
-        sol_octa: "Octaèdre", geo_octa: "8 Triangles", elem_air: "Air", td_air: "Intellect, Équilibre. Chakra du Cœur.",
-        sol_icosa: "Icosaèdre", geo_icosa: "20 Triangles", elem_water: "Eau", td_water: "Émotion, Fluidité. Chakra Sacré.",
-        sol_dodeca: "Dodécaèdre", geo_dodeca: "12 Pentagones", elem_ether: "Éther", td_spirit: "Esprit, Conscience. Chakra Couronne.",
-        art_sub3: "Le Secret de la Dualité (La Magie Cachée)",
-        art_p3: "L'une des propriétés plus fascinantes de ces formes est qu'elles sont Duales entre elles. Cela signifie que si vous prenez le point central de chaque face d'un solide et que vous les reliez, vous obtenez un autre solide parfait imbriqué à l'intérieur.",
-        art_dual_intro: "Utilisez le curseur \"Révéler Dual\" dans notre laboratoire pour visualiser ce mystère :",
-        art_dual_li1: "Le Cube (Terre) contient l'Octaèdre (Air) en son cœur. Matière et Esprit sont connectés.",
-        art_dual_li2: "Le Dodécaèdre (Esprit) contient l'Icosaèdre (Eau). La conscience divine soutient l'émotion.",
-        art_dual_li3: "Le Tétraèdre (Feu) est dual avec lui-même, formant la Merkaba ou Étoile Tétraédrique, le véhicule de lumière interdimensionnel.",
-        footer_coffee: "☕ Offrez-moi un café", footer_legal: "Mentions Légales", footer_privacy: "Confidentialité",
-        footer_cookies: "Cookies", footer_contact: "Contact", footer_rights: "Tous droits réservés."
-    },
-    de: {
-        nav_hub: "HUB", nav_back: "ZURÜCK", sim_title: "Platonische Körper",
-        s_tetra: "Tetra", s_cube: "Würfel", s_octa: "Okta", s_icosa: "Ikosa", s_dodeca: "Dodeka",
-        btn_png: "💾 PNG", btn_jpg: "📸 JPG", group_dual: "Dualität (Verborgene Geometrie)",
-        label_dual: "Dual Enthüllen:", dual_desc: "Zeigt die interne komplementäre Figur.",
-        group_app: "Aussehen", label_color: "Körperfarbe:", label_alpha: "Transparenz:",
-        group_rot: "Rotation", label_speed: "Auto-Geschw.:",
-        art_title: "Die Bausteine der Realität",
-        art_p1: "Willkommen in der Schmiede der Platonischen Körper. Sie interagieren mit den einzigen fünf Formen im gesamten Universum, die in drei Dimensionen mathematisch perfekt sind. Sie sind die \"Atome\" der heiligen Geometrie, der Bauplan, auf dem die physische und ätherische Materie aufgebaut ist.",
-        art_sub1: "Warum sind sie \"Perfekt\"?",
-        art_p2: "Damit ein Polyeder als \"Platonisch\" gilt, muss es drei strenge und unumstößliche Regeln erfüllen, was erklärt, warum es nur fünf gibt:",
-        art_li1: "Identische Flächen: Alle Flächen müssen das gleiche regelmäßige Polygon sein (z. B. beim Würfel sind alle perfekte Quadrate).",
-        art_li2: "Gleiche Kanten: Alle Linien, die die Eckpunkte verbinden, haben exakt die gleiche Länge.",
-        art_li3: "Einheitliche Eckpunkte: An jeder Ecke (Eckpunkt) muss die gleiche Anzahl von Flächen zusammentreffen.",
-        art_sub2: "Entsprechungen und Tiefe Bedeutung",
-        art_p_freq: "Jeder Körper schwingt mit einer spezifischen Frequenz und ist einem alchemistischen Element zugeordnet. Hier ist der vollständige Leitfaden:",
-        th_solid: "Körper", th_geo: "Geometrie", th_elem: "Element", th_qual: "Qualität / Chakra",
-        sol_tetra: "Tetraeder", geo_tetra: "4 Dreiecke", elem_fire: "Feuer", td_fire: "Wille, Transformation. Solarplexus-Chakra.",
-        sol_cube: "Würfel", geo_cube: "6 Quadrate", elem_earth: "Erde", td_earth: "Stabilität, Materie. Wurzel-Chakra.",
-        sol_octa: "Oktaeder", geo_octa: "8 Dreiecke", elem_air: "Luft", td_air: "Intellekt, Gleichgewicht. Herz-Chakra.",
-        sol_icosa: "Ikosaeder", geo_icosa: "20 Dreiecke", elem_water: "Wasser", td_water: "Emotion, Fluss. Sakral-Chakra.",
-        sol_dodeca: "Dodekaeder", geo_dodeca: "12 Fünfecke", elem_ether: "Äther", td_spirit: "Geist, Bewusstsein. Kronen-Chakra.",
-        art_sub3: "Das Geheimnis der Dualität (Die Verborgene Magie)",
-        art_p3: "Eine der faszinierendsten Eigenschaften dieser Formen ist, dass sie zueinander Dual sind. Das bedeutet, wenn man den Mittelpunkt jeder Fläche eines Körpers nimmt und sie verbindet, erhält man einen weiteren perfekten Körper, der in seinem Inneren verschachtelt ist.",
-        art_dual_intro: "Nutzen Sie den Schieberegler \"Dual Enthüllen\" in unserem Labor, um dieses Geheimnis zu visualisieren:",
-        art_dual_li1: "Der Würfel (Erde) enthält das Oktaeder (Luft) in seinem Herzen. Materie und Geist sind verbunden.",
-        art_dual_li2: "Das Dodekaeder (Geist) enthält das Ikosaeder (Wasser). Das göttliche Bewusstsein trägt die Emotion.",
-        art_dual_li3: "Das Tetraeder (Feuer) ist dual zu sich selbst und bildet die Merkaba oder das Sterntetraeder, das interdimensionale Lichtgefährt.",
-        footer_coffee: "☕ Spendier mir einen Kaffee", footer_legal: "Impressum", footer_privacy: "Datenschutz",
-        footer_cookies: "Cookies", footer_contact: "Kontakt", footer_rights: "Alle Rechte vorbehalten."
-    },
-    pt: {
-        nav_hub: "HUB", nav_back: "VOLTAR", sim_title: "Sólidos Platónicos",
-        s_tetra: "Tetra", s_cube: "Cubo", s_octa: "Octa", s_icosa: "Icosa", s_dodeca: "Dodeca",
-        btn_png: "💾 PNG", btn_jpg: "📸 JPG", group_dual: "Dualidade (Geometria Oculta)",
-        label_dual: "Revelar Dual:", dual_desc: "Mostra a figura complementária interna.",
-        group_app: "Aparência", label_color: "Cor Sólida:", label_alpha: "Transparência:",
-        group_rot: "Rotação", label_speed: "Velocidade Auto:",
-        art_title: "Os Tijolos da Realidade",
-        art_p1: "Bem-vindo à Forja dos Sólidos Platónicos. Estás a interagir com as cinco únicas formas em todo o universo que são matematicamente perfeitas em três dimensões. São os \"átomos\" da geometria sagrada, o plano sobre o qual se constrói a matéria física e etérica.",
-        art_sub1: "Porque é que são \"Perfeitos\"?",
-        art_p2: "Para que um poliedro seja considerado \"Platónico\", deve cumprir três regras estritas e inabaláveis, o que explica por que só existem cinco:",
-        art_li1: "Faces Idênticas: Todas as suas faces devem ser o mesmo polígono regular (ex: no Cubo, todas são quadrados perfeitos).",
-        art_li2: "Arestas Iguais: Todas as linhas que ligam os vértices têm exatamente o mesmo comprimento.",
-        art_li3: "Vértices Uniformes: Em cada canto (vértice) deve convergir o mesmo número de faces.",
-        art_sub2: "Correspondências e Significado Profundo",
-        art_p_freq: "Cada sólido vibra com uma frequência específica e associa-se a um elemento alquímico. Aqui tens o guia completo:",
-        th_solid: "Sólido", th_geo: "Geometria", th_elem: "Elemento", th_qual: "Qualidade / Chakra",
-        sol_tetra: "Tetraedro", geo_tetra: "4 Triângulos", elem_fire: "Fogo", td_fire: "Vontade, Transformação. Chakra Plexo Solar.",
-        sol_cube: "Cubo", geo_cube: "6 Quadrados", elem_earth: "Terra", td_earth: "Estabilidade, Matéria. Chakra Raiz.",
-        sol_octa: "Octaedro", geo_octa: "8 Triângulos", elem_air: "Ar", td_air: "Intelecto, Equilíbrio. Chakra do Coração.",
-        sol_icosa: "Icosaedro", geo_icosa: "20 Triângulos", elem_water: "Água", td_water: "Emoção, Fluidez. Chakra Sacro.",
-        sol_dodeca: "Dodecaedro", geo_dodeca: "12 Pentágonos", elem_ether: "Éter", td_spirit: "Espírito, Consciência. Chakra da Coroa.",
-        art_sub3: "O Segredo da Dualidade (A Magia Oculta)",
-        art_p3: "Uma de las propriedades mais fascinantes destas formas é que são Duals entre si. Isto significa que se tomares o ponto central de cada face de um sólido e os unires, obténs outro sólido perfeito aninhado no seu interior.",
-        art_dual_intro: "Usa o seletor \"Revelar Dual\" no nosso laboratório para visualizar este mistério:",
-        art_dual_li1: "O Cubo (Terra) contém o Octaedro (Ar) no seu coração. Matéria e Mente estão ligadas.",
-        art_dual_li2: "O Dodecaedro (Espírito) contém o Icosaedro (Água). A consciência divina sustenta a emoção.",
-        art_dual_li3: "O Tetraedro (Fogo) é dual consigo mesmo, formando a Merkaba ou Estrela Tetraédrica, o veículo de luz interdimensional.",
-        footer_coffee: "☕ Pague-me um café", footer_legal: "Aviso Legal", footer_privacy: "Privacidade",
-        footer_cookies: "Cookies", footer_contact: "Contacto", footer_rights: "Todos os direitos reservados."
-    },
-    it: {
-        nav_hub: "HUB", nav_back: "INDIETRO", sim_title: "Solidi Platonici",
-        s_tetra: "Tetra", s_cube: "Cubo", s_octa: "Octa", s_icosa: "Icosa", s_dodeca: "Dodeca",
-        btn_png: "💾 PNG", btn_jpg: "📸 JPG", group_dual: "Dualità (Geometria Occulta)",
-        label_dual: "Rivela Duale:", dual_desc: "Mostra la figura complementare interna.",
-        group_app: "Aspetto", label_color: "Colore Solido:", label_alpha: "Trasparenza:",
-        group_rot: "Rotazione", label_speed: "Velocità Auto:",
-        art_title: "I Mattoni della Realtà",
-        art_p1: "Benvenuto nella Forgia dei Solidi Platonici. Stai interagendo con le uniche cinque forme in tutto l'universo che sono matematicamente perfette in tre dimensioni. Sono gli \"atomi\" della geometria sacra, il piano su cui si costruisce la materia fisica ed eterica.",
-        art_sub1: "Perché sono \"Perfetti\"?",
-        art_p2: "Affinché un poliedro sia considerato \"Platonico\", deve soddisfare tre regole rigide e incrollabili, il che spiega perché ne esistono solo cinque:",
-        art_li1: "Facce Identiche: Tutte le sue facce devono essere lo stesso poligono regolare (es: nel Cubo, tutte sono quadrati perfetti).",
-        art_li2: "Spigoli Uguali: Tutte le linee che collegano i vertici hanno esattamente la stessa lunghezza.",
-        art_li3: "Vertici Uniformi: In ogni angolo (vertice) deve convergere lo stesso numero di facce.",
-        art_sub2: "Corrispondenze e Significato Profondo",
-        art_p_freq: "Ogni solido vibra con una frequenza specifica ed è associato a un elemento alchemico. Ecco la guida completa:",
-        th_solid: "Solido", th_geo: "Geometria", th_elem: "Elemento", th_qual: "Qualità / Chakra",
-        sol_tetra: "Tetraedro", geo_tetra: "4 Triangoli", elem_fire: "Fuoco", td_fire: "Volontà, Trasformazione. Chakra del Plesso Solare.",
-        sol_cube: "Cubo", geo_cube: "6 Quadrati", elem_earth: "Terra", td_earth: "Stabilità, Materia. Chakra della Radice.",
-        sol_octa: "Octaedro", geo_octa: "8 Triangoli", elem_air: "Aria", td_air: "Intelletto, Equilibrio. Chakra del Cuore.",
-        sol_icosa: "Icosaedro", geo_icosa: "20 Triangoli", elem_water: "Acqua", td_water: "Emozione, Fluidità. Chakra Sacrale.",
-        sol_dodeca: "Dodecaedro", geo_dodeca: "12 Pentagoni", elem_ether: "Etere", td_spirit: "Spirito, Coscienza. Chakra della Corona.",
-        art_sub3: "Il Segreto della Dualità (La Magia Occulta)",
-        art_p3: "Una delle proprietà più affascinanti di queste forme è che sono Duali tra loro. Ciò significa che se prendi il punto centrale di ogni faccia di un solido e li unisci, ottieni un altro solido perfetto annidato al suo interno.",
-        art_dual_intro: "Usa il cursore \"Rivela Duale\" nel nostro laboratorio per visualizzare questo misterio:",
-        art_dual_li1: "Il Cubo (Terra) contiene l'Ottaedro (Aria) nel suo cuore. Materia e Mente sono connesse.",
-        art_dual_li2: "Il Dodecaedro (Spirito) contiene l'Icosaedro (Acqua). La coscienza divina sostiene l'emozione.",
-        art_dual_li3: "Il Tetraedro (Fuoco) è duale con se stesso, formando la Merkaba o Stella Tetraedrica, il veicolo di luce interdimensionale.",
-        footer_coffee: "☕ Offrimi un caffè", footer_legal: "Avviso Legale", footer_privacy: "Privacy",
-        footer_cookies: "Cookies", footer_contact: "Contatto", footer_rights: "Tutti i diritti riservati."
-    },
-    nl: {
-        nav_hub: "HUB", nav_back: "TERUG", sim_title: "Platonische Lichamen",
-        s_tetra: "Tetra", s_cube: "Kubus", s_octa: "Octa", s_icosa: "Icosa", s_dodeca: "Dodeca",
-        btn_png: "💾 PNG", btn_jpg: "📸 JPG", group_dual: "Dualiteit (Verborgen Geometrie)",
-        label_dual: "Dualiteit Onthullen:", dual_desc: "Toont de interne complementaire figuur.",
-        group_app: "Uiterlijk", label_color: "Kleur Lichaam:", label_alpha: "Transparantie:",
-        group_rot: "Rotatie", label_speed: "Auto Snelheid:",
-        art_title: "De Bouwstenen van de Realiteit",
-        art_p1: "Welkom bij de Smederij van de Platonische Lichamen. Je werkt met de enige vijf vormen in het hele universum die wiskundig perfect zijn in drie dimensies. Het zijn de \"atomen\" van de heilige geometrie, het plan waarop fysieke en etherische materie is gebouwd.",
-        art_sub1: "Waarom zijn ze \"Perfect\"?",
-        art_p2: "Om als een \"Platonisch\" veelvlak te worden beschouwd, moet het aan drie strikte en onwrikbare regels voldoen, wat verklaart waarom er maar vijf bestaan:",
-        art_li1: "Identieke Vlakken: Alle vlakken moeten dezelfde regelmatige veelhoek zijn (bijv. bij de Kubus zijn alle vlakken perfecte vierkanten).",
-        art_li2: "Gelijke Ribben: Alle lijnen die de hoekpunten verbinden, hebben precies dezelfde lengte.",
-        art_li3: "Uniforme Hoekpunten: In elk hoekpunt moet hetzelfde aantal vlakken samenkomen.",
-        art_sub2: "Correspondenties en Diepere Betekenis",
-        art_p_freq: "Elk lichaam trilt met een specifieke frequentie en is gekoppeld aan een alchemistisch element. Hier is de complete gids:",
-        th_solid: "Lichaam", th_geo: "Geometrie", th_elem: "Element", th_qual: "Kwaliteit / Chakra",
-        sol_tetra: "Tetraëder", geo_tetra: "4 Driehoeken", elem_fire: "Vuur", td_fire: "Wil, Transformatie. Zonnevlechtchakra.",
-        sol_cube: "Kubus", geo_cube: "6 Vierkanten", elem_earth: "Aarde", td_earth: "Stabiliteit, Materie. Wortelchakra.",
-        sol_octa: "Octaëder", geo_octa: "8 Driehoeken", elem_air: "Lucht", td_air: "Intellect, Evenwicht. Hartchakra.",
-        sol_icosa: "Icosaëder", geo_icosa: "20 Driehoeken", elem_water: "Water", td_water: "Emotie, Vloeibaarheid. Sacraalchakra.",
-        sol_dodeca: "Dodecaëder", geo_dodeca: "12 Vijfhoeken", elem_ether: "Ether", td_spirit: "Geest, Bewustzijn. Kruinchakra.",
-        art_sub3: "Het Geheim van de Dualiteit (De Verborgen Magie)",
-        art_p3: "Een van de meest fascinerende eigenschappen van deze vormen is dat ze Dual aan elkaar zijn. Dit betekent dat als je het middelpunt van elk vlak van een lichaam neemt en deze verbindt, je een ander perfect lichaam krijgt dat erin genesteld is.",
-        art_dual_intro: "Gebruik de schuifregelaar \"Dualiteit Onthullen\" in ons lab om dit mysterie te visualiseren:",
-        art_dual_li1: "De Kubus (Aarde) bevat de Octaëder (Lucht) in zijn hart. Materie en Geest zijn verbonden.",
-        art_dual_li2: "De Dodecaëder (Geest) bevat de Icosaëder (Water). Het goddelijk bewustzijn ondersteunt emotie.",
-        art_dual_li3: "De Tetraëder (Vuur) is dual aan zichzelf en vormt de Merkaba of Stertetraëder, het interdimensionale lichtvoertuig.",
-        footer_coffee: "☕ Trakteer me op een koffie", footer_legal: "Juridische Kennisgeving", footer_privacy: "Privacy",
-        footer_cookies: "Cookies", footer_contact: "Contact", footer_rights: "Alle rechten voorbehouden."
-    },
-    ja: {
-        nav_hub: "ハブ", nav_back: "戻る", sim_title: "プラトン立体",
-        s_tetra: "正四面体", s_cube: "立方体", s_octa: "正八面体", s_icosa: "正二十面体", s_dodeca: "正十二面体",
-        btn_png: "💾 PNGを保存", btn_jpg: "📸 JPGを保存", group_dual: "双対性 (隠された幾何学)",
-        label_dual: "双対を表示:", dual_desc: "内部の相補的な図形を表示します。",
-        group_app: "外観", label_color: "立体の色:", label_alpha: "透明度:",
-        group_rot: "回転", label_speed: "自動速度:",
-        art_title: "現実のレンガ",
-        art_p1: "プラトン立体の鍛冶場へようこそ。あなたは三次元において数学的に完璧な、宇宙で唯一の5つの図形を操作しています。これらは神聖幾何学の「原子」であり、物理的・エーテル的物質が構築される設計図です。",
-        art_sub1: "なぜ「完璧」なのですか？",
-        art_p2: "多面体が「プラトン立体」とみなされるためには、3つの厳格で揺るぎない規則を満たす必要があり、そのため5つしか存在しません。",
-        art_li1: "同一の面: すべての面が同じ正多角形であること（例: 立方体では、すべてが完璧な正方形です）。",
-        art_li2: "等しい辺: 頂点を結ぶすべての線の長さが正確に同じであること。",
-        art_li3: "一様な頂点: 各角（頂点）に集まる面の数が同じであること。",
-        art_sub2: "照応と深い意味",
-        art_p_freq: "各立体は特定の周波数で振動し、錬金術の元素に関連付けられています。完全なガイドは以下の通りです。",
-        th_solid: "立体", th_geo: "幾何学", th_elem: "元素", th_qual: "性質 / チャクラ",
-        sol_tetra: "正四面体", geo_tetra: "4つの三角形", elem_fire: "火", td_fire: "意志、変容。太陽神経叢チャクラ。", 
-        sol_cube: "立方体", geo_cube: "6つの正方形", elem_earth: "地", td_earth: "安定、物質。ルートチャクラ。",
-        sol_octa: "正八面体", geo_octa: "8つの三角形", elem_air: "風", td_air: "知性、均衡。ハートチャクラ。", 
-        sol_icosa: "正二十面体", geo_icosa: "20個の三角形", elem_water: "水", td_water: "感情、流動性。サクラルチャクラ。", 
-        sol_dodeca: "正十二面体", geo_dodeca: "12個の五角形", elem_ether: "エーテル", td_spirit: "精神、意識。クラウンチャクラ。",
-        art_sub3: "双対性の秘密 (隠された魔法)",
-        art_p3: "これらの図形の最も魅力的な性質の一つは、互いに「双対」であることです。これは、立体の各面の中心点を取り、それらを結ぶと、その内部に入れ子状になった別の完璧な立体が得られることを意味します。",
-        art_dual_intro: "ラボの「双対を表示」スライダーを使用して、この謎を視覚化してください。",
-        art_dual_li1: "立方体（地）はその中心に正八面体（風）を含んでいます。物質と精神は繋がっています。",
-        art_dual_li2: "正十二面体（精神）は正二十面体（水）を含んでいます。神聖な意識が感情を支えています。",
-        art_dual_li3: "正四面体（火）は自分自身と双対であり、次元間の光の乗り物であるマカバ（星型二重正四面体）を形成します。",
-        footer_coffee: "☕ コーヒーを一杯おごる", footer_legal: "法的通知", footer_privacy: "プライバシー",
-        footer_cookies: "クッキー", footer_contact: "お問い合わせ", footer_rights: "無断複写・転載を禁じます。"
-    }
-};
+            <h3 data-i18n="art_sub2">Correspondencias y Significado Profundo</h3>
+            <p data-i18n="art_p_freq">Cada sólido vibra con una frecuencia específica y se asocia con un elemento
+                alquímico. Aquí tienes la guía completa:</p>
+            <table>
+                <tr>
+                    <th data-i18n="th_solid">Sólido</th>
+                    <th data-i18n="th_geo">Geometría</th>
+                    <th data-i18n="th_elem">Elemento</th>
+                    <th data-i18n="th_qual">Cualidad / Chakra</th>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="icon-cell"><svg viewBox="0 0 100 100" class="table-svg">
+                                <polygon points="50,10 90,80 10,80" />
+                                <line x1="50" y1="10" x2="50" y2="50" />
+                                <line x1="10" y1="80" x2="50" y2="50" />
+                                <line x1="90" y1="80" x2="50" y2="50" />
+                            </svg><span data-i18n="sol_tetra">Tetraedro</span></div>
+                    </td>
+                    <td data-i18n="geo_tetra">4 Triángulos</td>
+                    <td data-i18n="elem_fire">Fuego</td>
+                    <td data-i18n="td_fire">Voluntad, Transformación. Chakra Plexo Solar.</td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="icon-cell"><svg viewBox="0 0 100 100" class="table-svg">
+                                <rect x="25" y="25" width="50" height="50" />
+                                <rect x="35" y="15" width="50" height="50" style="opacity:0.5" />
+                                <line x1="25" y1="25" x2="35" y2="15" />
+                                <line x1="75" y1="25" x2="85" y2="15" />
+                                <line x1="25" y1="75" x2="35" y2="65" />
+                                <line x1="75" y1="75" x2="85" y2="65" />
+                            </svg><span data-i18n="sol_cube">Cubo</span></div>
+                    </td>
+                    <td data-i18n="geo_cube">6 Cuadrados</td>
+                    <td data-i18n="elem_earth">Tierra</td>
+                    <td data-i18n="td_earth">Estabilidad, Materia. Chakra Raíz.</td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="icon-cell"><svg viewBox="0 0 100 100" class="table-svg">
+                                <polygon points="50,5 95,50 50,95 5,50" />
+                                <line x1="50" y1="5" x2="50" y2="95" />
+                                <line x1="5" y1="50" x2="95" y2="50" />
+                                <line x1="50" y1="50" x2="25" y2="25" style="opacity:0.5" />
+                            </svg><span data-i18n="sol_octa">Octaedro</span></div>
+                    </td>
+                    <td data-i18n="geo_octa">8 Triángulos</td>
+                    <td data-i18n="elem_air">Aire</td>
+                    <td data-i18n="td_air">Intelecto, Equilibrio. Chakra Corazón.</td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="icon-cell"><svg viewBox="0 0 100 100" class="table-svg">
+                                <polygon points="50,5 85,25 85,75 50,95 15,75 15,25" />
+                                <line x1="50" y1="5" x2="50" y2="95" />
+                                <line x1="15" y1="25" x2="85" y2="75" />
+                                <line x1="85" y1="25" x2="15" y2="75" />
+                                <line x1="15" y1="25" x2="50" y2="50" />
+                                <line x1="85" y1="25" x2="50" y2="50" />
+                            </svg><span data-i18n="sol_icosa">Icosaedro</span></div>
+                    </td>
+                    <td data-i18n="geo_icosa">20 Triángulos</td>
+                    <td data-i18n="elem_water">Agua</td>
+                    <td data-i18n="td_water">Emoción, Fluidez. Chakra Sacro.</td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="icon-cell"><svg viewBox="0 0 100 100" class="table-svg">
+                                <polygon points="50,5 90,35 75,85 25,85 10,35" />
+                                <line x1="50" y1="5" x2="50" y2="45" />
+                                <line x1="90" y1="35" x2="65" y2="55" />
+                                <line x1="75" y1="85" x2="50" y2="65" />
+                                <line x1="25" y1="85" x2="35" y2="55" />
+                                <line x1="10" y1="35" x2="50" y2="45" />
+                                <polygon points="50,45 65,55 50,65 35,55" style="opacity:0.7" />
+                            </svg><span data-i18n="sol_dodeca">Dodecaedro</span></div>
+                    </td>
+                    <td data-i18n="geo_dodeca">12 Pentágonos</td>
+                    <td data-i18n="elem_ether">Éter</td>
+                    <td data-i18n="td_spirit">Espíritu, Conciencia. Chakra Corona.</td>
+                </tr>
+            </table>
 
-    window.changeLanguage = (lang) => {
-        document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
-        const activeBtn = Array.from(document.querySelectorAll('.lang-btn')).find(b => b.innerText.toLowerCase() === lang);
-        if(activeBtn) activeBtn.classList.add('active');
+            <h3 data-i18n="art_sub3">El Secreto de la Dualidad (La Magia Oculta)</h3>
+            <p data-i18n="art_p3">Una de las propiedades más fascinantes de estas formas es que son
+                <strong>Duales</strong> entre sí. Esto significa que si tomas el punto central de cada cara de un sólido
+                y los unes, obtienes otro sólido perfecto anidado en su interior.</p>
+            <p data-i18n="art_dual_intro">Usa el deslizador "Revelar Dual" en nuestro laboratorio para visualizar este
+                misterio:</p>
+            <ul>
+                <li data-i18n="art_dual_li1">El <strong>Cubo</strong> (Tierra) contiene al <strong>Octaedro</strong>
+                    (Aire) en su corazón. Materia y Mente están conectadas.</li>
+                <li data-i18n="art_dual_li2">El <strong>Dodecaedro</strong> (Espíritu) contiene al
+                    <strong>Icosaedro</strong> (Agua). La conciencia divina sostiene la emoción.</li>
+                <li data-i18n="art_dual_li3">El <strong>Tetraedro</strong> (Fuego) es dual consigo mismo, formando la
+                    <strong>Merkaba</strong> o Estrella Tetraédrica, el vehículo de luz interdimensional.</li>
+            </ul>
+        </article>
+    </section>
 
-        const texts = translations[lang] || translations['es'];
-        document.querySelectorAll('[data-i18n]').forEach(el => {
-            const key = el.getAttribute('data-i18n');
-            if (texts[key]) el.innerHTML = texts[key];
-        });
-    };
+    <div class="ad-container">
+        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3150277567590534" data-ad-format="auto"
+            data-full-width-responsive="true"></ins>
+        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
 
-    const container = document.getElementById('canvas-container');
+    <footer>
+        <a href="https://www.paypal.com/paypalme/pbazan" target="_blank" class="paypal-btn" data-i18n="footer_coffee">☕
+            Invítame a un café</a>
+        <div class="footer-links">
+            <a href="../../legal.html#aviso" data-i18n="footer_legal">Aviso Legal</a>
+            <a href="../../legal.html#privacidad" data-i18n="footer_privacy">Privacidad</a>
+            <a href="../../legal.html#cookies" data-i18n="footer_cookies">Cookies</a>
+            <a href="mailto:pbazan@gmail.com" data-i18n="footer_contact">Contacto</a>
+        </div>
+        <p>Copyright © 2026 Graphics Labs. <span data-i18n="footer_rights">Todos los derechos reservados.</span></p>
+    </footer>
 
-    init();
-    animate();
+    <script type="module">
+        import * as THREE from '../../../assets/libs/three.module.js';
+        import { OrbitControls } from '../../../assets/libs/OrbitControls.js';
 
-    function init() {
-        scene = new THREE.Scene();
-        const width = container.offsetWidth;
-        const height = container.offsetHeight;
-        camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
-        camera.position.z = 5;
+        let scene, camera, renderer, controls;
+        let mainMesh, dualMesh, mainEdges, dualEdges;
+        let mainGroup, dualGroup;
 
-        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setSize(width, height);
-        renderer.setPixelRatio(window.devicePixelRatio);
-        container.appendChild(renderer.domElement);
+        const state = {
+            currentType: 0,
+            dualOpacity: 0,
+            color: 0x00bfff,
+            alpha: 0.15,
+            speed: 0.005
+        };
 
-        controls = new OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
+        const translations = {
+            es: {
+                nav_hub: "HUB", nav_back: "VOLVER", sim_title: "Sólidos Platónicos",
+                s_tetra: "Tetra", s_cube: "Cubo", s_octa: "Octa", s_icosa: "Icosa", s_dodeca: "Dodeca",
+                btn_png: "💾 PNG", btn_jpg: "📸 JPG", group_dual: "Dualidad (Geometría Oculta)",
+                label_dual: "Revelar Dual:", dual_desc: "Muestra la figura complementaria interna.",
+                group_app: "Apariencia", label_color: "Color Sólido:", label_alpha: "Transparencia:",
+                group_rot: "Rotación", label_speed: "Velocidad Auto:",
+                art_title: "Los Ladrillos de la Realidad",
+                art_p1: "Bienvenido a la Fragua de los Sólidos Platónicos. Estás interactuando con las cinco únicas formas en todo el universo que son matemáticamente perfectas en tres dimensiones. Son los \"átomos\" de la geometría sagrada, el plano sobre el cual se construye la materia física y etérica.",
+                art_sub1: "¿Por qué son \"Perfectos\"?",
+                art_p2: "Para que un poliedro sea considerado \"Platónico\", debe cumplir tres reglas estrictas e inquebrantables, lo que explica por qué solo existen cinco:",
+                art_li1: "Caras Idénticas: Todas sus caras deben ser el mismo polígono regular (ej: en el Cubo, todas son cuadrados perfectos).",
+                art_li2: "Aristas Iguales: Todas las líneas que conectan los vértices tienen exactamente la misma longitud.",
+                art_li3: "Vértices Uniformes: En cada esquina (vértice) debe converger el mismo número de caras.",
+                art_sub2: "Correspondencias y Significado Profundo",
+                art_p_freq: "Cada sólido vibra con una frecuencia específica y se asocia con un elemento alquímico. Aquí tienes la guía completa:",
+                th_solid: "Sólido", th_geo: "Geometría", th_elem: "Elemento", th_qual: "Cualidad / Chakra",
+                sol_tetra: "Tetraedro", geo_tetra: "4 Triángulos", elem_fire: "Fuego", td_fire: "Voluntad, Transformación. Chakra Plexo Solar.",
+                sol_cube: "Cubo", geo_cube: "6 Cuadrados", elem_earth: "Tierra", td_earth: "Estabilidad, Materia. Chakra Raíz.",
+                sol_octa: "Octaedro", geo_octa: "8 Triángulos", elem_air: "Aire", td_air: "Intelecto, Equilibrio. Chakra Corazón.",
+                sol_icosa: "Icosaedro", geo_icosa: "20 Triángulos", elem_water: "Agua", td_water: "Emoción, Fluidez. Chakra Sacro.",
+                sol_dodeca: "Dodecaedro", geo_dodeca: "12 Pentágonos", elem_ether: "Éter", td_spirit: "Espíritu, Conciencia. Chakra Corona.",
+                art_sub3: "El Secreto de la Dualidad (La Magia Oculta)",
+                art_p3: "Una de las propiedades más fascinantes de estas formas es que son Duales entre sí. Esto significa que si tomas el punto central de cada cara de un sólido y los unes, obtienes otro sólido perfecto anidado en su interior.",
+                art_dual_intro: "Usa el deslizador \"Revelar Dual\" en nuestro laboratorio para visualizar este misterio:",
+                art_dual_li1: "El Cubo (Tierra) contiene al Octaedro (Aire) en su corazón. Materia y Mente están conectadas.",
+                art_dual_li2: "El Dodecaedro (Espíritu) contiene al Icosaedro (Agua). La conciencia divina sostiene la emoción.",
+                art_dual_li3: "El Tetraedro (Fuego) es dual consigo mismo, formando la Merkaba o Estrella Tetraédrica, el vehículo de luz interdimensional.",
+                footer_coffee: "☕ Invítame a un café", footer_legal: "Aviso Legal", footer_privacy: "Privacidad",
+                footer_cookies: "Cookies", footer_contact: "Contacto", footer_rights: "Todos los derechos reservados."
+            },
+            ca: {
+                nav_hub: "HUB", nav_back: "TORNAR", sim_title: "Sòlids Platònics",
+                s_tetra: "Tetra", s_cube: "Cub", s_octa: "Octa", s_icosa: "Icosa", s_dodeca: "Dodeca",
+                btn_png: "💾 PNG", btn_jpg: "📸 JPG", group_dual: "Dualitat (Geometria Oculta)",
+                label_dual: "Revelar Dual:", dual_desc: "Mostra la figura complementària interna.",
+                group_app: "Apariència", label_color: "Color Sòlid:", label_alpha: "Transparència:",
+                group_rot: "Rotació", label_speed: "Velocitat Auto:",
+                art_title: "Els Maons de la Realitat",
+                art_p1: "Benvingut a la Fragua dels Sòlids Platònics. Estàs interactuant amb les cinc úniques formes en tot l'univers que són matemàticament perfectes en tres dimensions. Són els \"àtoms\" de la geometria sagrada, el pla sobre el qual es construeix la matèria física i etèrica.",
+                art_sub1: "Per què són \"Perfectes\"?",
+                art_p2: "Perquè un poliedre sigui considerat \"Platònic\", ha de complir tres regles estrictes i inquebrantables, la qual cosa explica per què només en existeixen cinc:",
+                art_li1: "Cares Idèntiques: Totes les seves cares han de ser el mateix polígon regular (ex: en el Cub, totes són quadrats perfectes).",
+                art_li2: "Aristes Iguals: Totes les línies que connecten els vèrtexs tenen exactament la mateixa longitud.",
+                art_li3: "Vèrtexs Uniformes: A cada cantonada (vèrtex) ha de convergir el mateix nombre de cares.",
+                art_sub2: "Correspondències i Significat Profund",
+                art_p_freq: "Cada sòlid vibra amb una freqüència específica i s'associa amb un element alquímic. Aquí tens la guia completa:",
+                th_solid: "Sòlid", th_geo: "Geometria", th_elem: "Element", th_qual: "Qualitat / Chakra",
+                sol_tetra: "Tetraedre", geo_tetra: "4 Triangles", elem_fire: "Foc", td_fire: "Voluntat, Transformació. Chakra Plexe Solar.",
+                sol_cube: "Cub", geo_cube: "6 Quadrats", elem_earth: "Terra", td_earth: "Estabilitat, Matèria. Chakra Arrel.",
+                sol_octa: "Octaedre", geo_octa: "8 Triangles", elem_air: "Aire", td_air: "Intel·lecte, Equilibri. Chakra Cor.",
+                sol_icosa: "Icosaedre", geo_icosa: "20 Triangles", elem_water: "Aigua", td_water: "Emoció, Fluïdesa. Chakra Sacre.",
+                sol_dodeca: "Dodecaedre", geo_dodeca: "12 Pentàgons", elem_ether: "Èter", td_spirit: "Esperit, Consciència. Chakra Corona.",
+                art_sub3: "El Secret de la Dualitat (La Màgia Oculta)",
+                art_p3: "Una de les propietats més fascinants d'aquestes formes és que són Duals entre si. Això significa que si prens el punt central de cada cara d'un sòlid i els uneixes, obtens un altre sòlid perfecte niat al seu interior.",
+                art_dual_intro: "Usa el lliscador \"Revelar Dual\" al nostre laboratori per visualitzar aquest misteri:",
+                art_dual_li1: "El Cub (Terra) conté l'Octaedre (Aire) al seu cor. Matèria i Ment estan connectades.",
+                art_dual_li2: "El Dodecaedre (Esperit) conté l'Icosaedre (Aigua). La consciència divina sosté l'emoció.",
+                art_dual_li3: "El Tetraedre (Foc) és dual amb si mateix, formant la Merkaba o Estrella Tetraèdrica, el vehicle de llum interdimensional.",
+                footer_coffee: "☕ Convida'm a un cafè", footer_legal: "Avís Legal", footer_privacy: "Privadesa",
+                footer_cookies: "Cookies", footer_contact: "Contacte", footer_rights: "Tots els drets reservats."
+            },
+            en: {
+                nav_hub: "HUB", nav_back: "BACK", sim_title: "Platonic Solids",
+                s_tetra: "Tetra", s_cube: "Cube", s_octa: "Octa", s_icosa: "Icosa", s_dodeca: "Dodeca",
+                btn_png: "💾 PNG", btn_jpg: "📸 JPG", group_dual: "Duality (Hidden Geometry)",
+                label_dual: "Reveal Dual:", dual_desc: "Shows the internal complementary figure.",
+                group_app: "Appearance", label_color: "Solid Color:", label_alpha: "Transparency:",
+                group_rot: "Rotation", label_speed: "Auto Speed:",
+                art_title: "The Bricks of Reality",
+                art_p1: "Welcome to the Forge of Platonic Solids. You are interacting with the only five shapes in the entire universe that are mathematically perfect in three dimensions. They are the \"atoms\" of sacred geometry, the blueprint upon which physical and etheric matter is built.",
+                art_sub1: "Why are they \"Perfect\"?",
+                art_p2: "For a polyhedron to be considered \"Platonic,\" it must meet three strict and unbreakable rules, which explains why only five exist:",
+                art_li1: "Identical Faces: All faces must be the same regular polygon (e.g., in the Cube, all are perfect squares).",
+                art_li2: "Equal Edges: All lines connecting the vertices have exactly the same length.",
+                art_li3: "Uniform Vertices: At each corner (vertex), the same number of faces must converge.",
+                art_sub2: "Correspondences and Deep Meaning",
+                art_p_freq: "Each solid vibrates with a specific frequency and is associated with an alchemical element. Here is the complete guide:",
+                th_solid: "Solid", th_geo: "Geometry", th_elem: "Element", th_qual: "Quality / Chakra",
+                sol_tetra: "Tetrahedron", geo_tetra: "4 Triangles", elem_fire: "Fire", td_fire: "Will, Transformation. Solar Plexus Chakra.",
+                sol_cube: "Cube", geo_cube: "6 Squares", elem_earth: "Earth", td_earth: "Stability, Matter. Root Chakra.",
+                sol_octa: "Octahedron", geo_octa: "8 Triangles", elem_air: "Air", td_air: "Intellect, Balance. Heart Chakra.",
+                sol_icosa: "Icosahedron", geo_icosa: "20 Triangles", elem_water: "Water", td_water: "Emotion, Fluidity. Sacral Chakra.",
+                sol_dodeca: "Dodecahedron", geo_dodeca: "12 Pentagons", elem_ether: "Ether", td_spirit: "Spirit, Consciousness. Crown Chakra.",
+                art_sub3: "The Secret of Duality (The Hidden Magic)",
+                art_p3: "One of the most fascinating properties of these shapes is that they are Dual to each other. This means if you take the center point of each face of a solid and join them, you get another perfect solid nested inside.",
+                art_dual_intro: "Use the \"Reveal Dual\" slider in our lab to visualize this mystery:",
+                art_dual_li1: "The Cube (Earth) contains the Octahedron (Air) at its heart. Matter and Mind are connected.",
+                art_dual_li2: "The Dodecahedron (Spirit) contains the Icosahedron (Water). Divine consciousness sustains emotion.",
+                art_dual_li3: "The Tetrahedron (Fire) is dual with itself, forming the Merkaba or Star Tetrahedron, the interdimensional light vehicle.",
+                footer_coffee: "☕ Buy me a coffee", footer_legal: "Legal Notice", footer_privacy: "Privacy",
+                footer_cookies: "Cookies", footer_contact: "Contact", footer_rights: "All rights reserved."
+            },
+            fr: {
+                nav_hub: "HUB", nav_back: "RETOUR", sim_title: "Solides de Platon",
+                s_tetra: "Tétra", s_cube: "Cube", s_octa: "Octa", s_icosa: "Icosa", s_dodeca: "Dodéca",
+                btn_png: "💾 PNG", btn_jpg: "📸 JPG", group_dual: "Dualité (Géométrie Cachée)",
+                label_dual: "Révéler Dual :", dual_desc: "Affiche la figure complémentaire interne.",
+                group_app: "Apparence", label_color: "Couleur Solide :", label_alpha: "Transparence :",
+                group_rot: "Rotation", label_speed: "Vitesse Auto :",
+                art_title: "Les Briques de la Réalité",
+                art_p1: "Bienvenue à la Forge des Solides de Platon. Vous interagissez avec les cinq seules formes de tout l'univers qui sont mathématiquement parfaites en trois dimensions. Ce sont les \"atomes\" de la géométrie sacrée, le plan sur lequel se construit la matière physique et éthérique.",
+                art_sub1: "Pourquoi sont-ils \"Parfaits\" ?",
+                art_p2: "Pour qu'un polyèdre soit considéré comme \"Platonique\", il doit respecter trois règles strictes et immuables, ce qui explique pourquoi il n'en existe que cinq :",
+                art_li1: "Faces Identiques : Toutes ses faces doivent être le même polygone régulier (ex : dans le Cube, toutes sont des carrés parfaits).",
+                art_li2: "Arêtes Égales : Toutes les lignes reliant les sommets ont exactement la même longueur.",
+                art_li3: "Sommets Uniformes : À chaque coin (sommet) doit converger le même nombre de faces.",
+                art_sub2: "Correspondances et Signification Profonde",
+                art_p_freq: "Chaque solide vibre à une fréquence spécifique et est associé à un élément alchimique. Voici le guide complet :",
+                th_solid: "Solide", th_geo: "Géométrie", th_elem: "Élément", th_qual: "Qualité / Chakra",
+                sol_tetra: "Tétraèdre", geo_tetra: "4 Triangles", elem_fire: "Feu", td_fire: "Volonté, Transformation. Chakra du Plexus Solaire.",
+                sol_cube: "Cube", geo_cube: "6 Carrés", elem_earth: "Terre", td_earth: "Stabilité, Matière. Chakra Racine.",
+                sol_octa: "Octaèdre", geo_octa: "8 Triangles", elem_air: "Air", td_air: "Intellect, Équilibre. Chakra du Cœur.",
+                sol_icosa: "Icosaèdre", geo_icosa: "20 Triangles", elem_water: "Eau", td_water: "Émotion, Fluidité. Chakra Sacré.",
+                sol_dodeca: "Dodécaèdre", geo_dodeca: "12 Pentagones", elem_ether: "Éther", td_spirit: "Esprit, Conscience. Chakra Couronne.",
+                art_sub3: "Le Secret de la Dualité (La Magie Cachée)",
+                art_p3: "L'une des propriétés plus fascinantes de ces formes est qu'elles sont Duales entre elles. Cela signifie que si vous prenez le point central de chaque face d'un solide et que vous les reliez, vous obtenez un autre solide parfait imbriqué à l'intérieur.",
+                art_dual_intro: "Utilisez le curseur \"Révéler Dual\" dans notre laboratoire pour visualiser ce mystère :",
+                art_dual_li1: "Le Cube (Terre) contient l'Octaèdre (Air) en son cœur. Matière et Esprit sont connectés.",
+                art_dual_li2: "Le Dodécaèdre (Esprit) contient l'Icosaèdre (Eau). La conscience divine soutient l'émotion.",
+                art_dual_li3: "Le Tétraèdre (Feu) est dual avec lui-même, formant la Merkaba ou Étoile Tétraédrique, le véhicule de lumière interdimensionnel.",
+                footer_coffee: "☕ Offrez-moi un café", footer_legal: "Mentions Légales", footer_privacy: "Confidentialité",
+                footer_cookies: "Cookies", footer_contact: "Contact", footer_rights: "Tous droits réservés."
+            },
+            de: {
+                nav_hub: "HUB", nav_back: "ZURÜCK", sim_title: "Platonische Körper",
+                s_tetra: "Tetra", s_cube: "Würfel", s_octa: "Okta", s_icosa: "Ikosa", s_dodeca: "Dodeka",
+                btn_png: "💾 PNG", btn_jpg: "📸 JPG", group_dual: "Dualität (Verborgene Geometrie)",
+                label_dual: "Dual Enthüllen:", dual_desc: "Zeigt die interne komplementäre Figur.",
+                group_app: "Aussehen", label_color: "Körperfarbe:", label_alpha: "Transparenz:",
+                group_rot: "Rotation", label_speed: "Auto-Geschw.:",
+                art_title: "Die Bausteine der Realität",
+                art_p1: "Willkommen in der Schmiede der Platonischen Körper. Sie interagieren mit den einzigen fünf Formen im gesamten Universum, die in drei Dimensionen mathematisch perfekt sind. Sie sind die \"Atome\" der heiligen Geometrie, der Bauplan, auf dem die physische und ätherische Materie aufgebaut ist.",
+                art_sub1: "Warum sind sie \"Perfekt\"?",
+                art_p2: "Damit ein Polyeder als \"Platonisch\" gilt, muss es drei strenge und unumstößliche Regeln erfüllen, was erklärt, warum es nur fünf gibt:",
+                art_li1: "Identische Flächen: Alle Flächen müssen das gleiche regelmäßige Polygon sein (z. B. beim Würfel sind alle perfekte Quadrate).",
+                art_li2: "Gleiche Kanten: Alle Linien, die die Eckpunkte verbinden, haben exakt die gleiche Länge.",
+                art_li3: "Einheitliche Eckpunkte: An jeder Ecke (Eckpunkt) muss die gleiche Anzahl von Flächen zusammentreffen.",
+                art_sub2: "Entsprechungen und Tiefe Bedeutung",
+                art_p_freq: "Jeder Körper schwingt mit einer spezifischen Frequenz und ist einem alchemistischen Element zugeordnet. Hier ist der vollständige Leitfaden:",
+                th_solid: "Körper", th_geo: "Geometrie", th_elem: "Element", th_qual: "Qualität / Chakra",
+                sol_tetra: "Tetraeder", geo_tetra: "4 Dreiecke", elem_fire: "Feuer", td_fire: "Wille, Transformation. Solarplexus-Chakra.",
+                sol_cube: "Würfel", geo_cube: "6 Quadrate", elem_earth: "Erde", td_earth: "Stabilität, Materie. Wurzel-Chakra.",
+                sol_octa: "Oktaeder", geo_octa: "8 Dreiecke", elem_air: "Luft", td_air: "Intellekt, Gleichgewicht. Herz-Chakra.",
+                sol_icosa: "Ikosaeder", geo_icosa: "20 Dreiecke", elem_water: "Wasser", td_water: "Emotion, Fluss. Sakral-Chakra.",
+                sol_dodeca: "Dodekaeder", geo_dodeca: "12 Fünfecke", elem_ether: "Äther", td_spirit: "Geist, Bewusstsein. Kronen-Chakra.",
+                art_sub3: "Das Geheimnis der Dualität (Die Verborgene Magie)",
+                art_p3: "Eine der faszinierendsten Eigenschaften dieser Formen ist, dass sie zueinander Dual sind. Das bedeutet, wenn man den Mittelpunkt jeder Fläche eines Körpers nimmt und sie verbindet, erhält man einen weiteren perfekten Körper, der in seinem Inneren verschachtelt ist.",
+                art_dual_intro: "Nutzen Sie den Schieberegler \"Dual Enthüllen\" in unserem Labor, um dieses Geheimnis zu visualisieren:",
+                art_dual_li1: "Der Würfel (Erde) enthält das Oktaeder (Luft) in seinem Herzen. Materie und Geist sind verbunden.",
+                art_dual_li2: "Das Dodekaeder (Geist) enthält das Ikosaeder (Wasser). Das göttliche Bewusstsein trägt die Emotion.",
+                art_dual_li3: "Das Tetraeder (Feuer) ist dual zu sich selbst und bildet die Merkaba oder das Sterntetraeder, das interdimensionale Lichtgefährt.",
+                footer_coffee: "☕ Spendier mir einen Kaffee", footer_legal: "Impressum", footer_privacy: "Datenschutz",
+                footer_cookies: "Cookies", footer_contact: "Kontakt", footer_rights: "Alle Rechte vorbehalten."
+            },
+            pt: {
+                nav_hub: "HUB", nav_back: "VOLTAR", sim_title: "Sólidos Platónicos",
+                s_tetra: "Tetra", s_cube: "Cubo", s_octa: "Octa", s_icosa: "Icosa", s_dodeca: "Dodeca",
+                btn_png: "💾 PNG", btn_jpg: "📸 JPG", group_dual: "Dualidade (Geometria Oculta)",
+                label_dual: "Revelar Dual:", dual_desc: "Mostra a figura complementária interna.",
+                group_app: "Aparência", label_color: "Cor Sólida:", label_alpha: "Transparência:",
+                group_rot: "Rotação", label_speed: "Velocidade Auto:",
+                art_title: "Os Tijolos da Realidade",
+                art_p1: "Bem-vindo à Forja dos Sólidos Platónicos. Estás a interagir com as cinco únicas formas em todo o universo que são matematicamente perfeitas em três dimensões. São os \"átomos\" da geometria sagrada, o plano sobre o qual se constrói a matéria física e etérica.",
+                art_sub1: "Porque é que são \"Perfeitos\"?",
+                art_p2: "Para que um poliedro seja considerado \"Platónico\", deve cumprir três regras estritas e inabaláveis, o que explica por que só existem cinco:",
+                art_li1: "Faces Idênticas: Todas as suas faces devem ser o mesmo polígono regular (ex: no Cubo, todas são quadrados perfeitos).",
+                art_li2: "Arestas Iguais: Todas as linhas que ligam os vértices têm exatamente o mesmo comprimento.",
+                art_li3: "Vértices Uniformes: Em cada canto (vértice) deve convergir o mesmo número de faces.",
+                art_sub2: "Correspondências e Significado Profundo",
+                art_p_freq: "Cada sólido vibra com uma frequência específica e associa-se a um elemento alquímico. Aqui tens o guia completo:",
+                th_solid: "Sólido", th_geo: "Geometria", th_elem: "Elemento", th_qual: "Qualidade / Chakra",
+                sol_tetra: "Tetraedro", geo_tetra: "4 Triângulos", elem_fire: "Fogo", td_fire: "Vontade, Transformação. Chakra Plexo Solar.",
+                sol_cube: "Cubo", geo_cube: "6 Quadrados", elem_earth: "Terra", td_earth: "Estabilidade, Matéria. Chakra Raiz.",
+                sol_octa: "Octaedro", geo_octa: "8 Triângulos", elem_air: "Ar", td_air: "Intelecto, Equilíbrio. Chakra do Coração.",
+                sol_icosa: "Icosaedro", geo_icosa: "20 Triângulos", elem_water: "Água", td_water: "Emoção, Fluidez. Chakra Sacro.",
+                sol_dodeca: "Dodecaedro", geo_dodeca: "12 Pentágonos", elem_ether: "Éter", td_spirit: "Espírito, Consciência. Chakra da Coroa.",
+                art_sub3: "O Segredo da Dualidade (A Magia Oculta)",
+                art_p3: "Uma de las propriedades mais fascinantes destas formas é que são Duals entre si. Isto significa que se tomares o ponto central de cada face de um sólido e os unires, obténs outro sólido perfeito aninhado no seu interior.",
+                art_dual_intro: "Usa o seletor \"Revelar Dual\" no nosso laboratório para visualizar este mistério:",
+                art_dual_li1: "O Cubo (Terra) contém o Octaedro (Ar) no seu coração. Matéria e Mente estão ligadas.",
+                art_dual_li2: "O Dodecaedro (Espírito) contém o Icosaedro (Água). A consciência divina sustenta a emoção.",
+                art_dual_li3: "O Tetraedro (Fogo) é dual consigo mesmo, formando a Merkaba ou Estrela Tetraédrica, o veículo de luz interdimensional.",
+                footer_coffee: "☕ Pague-me um café", footer_legal: "Aviso Legal", footer_privacy: "Privacidade",
+                footer_cookies: "Cookies", footer_contact: "Contacto", footer_rights: "Todos os direitos reservados."
+            },
+            it: {
+                nav_hub: "HUB", nav_back: "INDIETRO", sim_title: "Solidi Platonici",
+                s_tetra: "Tetra", s_cube: "Cubo", s_octa: "Octa", s_icosa: "Icosa", s_dodeca: "Dodeca",
+                btn_png: "💾 PNG", btn_jpg: "📸 JPG", group_dual: "Dualità (Geometria Occulta)",
+                label_dual: "Rivela Duale:", dual_desc: "Mostra la figura complementare interna.",
+                group_app: "Aspetto", label_color: "Colore Solido:", label_alpha: "Trasparenza:",
+                group_rot: "Rotazione", label_speed: "Velocità Auto:",
+                art_title: "I Mattoni della Realtà",
+                art_p1: "Benvenuto nella Forgia dei Solidi Platonici. Stai interagendo con le uniche cinque forme in tutto l'universo che sono matematicamente perfette in tre dimensioni. Sono gli \"atomi\" della geometria sacra, il piano su cui si costruisce la materia fisica ed eterica.",
+                art_sub1: "Perché sono \"Perfetti\"?",
+                art_p2: "Affinché un poliedro sia considerato \"Platonico\", deve soddisfare tre regole rigide e incrollabili, il che spiega perché ne esistono solo cinque:",
+                art_li1: "Facce Identiche: Tutte le sue facce devono essere lo stesso poligono regolare (es: nel Cubo, tutte sono quadrati perfetti).",
+                art_li2: "Spigoli Uguali: Tutte le linee che collegano i vertici hanno esattamente la stessa lunghezza.",
+                art_li3: "Vertici Uniformi: In ogni angolo (vertice) deve convergere lo stesso numero di facce.",
+                art_sub2: "Corrispondenze e Significato Profondo",
+                art_p_freq: "Ogni solido vibra con una frequenza specifica ed è associato a un elemento alchemico. Ecco la guida completa:",
+                th_solid: "Solido", th_geo: "Geometria", th_elem: "Elemento", th_qual: "Qualità / Chakra",
+                sol_tetra: "Tetraedro", geo_tetra: "4 Triangoli", elem_fire: "Fuoco", td_fire: "Volontà, Trasformazione. Chakra del Plesso Solare.",
+                sol_cube: "Cubo", geo_cube: "6 Quadrati", elem_earth: "Terra", td_earth: "Stabilità, Materia. Chakra della Radice.",
+                sol_octa: "Octaedro", geo_octa: "8 Triangoli", elem_air: "Aria", td_air: "Intelletto, Equilibrio. Chakra del Cuore.",
+                sol_icosa: "Icosaedro", geo_icosa: "20 Triangoli", elem_water: "Acqua", td_water: "Emozione, Fluidità. Chakra Sacrale.",
+                sol_dodeca: "Dodecaedro", geo_dodeca: "12 Pentagoni", elem_ether: "Etere", td_spirit: "Spirito, Coscienza. Chakra della Corona.",
+                art_sub3: "Il Segreto della Dualità (La Magia Occulta)",
+                art_p3: "Una delle proprietà più affascinanti di queste forme è che sono Duali tra loro. Ciò significa che se prendi il punto centrale di ogni faccia di un solido e li unisci, ottieni un altro solido perfetto annidato al suo interno.",
+                art_dual_intro: "Usa il cursore \"Rivela Duale\" nel nostro laboratorio per visualizzare questo misterio:",
+                art_dual_li1: "Il Cubo (Terra) contiene l'Ottaedro (Aria) nel suo cuore. Materia e Mente sono connesse.",
+                art_dual_li2: "Il Dodecaedro (Spirito) contiene l'Icosaedro (Acqua). La coscienza divina sostiene l'emozione.",
+                art_dual_li3: "Il Tetraedro (Fuoco) è duale con se stesso, formando la Merkaba o Stella Tetraedrica, il veicolo di luce interdimensionale.",
+                footer_coffee: "☕ Offrimi un caffè", footer_legal: "Avviso Legale", footer_privacy: "Privacy",
+                footer_cookies: "Cookies", footer_contact: "Contatto", footer_rights: "Tutti i diritti riservati."
+            },
+            nl: {
+                nav_hub: "HUB", nav_back: "TERUG", sim_title: "Platonische Lichamen",
+                s_tetra: "Tetra", s_cube: "Kubus", s_octa: "Octa", s_icosa: "Icosa", s_dodeca: "Dodeca",
+                btn_png: "💾 PNG", btn_jpg: "📸 JPG", group_dual: "Dualiteit (Verborgen Geometrie)",
+                label_dual: "Dualiteit Onthullen:", dual_desc: "Toont de interne complementaire figuur.",
+                group_app: "Uiterlijk", label_color: "Kleur Lichaam:", label_alpha: "Transparantie:",
+                group_rot: "Rotatie", label_speed: "Auto Snelheid:",
+                art_title: "De Bouwstenen van de Realiteit",
+                art_p1: "Welkom bij de Smederij van de Platonische Lichamen. Je werkt met de enige vijf vormen in het hele universum die wiskundig perfect zijn in drie dimensies. Het zijn de \"atomen\" van de heilige geometrie, het plan waarop fysieke en etherische materie is gebouwd.",
+                art_sub1: "Waarom zijn ze \"Perfect\"?",
+                art_p2: "Om als een \"Platonisch\" veelvlak te worden beschouwd, moet het aan drie strikte en onwrikbare regels voldoen, wat verklaart waarom er maar vijf bestaan:",
+                art_li1: "Identieke Vlakken: Alle vlakken moeten dezelfde regelmatige veelhoek zijn (bijv. bij de Kubus zijn alle vlakken perfecte vierkanten).",
+                art_li2: "Gelijke Ribben: Alle lijnen die de hoekpunten verbinden, hebben precies dezelfde lengte.",
+                art_li3: "Uniforme Hoekpunten: In elk hoekpunt moet hetzelfde aantal vlakken samenkomen.",
+                art_sub2: "Correspondenties en Diepere Betekenis",
+                art_p_freq: "Elk lichaam trilt met een specifieke frequentie en is gekoppeld aan een alchemistisch element. Hier is de complete gids:",
+                th_solid: "Lichaam", th_geo: "Geometrie", th_elem: "Element", th_qual: "Kwaliteit / Chakra",
+                sol_tetra: "Tetraëder", geo_tetra: "4 Driehoeken", elem_fire: "Vuur", td_fire: "Wil, Transformatie. Zonnevlechtchakra.",
+                sol_cube: "Kubus", geo_cube: "6 Vierkanten", elem_earth: "Aarde", td_earth: "Stabiliteit, Materie. Wortelchakra.",
+                sol_octa: "Octaëder", geo_octa: "8 Driehoeken", elem_air: "Lucht", td_air: "Intellect, Evenwicht. Hartchakra.",
+                sol_icosa: "Icosaëder", geo_icosa: "20 Driehoeken", elem_water: "Water", td_water: "Emotie, Vloeibaarheid. Sacraalchakra.",
+                sol_dodeca: "Dodecaëder", geo_dodeca: "12 Vijfhoeken", elem_ether: "Ether", td_spirit: "Geest, Bewustzijn. Kruinchakra.",
+                art_sub3: "Het Geheim van de Dualiteit (De Verborgen Magie)",
+                art_p3: "Een van de meest fascinerende eigenschappen van deze vormen is dat ze Dual aan elkaar zijn. Dit betekent dat als je het middelpunt van elk vlak van een lichaam neemt en deze verbindt, je een ander perfect lichaam krijgt dat erin genesteld is.",
+                art_dual_intro: "Gebruik de schuifregelaar \"Dualiteit Onthullen\" in ons lab om dit mysterie te visualiseren:",
+                art_dual_li1: "De Kubus (Aarde) bevat de Octaëder (Lucht) in zijn hart. Materie en Geest zijn verbonden.",
+                art_dual_li2: "De Dodecaëder (Geest) bevat de Icosaëder (Water). Het goddelijk bewustzijn ondersteunt emotie.",
+                art_dual_li3: "De Tetraëder (Vuur) is dual aan zichzelf en vormt de Merkaba of Stertetraëder, het interdimensionale lichtvoertuig.",
+                footer_coffee: "☕ Trakteer me op een koffie", footer_legal: "Juridische Kennisgeving", footer_privacy: "Privacy",
+                footer_cookies: "Cookies", footer_contact: "Contact", footer_rights: "Alle rechten voorbehouden."
+            },
+            ja: {
+                nav_hub: "ハブ", nav_back: "戻る", sim_title: "プラトン立体",
+                s_tetra: "正四面体", s_cube: "立方体", s_octa: "正八面体", s_icosa: "正二十面体", s_dodeca: "正十二面体",
+                btn_png: "💾 PNGを保存", btn_jpg: "📸 JPGを保存", group_dual: "双対性 (隠された幾何学)",
+                label_dual: "双対を表示:", dual_desc: "内部の相補的な図形を表示します。",
+                group_app: "外観", label_color: "立体の色:", label_alpha: "透明度:",
+                group_rot: "回転", label_speed: "自動速度:",
+                art_title: "現実のレンガ",
+                art_p1: "プラトン立体の鍛冶場へようこそ。あなたは三次元において数学的に完璧な、宇宙で唯一の5つの図形を操作しています。これらは神聖幾何学の「原子」であり、物理的・エーテル的物質が構築される設計図です。",
+                art_sub1: "なぜ「完璧」なのですか？",
+                art_p2: "多面体が「プラトン立体」とみなされるためには、3つの厳格で揺るぎない規則を満たす必要があり、そのため5つしか存在しません。",
+                art_li1: "同一の面: すべての面が同じ正多角形であること（例: 立方体では、すべてが完璧な正方形です）。",
+                art_li2: "等しい辺: 頂点を結ぶすべての線の長さが正確に同じであること。",
+                art_li3: "一様な頂点: 各角（頂点）に集まる面の数が同じであること。",
+                art_sub2: "照応と深い意味",
+                art_p_freq: "各立体は特定の周波数で振動し、錬金術の元素に関連付けられています。完全なガイドは以下の通りです。",
+                th_solid: "立体", th_geo: "幾何学", th_elem: "元素", th_qual: "性質 / チャクラ",
+                sol_tetra: "正四面体", geo_tetra: "4つの三角形", elem_fire: "火", td_fire: "意志、変容。太陽神経叢チャクラ。",
+                sol_cube: "立方体", geo_cube: "6つの正方形", elem_earth: "地", td_earth: "安定、物質。ルートチャクラ。",
+                sol_octa: "正八面体", geo_octa: "8つの三角形", elem_air: "風", td_air: "知性、均衡。ハートチャクラ。",
+                sol_icosa: "正二十面体", geo_icosa: "20個の三角形", elem_water: "水", td_water: "感情、流動性。サクラルチャクラ。",
+                sol_dodeca: "正十二面体", geo_dodeca: "12個の五角形", elem_ether: "エーテル", td_spirit: "精神、意識。クラウンチャクラ。",
+                art_sub3: "双対性の秘密 (隠された魔法)",
+                art_p3: "これらの図形の最も魅力的な性質の一つは、互いに「双対」であることです。これは、立体の各面の中心点を取り、それらを結ぶと、その内部に入れ子状になった別の完璧な立体が得られることを意味します。",
+                art_dual_intro: "ラボの「双対を表示」スライダーを使用して、この謎を視覚化してください。",
+                art_dual_li1: "立方体（地）はその中心に正八面体（風）を含んでいます。物質と精神は繋がっています。",
+                art_dual_li2: "正十二面体（精神）は正二十面体（水）を含んでいます。神聖な意識が感情を支えています。",
+                art_dual_li3: "正四面体（火）は自分自身と双対であり、次元間の光の乗り物であるマカバ（星型二重正四面体）を形成します。",
+                footer_coffee: "☕ コーヒーを一杯おごる", footer_legal: "法的通知", footer_privacy: "プライバシー",
+                footer_cookies: "クッキー", footer_contact: "お問い合わせ", footer_rights: "無断複写・転載を禁じます。"
+            }
+        };
 
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-        scene.add(ambientLight);
-        const pointLight = new THREE.PointLight(0xffffff, 1);
-        pointLight.position.set(5, 5, 5);
-        scene.add(pointLight);
+        window.setLang = (lang) => {
+            localStorage.setItem('gl_lang', lang.toLowerCase());
+            document.querySelectorAll('.lang-switch button').forEach(btn => {
+                btn.classList.toggle('active', btn.id === 'btn-' + lang.toLowerCase());
+            });
+            const texts = translations[lang.toLowerCase()] || translations['es'];
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (texts[key]) el.innerHTML = texts[key];
+            });
+        };
+        window.changeLanguage = window.setLang;
 
-        mainGroup = new THREE.Group();
-        dualGroup = new THREE.Group();
-        scene.add(mainGroup);
-        scene.add(dualGroup);
+        const container = document.getElementById('canvas-container');
 
-        loadSolids(0);
-        setupListeners();
-        window.addEventListener('resize', onWindowResize);
-    }
+        init();
+        setLang('fr');
+        animate();
 
-    function createGeometry(type, size) {
-        switch(type) {
-            case 0: return new THREE.TetrahedronGeometry(size);
-            case 1: return new THREE.BoxGeometry(size/Math.sqrt(3)*2, size/Math.sqrt(3)*2, size/Math.sqrt(3)*2);
-            case 2: return new THREE.OctahedronGeometry(size);
-            case 3: return new THREE.IcosahedronGeometry(size);
-            case 4: return new THREE.DodecahedronGeometry(size);
+        function init() {
+            scene = new THREE.Scene();
+            const width = container.offsetWidth;
+            const height = container.offsetHeight;
+            camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
+            camera.position.z = 5;
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(width, height);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+            const pointLight = new THREE.PointLight(0xffffff, 1);
+            pointLight.position.set(5, 5, 5);
+            scene.add(pointLight);
+
+            mainGroup = new THREE.Group();
+            dualGroup = new THREE.Group();
+            scene.add(mainGroup);
+            scene.add(dualGroup);
+
+            loadSolids(0);
+            setupListeners();
+            window.addEventListener('resize', onWindowResize);
         }
-    }
 
-    function getDualType(type) {
-        return [0, 2, 1, 4, 3][type];
-    }
-
-    function getDualSize(type) {
-        return [0.33, 0.75, 0.65, 0.85, 0.78][type];
-    }
-
-    function loadSolids(type) {
-        state.currentType = type;
-        mainGroup.clear();
-        dualGroup.clear();
-
-        const mainGeo = createGeometry(type, 1.5);
-        const mainMat = new THREE.MeshPhongMaterial({
-            color: state.color, opacity: state.alpha, transparent: true, side: THREE.DoubleSide, shininess: 100, depthWrite: false
-        });
-        mainMesh = new THREE.Mesh(mainGeo, mainMat);
-        mainGroup.add(mainMesh);
-
-        const edgesGeo = new THREE.EdgesGeometry(mainGeo);
-        const edgesMat = new THREE.LineBasicMaterial({ color: state.color });
-        mainEdges = new THREE.LineSegments(edgesGeo, edgesMat);
-        mainGroup.add(mainEdges);
-
-        const dualType = getDualType(type);
-        const dualSize = 1.5 * getDualSize(type);
-        const dualGeo = createGeometry(dualType, dualSize);
-        const dualMat = new THREE.MeshPhongMaterial({
-            color: 0xffffff, opacity: state.dualOpacity, transparent: true, side: THREE.DoubleSide, depthWrite: false
-        });
-        dualMesh = new THREE.Mesh(dualGeo, dualMat);
-        if(type === 0) dualMesh.rotation.x = Math.PI / 2;
-        dualGroup.add(dualMesh);
-
-        const dEdgesGeo = new THREE.EdgesGeometry(dualGeo);
-        const dEdgesMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: state.dualOpacity });
-        dualEdges = new THREE.LineSegments(dEdgesGeo, dEdgesMat);
-        if(type === 0) dualEdges.rotation.x = Math.PI / 2;
-        dualGroup.add(dualEdges);
-        
-        document.querySelectorAll('.solid-btn').forEach((btn, i) => {
-            btn.classList.toggle('active', i === type);
-        });
-    }
-
-    function updateMaterials() {
-        if(mainMesh) {
-            mainMesh.material.color.setHex(state.color);
-            mainMesh.material.opacity = state.alpha;
-            mainEdges.material.color.setHex(state.color);
+        function createGeometry(type, size) {
+            switch (type) {
+                case 0: return new THREE.TetrahedronGeometry(size);
+                case 1: return new THREE.BoxGeometry(size / Math.sqrt(3) * 2, size / Math.sqrt(3) * 2, size / Math.sqrt(3) * 2);
+                case 2: return new THREE.OctahedronGeometry(size);
+                case 3: return new THREE.IcosahedronGeometry(size);
+                case 4: return new THREE.DodecahedronGeometry(size);
+            }
         }
-        if(dualMesh) {
-            dualMesh.material.opacity = state.dualOpacity;
-            dualEdges.material.opacity = state.dualOpacity;
-            dualGroup.visible = state.dualOpacity > 0.01;
+
+        function getDualType(type) {
+            return [0, 2, 1, 4, 3][type];
         }
-    }
 
-    function setupListeners() {
-        [0,1,2,3,4].forEach(i => document.getElementById(`btn-${i}`).onclick = () => loadSolids(i));
+        function getDualSize(type) {
+            return [0.33, 0.75, 0.65, 0.85, 0.78][type];
+        }
 
-        document.getElementById('dualOpacityRange').addEventListener('input', (e) => {
-            state.dualOpacity = parseInt(e.target.value) / 100;
-            document.getElementById('dualVal').innerText = e.target.value + '%';
-            updateMaterials();
-        });
-        
-        document.getElementById('alphaRange').addEventListener('input', (e) => {
-            state.alpha = parseInt(e.target.value) / 100;
-            document.getElementById('alphaVal').innerText = e.target.value + '%';
-            updateMaterials();
-        });
+        function loadSolids(type) {
+            state.currentType = type;
+            mainGroup.clear();
+            dualGroup.clear();
 
-        document.getElementById('speedRange').addEventListener('input', (e) => {
-            state.speed = parseInt(e.target.value) / 2000;
-        });
+            const mainGeo = createGeometry(type, 1.5);
+            const mainMat = new THREE.MeshPhongMaterial({
+                color: state.color, opacity: state.alpha, transparent: true, side: THREE.DoubleSide, shininess: 100, depthWrite: false
+            });
+            mainMesh = new THREE.Mesh(mainGeo, mainMat);
+            mainGroup.add(mainMesh);
 
-        document.getElementById('mainColor').addEventListener('input', (e) => {
-            state.color = parseInt(e.target.value.replace('#', '0x'), 16);
-            updateMaterials();
-        });
+            const edgesGeo = new THREE.EdgesGeometry(mainGeo);
+            const edgesMat = new THREE.LineBasicMaterial({ color: state.color });
+            mainEdges = new THREE.LineSegments(edgesGeo, edgesMat);
+            mainGroup.add(mainEdges);
 
-        document.getElementById('btnPng').addEventListener('click', () => saveImage('png'));
-        document.getElementById('btnJpg').addEventListener('click', () => saveImage('jpeg'));
-    }
+            const dualType = getDualType(type);
+            const dualSize = 1.5 * getDualSize(type);
+            const dualGeo = createGeometry(dualType, dualSize);
+            const dualMat = new THREE.MeshPhongMaterial({
+                color: 0xffffff, opacity: state.dualOpacity, transparent: true, side: THREE.DoubleSide, depthWrite: false
+            });
+            dualMesh = new THREE.Mesh(dualGeo, dualMat);
+            if (type === 0) dualMesh.rotation.x = Math.PI / 2;
+            dualGroup.add(dualMesh);
 
-    function saveImage(format) {
-        renderer.render(scene, camera);
-        const link = document.createElement('a');
-        link.download = `solido_platonico.${format}`;
-        link.href = renderer.domElement.toDataURL(`image/${format}`, 0.9);
-        link.click();
-    }
+            const dEdgesGeo = new THREE.EdgesGeometry(dualGeo);
+            const dEdgesMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: state.dualOpacity });
+            dualEdges = new THREE.LineSegments(dEdgesGeo, dEdgesMat);
+            if (type === 0) dualEdges.rotation.x = Math.PI / 2;
+            dualGroup.add(dualEdges);
 
-    function onWindowResize() {
-        const width = container.offsetWidth;
-        const height = container.offsetHeight;
-        camera.aspect = width / height;
-        camera.updateProjectionMatrix();
-        renderer.setSize(width, height);
-    }
+            document.querySelectorAll('.solid-btn').forEach((btn, i) => {
+                btn.classList.toggle('active', i === type);
+            });
+        }
 
-    function animate() {
-        requestAnimationFrame(animate);
-        mainGroup.rotation.x += state.speed;
-        mainGroup.rotation.y += state.speed * 0.5;
-        dualGroup.rotation.copy(mainGroup.rotation);
-        controls.update();
-        renderer.render(scene, camera);
-    }
-</script>
+        function updateMaterials() {
+            if (mainMesh) {
+                mainMesh.material.color.setHex(state.color);
+                mainMesh.material.opacity = state.alpha;
+                mainEdges.material.color.setHex(state.color);
+            }
+            if (dualMesh) {
+                dualMesh.material.opacity = state.dualOpacity;
+                dualEdges.material.opacity = state.dualOpacity;
+                dualGroup.visible = state.dualOpacity > 0.01;
+            }
+        }
+
+        function setupListeners() {
+            [0, 1, 2, 3, 4].forEach(i => document.getElementById(`btn-${i}`).onclick = () => loadSolids(i));
+
+            document.getElementById('dualOpacityRange').addEventListener('input', (e) => {
+                state.dualOpacity = parseInt(e.target.value) / 100;
+                document.getElementById('dualVal').innerText = e.target.value + '%';
+                updateMaterials();
+            });
+
+            document.getElementById('alphaRange').addEventListener('input', (e) => {
+                state.alpha = parseInt(e.target.value) / 100;
+                document.getElementById('alphaVal').innerText = e.target.value + '%';
+                updateMaterials();
+            });
+
+            document.getElementById('speedRange').addEventListener('input', (e) => {
+                state.speed = parseInt(e.target.value) / 2000;
+            });
+
+            document.getElementById('mainColor').addEventListener('input', (e) => {
+                state.color = parseInt(e.target.value.replace('#', '0x'), 16);
+                updateMaterials();
+            });
+
+            document.getElementById('btnPng').addEventListener('click', () => saveImage('png'));
+            document.getElementById('btnJpg').addEventListener('click', () => saveImage('jpeg'));
+        }
+
+        function saveImage(format) {
+            renderer.render(scene, camera);
+            const link = document.createElement('a');
+            link.download = `solido_platonico.${format}`;
+            link.href = renderer.domElement.toDataURL(`image/${format}`, 0.9);
+            link.click();
+        }
+
+        function onWindowResize() {
+            const width = container.offsetWidth;
+            const height = container.offsetHeight;
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            mainGroup.rotation.x += state.speed;
+            mainGroup.rotation.y += state.speed * 0.5;
+            dualGroup.rotation.copy(mainGroup.rotation);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+    </script>
 </body>
+
 </html>

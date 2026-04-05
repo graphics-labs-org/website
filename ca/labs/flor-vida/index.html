@@ -28,17 +28,14 @@
         // Some labs use uppercase keys (ES/EN), others lowercase (es/en)
         document.addEventListener('DOMContentLoaded', function() {
             if (typeof setLang === 'function') {
-                // Try uppercase first (used by most lab pages with inline translations)
-                try { setLang('CA'); } catch(e) {}
-                // Also try lowercase (used by magic-square style pages)
-                try { setLang('ca'); } catch(e) {}
+                setLang('ca');
             }
         });
     })();
     </script>
     <title>Flor Vida | Graphics Labs</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="description" content="Laboratori interactiu de Flor Vida. Experimenta amb art generatiu i matemàtiques visuals a Graphics Labs.">
+    
     
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3150277567590534"
      crossorigin="anonymous"></script>
@@ -156,8 +153,35 @@
             #canvas-container { height: 60vh; }
             #controls-container { width: 100%; box-sizing: border-box; }
         }
-    </style>
-    <link rel="canonical" href="https://graphics-labs.org/ca/labs/flor-vida/" />
+    
+        /* ==GL-NAV== */
+        .top-nav{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;background:rgba(0,0,0,0.8);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,0.08);position:sticky;top:0;z-index:1000;flex-wrap:wrap;gap:10px;box-sizing:border-box;}
+        .nav-left{display:flex;align-items:center;}
+        .nav-bc{font-size:.8rem;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;display:flex;align-items:center;white-space:nowrap;}
+        .nav-bc .gl-hub{color:rgba(255,255,255,.45);text-decoration:none;transition:color .2s;}
+        .nav-bc .gl-hub:hover{color:rgba(255,255,255,.85);}
+        .nav-bc .gl-sep{color:rgba(255,255,255,.2);margin:0 7px;font-weight:400;}
+        .nav-bc .gl-sec{color:var(--primary);text-decoration:none;transition:opacity .2s;}
+        .nav-bc .gl-sec:hover{opacity:.75;}
+        .lang-switch{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;}
+        .lang-switch button,.lang-selector button,.lang-btn{background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.1);color:#999;width:38px;height:28px;cursor:pointer;border-radius:4px;font-size:.7rem;font-weight:700;transition:.2s;display:flex;align-items:center;justify-content:center;}
+        .lang-switch button:hover,.lang-selector button:hover,.lang-btn:hover{border-color:var(--primary);color:var(--primary);}
+        .lang-switch button.active,.lang-selector button.active,.lang-btn.active{background:var(--primary);color:#000;border-color:var(--primary);}
+        @media(max-width:620px){.top-nav{flex-direction:column;align-items:flex-start;padding:12px 15px;}.lang-switch,.lang-selector{width:100%;justify-content:center;}}
+        /* ==/GL-NAV== */
+        
+        /* Fix SEO H1 Automático */
+        h1[id*="title"], h1[data-i18n*="title"], h1[data-i18n*="app"], h1[data-i18n*="lab"] {
+            font-size: 1.5rem;
+            color: var(--primary, #00ff41);
+            margin-bottom: 20px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+</style>
+    
 
     <link rel="alternate" hreflang="es" href="https://graphics-labs.org/es/labs/flor-vida/" />
     <link rel="alternate" hreflang="ca" href="https://graphics-labs.org/ca/labs/flor-vida/" />
@@ -169,25 +193,31 @@
     <link rel="alternate" hreflang="nl" href="https://graphics-labs.org/nl/labs/flor-vida/" />
     <link rel="alternate" hreflang="ja" href="https://graphics-labs.org/ja/labs/flor-vida/" />
     <link rel="alternate" hreflang="x-default" href="https://graphics-labs.org/es/labs/flor-vida/" />
+    <meta name="description"
+        content="Laboratori interactiu de Flor Vida. Experimenta amb art generatiu i matemàtiques visuals a Graphics Labs.">
+    <link rel="canonical" href="https://graphics-labs.org/ca/labs/flor-vida/" />
 </head>
 <body>
 
+
 <nav class="top-nav">
     <div class="nav-left">
-        <a href="../../index.html" class="nav-btn">HUB</a>
-        <button onclick="window.history.length > 1 ? history.back() : window.location.href='../../index.html'" class="nav-btn">BACK</button>
-        <span class="nav-brand">GRAPHICS LABS</span>
+        <div class="nav-bc">
+            <a href="../../index.html" class="gl-hub" id="nav-main">GRAPHICS LABS</a>
+            <span class="gl-sep">&gt;</span>
+            <a href="../geometria-sagrada-index.html" class="gl-sec" id="nav-math">GEO-S LABS</a>
+        </div>
     </div>
-    <div class="nav-right">
-        <button class="lang-btn active" onclick="switchLangUrl('es')">ES</button>
-        <button class="lang-btn" onclick="switchLangUrl('ca')">CA</button>
-        <button class="lang-btn" onclick="switchLangUrl('en')">EN</button>
-        <button class="lang-btn" onclick="switchLangUrl('fr')">FR</button>
-        <button class="lang-btn" onclick="switchLangUrl('de')">DE</button>
-        <button class="lang-btn" onclick="switchLangUrl('pt')">PT</button>
-        <button class="lang-btn" onclick="switchLangUrl('it')">IT</button>
-        <button class="lang-btn" onclick="switchLangUrl('nl')">NL</button>
-        <button class="lang-btn" onclick="switchLangUrl('ja')">JA</button>
+    <div class="lang-switch">
+        <button onclick="switchLangUrl('es')" id="btn-es" class="lang-btn">ES</button>
+        <button onclick="switchLangUrl('ca')" id="btn-ca" class="lang-btn active">CA</button>
+        <button onclick="switchLangUrl('en')" id="btn-en" class="lang-btn">EN</button>
+        <button onclick="switchLangUrl('fr')" id="btn-fr" class="lang-btn">FR</button>
+        <button onclick="switchLangUrl('de')" id="btn-de" class="lang-btn">DE</button>
+        <button onclick="switchLangUrl('pt')" id="btn-pt" class="lang-btn">PT</button>
+        <button onclick="switchLangUrl('it')" id="btn-it" class="lang-btn">IT</button>
+        <button onclick="switchLangUrl('nl')" id="btn-nl" class="lang-btn">NL</button>
+        <button onclick="switchLangUrl('ja')" id="btn-ja" class="lang-btn">JA</button>
     </div>
 </nav>
 
@@ -197,7 +227,7 @@
     </div>
 
     <div id="controls-container">
-        <h2 data-i18n="sim_title">FLOR DE LA VIDA LAB</h2>
+        <h1 data-i18n="sim_title">FLOR DE LA VIDA LAB</h1>
         
         <div class="btn-group">
             <button id="btnPng" class="export-btn" data-i18n="btn_png">💾 PNG</button>
@@ -205,14 +235,14 @@
         </div>
 
         <div class="control-group">
-            <h3 style="margin-top:0; color:#fff; font-size:1em; border-bottom:1px solid #333; padding-bottom:5px;" data-i18n="style_title">Estética & Luz</h3>
+            <h2 style="margin-top:0; color:#fff; font-size:1em; border-bottom:1px solid #333; padding-bottom:5px;" data-i18n="style_title">Estética & Luz</h2>
             <div class="control-row"><span class="control-label" data-i18n="bg_color">Fondo:</span><input type="color" id="bgColor" value="#050505"></div>
             <div class="control-row"><span class="control-label" data-i18n="line_color">Líneas:</span><input type="color" id="strokeColor" value="#00ffff"></div>
             <div class="control-row"><span class="control-label" data-i18n="fill_color">Relleno:</span><input type="color" id="fillColor" value="#ff00ff"></div>
         </div>
 
         <div class="control-group">
-            <h3 style="margin-top:0; color:#fff; font-size:1em; border-bottom:1px solid #333; padding-bottom:5px;" data-i18n="genesis_title">Génesis (Expansión)</h3>
+            <h2 style="margin-top:0; color:#fff; font-size:1em; border-bottom:1px solid #333; padding-bottom:5px;" data-i18n="genesis_title">Génesis (Expansión)</h2>
             <div class="control-row">
                 <button id="playGenesis">▶</button>
                 <span class="control-label" data-i18n="circles_label">Círculos:</span>
@@ -282,7 +312,7 @@
 <script>
     // --- SISTEMA I18N ÍNTEGRO (9 IDIOMAS) ---
     const translations = {
-        ES: {
+        es: {
             sim_title: "FLOR DE LA VIDA LAB", btn_png: "💾 PNG", btn_jpg: "📸 JPG",
             style_title: "Estética & Luz", bg_color: "Fondo:", line_color: "Líneas:", fill_color: "Relleno:",
             genesis_title: "Génesis (Expansión)", circles_label: "Círculos:", radius_label: "Radio:", width_label: "Grosor:", opacity_label: "Opacidad:", border_label: "Marco Exterior:",
@@ -301,7 +331,7 @@
             art_p5: "A diferencia de los dibujos en papel, aquí puedes experimentar con la luz. Usa colores neón sobre fondo negro para visualizar cómo la luz se comporta al expandirse desde el centro. Activa el botón de \"Play\" en el panel de control para ver la animación hipnótica del crecimiento geométrico, perfecta para respiración guiada.",
             footer_coffee: "☕ Invítame a un café", legal_aviso: "Aviso Legal", legal_privacidad: "Privacidad", legal_cookies: "Cookies"
         },
-        EN: {
+        en: {
             sim_title: "FLOWER OF LIFE LAB", btn_png: "💾 PNG", btn_jpg: "📸 JPG",
             style_title: "Aesthetics & Light", bg_color: "Background:", line_color: "Lines:", fill_color: "Fill:",
             genesis_title: "Genesis (Expansion)", circles_label: "Circles:", radius_label: "Radius:", width_label: "Width:", opacity_label: "Opacity:", border_label: "Outer Border:",
@@ -320,7 +350,7 @@
             art_p5: "Unlike paper drawings, here you can experiment with light. Use neon colors on a black background to visualize how light behaves as it expands from the center. Activate the \"Play\" button in the control panel to see the hypnotic animation of geometric growth, perfect for guided breathing.",
             footer_coffee: "☕ Buy me a coffee", legal_aviso: "Legal Notice", legal_privacidad: "Privacy", legal_cookies: "Cookies"
         },
-        CA: {
+        ca: {
             sim_title: "FLOR DE LA VIDA LAB", btn_png: "💾 PNG", btn_jpg: "📸 JPG",
             style_title: "Estètica i Llum", bg_color: "Fons:", line_color: "Línies:", fill_color: "Farciment:",
             genesis_title: "Gènesi (Expansió)", circles_label: "Cercles:", radius_label: "Radi:", width_label: "Gruix:", opacity_label: "Opacitat:", border_label: "Marc Exterior:",
@@ -339,7 +369,7 @@
             art_p5: "A diferència dels dibuixos en paper, aquí pots experimentar amb la llum. Usa colors neó sobre fons negre per a visualitzar com la llum es comporta en expandir-se des del centre. Activa el botó de \"Play\" al panell de control per a veure l'animació hipnòtica del creixement geomètric, perfecta per a respiració guiada.",
             footer_coffee: "☕ Convida'm a un cafè", legal_aviso: "Avís Legal", legal_privacidad: "Privadesa", legal_cookies: "Cookies"
         },
-        FR: {
+        fr: {
             sim_title: "LABO FLEUR DE VIE", btn_png: "💾 PNG", btn_jpg: "📸 JPG",
             style_title: "Esthétique & Lumière", bg_color: "Fond :", line_color: "Lignes :", fill_color: "Remplissage :",
             genesis_title: "Genèse (Expansion)", circles_label: "Cercles :", radius_label: "Rayon :", width_label: "Épaisseur :", opacity_label: "Opacité :", border_label: "Cadre Extérieur :",
@@ -358,7 +388,7 @@
             art_p5: "Contrairement aux dessins sur papier, vous pouvez ici expérimenter avec la lumière. Utilisez des couleurs néon sur fond noir pour visualiser comment la lumière se comporte lorsqu'elle se déploie à partir du centre. Activez le bouton \"Play\" du panneau de commande pour voir l'animation hypnotique de la croissance géométrique, parfaite pour la respiration guidée.",
             footer_coffee: "☕ Offrez-moi un café", legal_aviso: "Mentions Légales", legal_privacidad: "Confidentialité", legal_cookies: "Cookies"
         },
-        DE: {
+        de: {
             sim_title: "BLUME DES LEBENS LAB", btn_png: "💾 PNG", btn_jpg: "📸 JPG",
             style_title: "Ästhetik & Licht", bg_color: "Hintergrund:", line_color: "Linien:", fill_color: "Füllung:",
             genesis_title: "Genesis (Expansion)", circles_label: "Kreise:", radius_label: "Radius:", width_label: "Breite:", opacity_label: "Deckkraft:", border_label: "Rahmen:",
@@ -377,7 +407,7 @@
             art_p5: "Im Gegensatz zu Zeichnungen auf Papier können Sie hier mit Licht experimentieren. Verwenden Sie Neonfarben auf schwarzem Hintergrund, um zu visualisieren, wie sich Licht verhält, wenn es sich vom Zentrum aus ausdehnt. Aktivieren Sie die \"Play\"-Taste im Bedienfeld, um die hypnotische Animation des geometrischen Wachstums zu sehen, die sich perfekt für geführte Atemübungen eignet.",
             footer_coffee: "☕ Spendier mir einen Kaffee", legal_aviso: "Impressum", legal_privacidad: "Datenschutz", legal_cookies: "Cookies"
         },
-        PT: {
+        pt: {
             sim_title: "LAB FLOR DA VIDA", btn_png: "💾 PNG", btn_jpg: "📸 JPG",
             style_title: "Estética & Luz", bg_color: "Fundo:", line_color: "Linhas:", fill_color: "Preenchimento:",
             genesis_title: "Gênesis (Expansão)", circles_label: "Círculos:", radius_label: "Raio:", width_label: "Espessura:", opacity_label: "Opacidade:", border_label: "Moldura:",
@@ -396,7 +426,7 @@
             art_p5: "Ao contrário dos desenhos em papel, aqui pode experimentar com a luz. Use cores néon sobre fundo preto para visualizar como a luz se comporta ao expandir-se a partir do centro. Ative o botão \"Play\" no painel de controlo para ver a animação hipnótica do crescimento geométrico, perfeita para respiração guiada.",
             footer_coffee: "☕ Convide-me para um café", legal_aviso: "Aviso Legal", legal_privacidad: "Privacidade", legal_cookies: "Cookies"
         },
-        IT: {
+        it: {
             sim_title: "FIORE DELLA VITA LAB", btn_png: "💾 PNG", btn_jpg: "📸 JPG",
             style_title: "Estetica & Luce", bg_color: "Sfondo:", line_color: "Linee:", fill_color: "Riempimento:",
             genesis_title: "Genesi (Espansione)", circles_label: "Cerchi:", radius_label: "Raggio:", width_label: "Spessore:", opacity_label: "Opacità:", border_label: "Cornice:",
@@ -415,7 +445,7 @@
             art_p5: "A differenza dei disegni su carta, qui puoi sperimentare con la luce. Usa colori neon su sfondo nero per visualizzare come la luce si comporta mentre si espande dal centro. Attiva il pulsante \"Play\" nel pannello di controllo per vedere l'animazione ipnotica della crescita geometrica, perfetta per la respirazione guidata.",
             footer_coffee: "☕ Offrimi un caffè", legal_aviso: "Note Legali", legal_privacidad: "Privacy", legal_cookies: "Cookies"
         },
-        NL: {
+        nl: {
             sim_title: "BLOEM DES LEVENS LAB", btn_png: "💾 PNG", btn_jpg: "📸 JPG",
             style_title: "Esthetiek & Licht", bg_color: "Achtergrond:", line_color: "Lijnen:", fill_color: "Vulling:",
             genesis_title: "Genesis (Expansie)", circles_label: "Cirkels:", radius_label: "Straal:", width_label: "Dikte:", opacity_label: "Transparantie:", border_label: "Kader:",
@@ -434,7 +464,7 @@
             art_p5: "In tegenstelling tot tekeningen op papier, kunt u hier experimenteren met licht. Gebruik neonkleuren op een zwarte achtergrond om te visualiseren hoe licht zich gedraagt als het vanuit het centrum uitbreidt. Activeer de \"Play\"-knop in het bedieningspaneel om de hypnotiserende animatie van geometrische groei te zien, perfect voor begeleide ademhaling.",
             footer_coffee: "☕ Trakteer me op koffie", legal_aviso: "Juridisch", legal_privacidad: "Privacy", legal_cookies: "Cookies"
         },
-        JA: {
+        ja: {
             sim_title: "生命の花ラボ", btn_png: "💾 PNG", btn_jpg: "📸 JPG",
             style_title: "審美性と光", bg_color: "背景:", line_color: "線:", fill_color: "塗りつぶし:",
             genesis_title: "創世記 (拡張)", circles_label: "円の数:", radius_label: "半径:", width_label: "太さ:", opacity_label: "不透明度:", border_label: "外枠:",
@@ -455,17 +485,51 @@
         }
     };
 
-    function setLang(lang) {
-        const trans = translations[lang] || translations['ES'];
-        document.querySelectorAll('[data-i18n]').forEach(el => {
-            const key = el.getAttribute('data-i18n');
-            if (trans[key]) el.innerHTML = trans[key];
-        });
-        document.querySelectorAll('.lang-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.innerText === lang);
-        });
-    }
+    
+        function setLang(lang) {
+            const l = lang.toLowerCase();
+            localStorage.setItem('gl_lang', l);
+            const t = translations[l] || translations['es'] || translations['en'];
 
+            if (!t) return;
+
+            // 1. Update elements with data-i18n attribute
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) {
+                    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                        el.placeholder = t[key];
+                    } else {
+                        el.innerHTML = t[key];
+                    }
+                }
+            });
+
+            // 2. Highlight active language buttons
+            document.querySelectorAll('.lang-switch button, .lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.id === 'btn-' + l || btn.innerText.toLowerCase() === l);
+            });
+        }
+        window.setLang = setLang;
+
+        function switchLangUrl(lang) {
+            const pathParts = window.location.pathname.split('/');
+            const langIndex = pathParts.findIndex(p => ['es', 'ca', 'en', 'fr', 'de', 'pt', 'it', 'nl', 'ja'].includes(p));
+            if (langIndex !== -1) {
+                pathParts[langIndex] = lang.toLowerCase();
+                window.location.href = pathParts.join('/');
+            } else {
+                setLang(lang);
+            }
+        }
+        window.switchLangUrl = switchLangUrl;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const pathParts = window.location.pathname.split('/');
+            const urlLang = pathParts.find(p => ['es', 'ca', 'en', 'fr', 'de', 'pt', 'it', 'nl', 'ja'].includes(p));
+            const lang = urlLang || localStorage.getItem('gl_lang') || 'es';
+            setLang(lang);
+        });
     // --- LÓGICA DEL SIMULADOR (ORIGINAL E INTACTA) ---
     const canvas = document.getElementById('yantraCanvas');
     const ctx = canvas.getContext('2d');
